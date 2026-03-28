@@ -17,7 +17,7 @@ public class BlockDrag : MonoBehaviour
 
     private Vector2Int _curCell;
 
-    private Vector2Int[] Cells;
+    public Vector2Int[] Cells { get; set; }
 
     public GameObject PrefabBlock;
 
@@ -27,6 +27,21 @@ public class BlockDrag : MonoBehaviour
     private void Awake()
     {
         _camera = Camera.main;
+    }
+
+    public void GrayBlocks()
+    {
+        foreach (var block in BlockSpawned)
+        {
+            block.GetComponent<SpriteRenderer>().color = Color.black;
+        }
+    }
+    public void WhiteBlocks()
+    {
+        foreach (var block in BlockSpawned)
+        {
+            block.GetComponent<SpriteRenderer>().color = Color.white;
+        }
     }
     [Button]
     public void RefreshBlocks()
@@ -50,7 +65,7 @@ public class BlockDrag : MonoBehaviour
 
     void OnMouseDown()
     {
-        Debug.Log("down");
+        //Debug.Log("down");
 
         _startPos = transform.position;
         _previousPosition = Input.mousePosition;
@@ -93,17 +108,17 @@ public class BlockDrag : MonoBehaviour
                 if (Board.Instance.CanPlace(posConverted, Cells))
                 {
                     Board.Instance.Blur(posConverted, Cells);
-                    Debug.LogWarning($"x: {r}, y: {c}");
+                    //Debug.LogWarning($"x: {r}, y: {c}");
                 }
             }
 
-            Debug.Log($"drag");
+            //Debug.Log($"drag");
         }
     }
 
     void OnMouseUp()
     {
-        Debug.Log("up");
+        //Debug.Log("up");
         int r = Board.Instance.Col - 1 - _curCell.y;
         int c = _curCell.x;
         transform.position = _startPos;
@@ -118,10 +133,11 @@ public class BlockDrag : MonoBehaviour
             gameObject.SetActive(false);
 
             BlockManager.Count--;
-            if(BlockManager.Count <= 0)
+            if (BlockManager.Count <= 0)
             {
                 BlockManager.RefreshListBlocks();
             }
+            BlockManager.CheckBlocksCantPlace();
         }
     }
 

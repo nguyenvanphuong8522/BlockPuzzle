@@ -18,6 +18,12 @@ public class Board : MonoBehaviour
     {
         Instance = this;
     }
+
+    public void ResetData()
+    {
+        Data = new int[Row, Col];
+        HideAllCell();
+    }
     bool IsRowFull(int y)
     {
         for (int x = 0; x < Row; x++)
@@ -225,24 +231,39 @@ public class Board : MonoBehaviour
             }
         }
     }
-    [Button]
     public void HideCell(int x, int y)
     {
         Data[x, y] = 0;
         Cells[x, y].Hide();
     }
 
-    [Button]
 
     public void ShowCellNormal(int x, int y)
     {
         Cells[x, y].ShowNormal();
     }
-    [Button]
 
     public void ShowCellHighLight(int x, int y)
     {
         Cells[x, y].ShowHighLight();
     }
 
+    public bool CheckLose(Vector2Int[] cells)
+    {
+        for (int i = 0; i < Row; i++)
+        {
+            for (int j = 0; j < Col; j++)
+            {
+                if (Data[i, j] == 0)
+                {
+                    if(CanPlace(new Vector2Int(i, j), cells))
+                    {
+                        return false;
+                    }
+                }
+                
+            }
+        }
+        return true;
+    }
 }
