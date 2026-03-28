@@ -1,4 +1,6 @@
+using Sirenix.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BlocksManager : MonoBehaviour
@@ -6,19 +8,30 @@ public class BlocksManager : MonoBehaviour
     public List<BlockDrag> ListOfBlockDrag;
 
     public int Count { get; set; }
-
     private void Start()
     {
         Count = ListOfBlockDrag.Count;
+
+
         RefreshListBlocks();
     }
     public void RefreshListBlocks()
     {
         Count = ListOfBlockDrag.Count;
 
-        foreach (var blockDrag in ListOfBlockDrag)
+        List<int> result = new List<int>();
+
+        while (result.Count < 3)
         {
-            blockDrag.RefreshBlocks();
+            int newIndex = Random.Range(0, GameData.Instance.ListOfSkin.Count);
+            if(!result.Contains(newIndex))
+            {
+                result.Add(newIndex);
+            }
+        }
+        for (int k = 0; k < ListOfBlockDrag.Count; k++)
+        {
+            ListOfBlockDrag[k].RefreshBlocks(result[k]);
         }
     }
 

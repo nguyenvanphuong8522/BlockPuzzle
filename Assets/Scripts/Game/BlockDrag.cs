@@ -125,14 +125,13 @@ public class BlockDrag : MonoBehaviour
         }
     }
     [Button]
-    public void RefreshBlocks()
+    public void RefreshBlocks(int indexSprite)
     {
         foreach (var block in BlockSpawned)
         {
             Destroy(block);
         }
         BlockSpawned.Clear();
-        int indexSprite = Random.Range(0, GameData.Instance.ListOfSkin.Count);
         SpriteBlocks = GameData.Instance.ListOfSkin[indexSprite];
         int randomIndex = Random.Range(0, GameData.Instance.DataBlocks.Datas.Count);
         ListVector2Int newCells = GameData.Instance.DataBlocks.Datas[randomIndex];
