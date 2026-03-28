@@ -1,7 +1,5 @@
-﻿using Sirenix.OdinInspector;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class Board : MonoBehaviour
 {
@@ -18,7 +16,13 @@ public class Board : MonoBehaviour
     {
         Instance = this;
     }
-
+    private void Start()
+    {
+        Data = new int[Row, Col];
+        Cells = new CellRender[Row, Col];
+        InitCell();
+        HideAllCell();
+    }
     public void ResetData()
     {
         Data = new int[Row, Col];
@@ -44,10 +48,9 @@ public class Board : MonoBehaviour
 
         return true;
     }
-    public void CheckAndClear(Vector2Int pos, Vector2Int[] placedCells)
+    public HashSet<Vector2Int> GetCellsSameRowCol(Vector2Int pos, Vector2Int[] placedCells)
     {
         HashSet<int> rows = new HashSet<int>();
-
         HashSet<int> cols = new HashSet<int>();
         HashSet<Vector2Int> cellsToClear = new HashSet<Vector2Int>();
 
@@ -59,8 +62,6 @@ public class Board : MonoBehaviour
 
             cols.Add(x);
         }
-
-
         foreach (int y in rows)
         {
             if (IsRowFull(y))
@@ -82,14 +83,18 @@ public class Board : MonoBehaviour
                 }
             }
         }
+        return cellsToClear;
+    }
+    public void CheckAndClear(Vector2Int pos, Vector2Int[] placedCells)
+    {
+        HashSet<Vector2Int> cellsToClear = GetCellsSameRowCol(pos, placedCells);
 
-        // Clear
         foreach (var posd in cellsToClear)
         {
             HideCell(posd.x, posd.y);
         }
     }
-    public void Place(Vector2Int pos, Vector2Int[] cells)
+    public void Place(Sprite sprite,Vector2Int pos, Vector2Int[] cells)
     {
         foreach (var c in cells)
         {
@@ -97,10 +102,11 @@ public class Board : MonoBehaviour
             int y = pos.y + c.x;
 
             Data[x, y] = 1;
+            Cells[x, y].SpritePlaced = sprite;
             ShowCellNormal(x, y);
         }
     }
-    public void Blur(Vector2Int pos, Vector2Int[] cells)
+    public void Hover(Sprite sprite, Vector2Int pos, Vector2Int[] cells)
     {
         foreach (var c in cells)
         {
@@ -108,54 +114,19 @@ public class Board : MonoBehaviour
             int y = pos.y + c.x;
 
             Data[x, y] = 2;
+            Cells[x, y].UpdateSprite(sprite);
             Cells[x, y].ShowBlur();
         }
-        CheckHighLight(pos, cells);
+        CheckHighLight(sprite,pos, cells);
     }
 
-    private void CheckHighLight(Vector2Int pos, Vector2Int[] cells)
+    private void CheckHighLight(Sprite sprite,Vector2Int pos, Vector2Int[] cells)
     {
-        HashSet<int> rows = new HashSet<int>();
+        HashSet<Vector2Int> cellsToClear = GetCellsSameRowCol(pos, cells);
 
-        HashSet<int> cols = new HashSet<int>();
-
-        HashSet<Vector2Int> cellsToClear = new HashSet<Vector2Int>();
-        foreach (var c in cells)
-        {
-            int x = pos.x + c.y;
-            int y = pos.y + c.x;
-            rows.Add(y);
-
-            cols.Add(x);
-        }
-
-
-        foreach (int y in rows)
-        {
-            if (IsRowFull(y))
-            {
-                for (int x = 0; x < Row; x++)
-                {
-                    cellsToClear.Add(new Vector2Int(x, y));
-                }
-            }
-        }
-
-        foreach (int x in cols)
-        {
-            if (IsColumnFull(x))
-            {
-                for (int y = 0; y < Col; y++)
-                {
-                    cellsToClear.Add(new Vector2Int(x, y));
-                }
-            }
-        }
-
-        // Clear
         foreach (var posd in cellsToClear)
         {
-            ShowCellHighLight(posd.x, posd.y);
+            ShowCellHighLight(sprite,posd.x, posd.y);
         }
     }
     public bool CanPlace(Vector2Int pos, Vector2Int[] cells)
@@ -173,14 +144,6 @@ public class Board : MonoBehaviour
         }
 
         return true;
-    }
-
-    private void Start()
-    {
-        Data = new int[Row, Col];
-        Cells = new CellRender[Row, Col];
-        InitCell();
-        HideAllCell();
     }
 
     private void InitCell()
@@ -226,6 +189,7 @@ public class Board : MonoBehaviour
                 }
                 if (Data[i, j] == 1)
                 {
+                    SetSpritePlaced(i, j);
                     ShowCellNormal(i, j);
                 }
             }
@@ -237,15 +201,20 @@ public class Board : MonoBehaviour
         Cells[x, y].Hide();
     }
 
-
     public void ShowCellNormal(int x, int y)
     {
         Cells[x, y].ShowNormal();
     }
 
-    public void ShowCellHighLight(int x, int y)
+    public void SetSpritePlaced(int x, int y)
     {
-        Cells[x, y].ShowHighLight();
+        Cells[x, y].UpdateSprite(Cells[x, y].SpritePlaced);
+    }
+
+    public void ShowCellHighLight(Sprite sprite,int x, int y)
+    {
+        Cells[x, y].UpdateSprite(sprite);
+        Cells[x, y].ShowNormal();
     }
 
     public bool CheckLose(Vector2Int[] cells)
@@ -261,7 +230,6 @@ public class Board : MonoBehaviour
                         return false;
                     }
                 }
-                
             }
         }
         return true;

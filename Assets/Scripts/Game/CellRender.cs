@@ -5,15 +5,16 @@ public class CellRender : MonoBehaviour
     [SerializeField]
     private SpriteRenderer _spriteRenderer;
 
+    public Sprite SpritePlaced;
+    public void UpdateSprite(Sprite sprite)
+    {
+        _spriteRenderer.sprite = sprite;
+    }
     public void Hide()
     {
         _spriteRenderer.enabled = false;
     }
-    public void ShowHighLight()
-    {
-        _spriteRenderer.enabled = true;
-        _spriteRenderer.color = Color.red;
-    }
+
     public void ShowNormal()
     {
         _spriteRenderer.enabled = true;

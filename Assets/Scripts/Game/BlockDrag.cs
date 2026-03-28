@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class BlockDrag : MonoBehaviour
 {
-
     private Vector3 _startPos;
     private Vector3 _startScale;
 
@@ -17,52 +16,21 @@ public class BlockDrag : MonoBehaviour
 
     private Vector2Int _curCell;
 
+    private float _scaleMulti = 2;
+    private float _durationScale = 0.15f;
+    private float _cellSize = 1f;
+    private float _offsetY = 2f;
     public Vector2Int[] Cells { get; set; }
 
     public GameObject PrefabBlock;
 
     public List<GameObject> BlockSpawned;
     public BlocksManager BlockManager;
-
+    public Sprite SpriteBlocks;
     private void Awake()
     {
         _camera = Camera.main;
     }
-
-    public void GrayBlocks()
-    {
-        foreach (var block in BlockSpawned)
-        {
-            block.GetComponent<SpriteRenderer>().color = Color.black;
-        }
-    }
-    public void WhiteBlocks()
-    {
-        foreach (var block in BlockSpawned)
-        {
-            block.GetComponent<SpriteRenderer>().color = Color.white;
-        }
-    }
-    [Button]
-    public void RefreshBlocks()
-    {
-        foreach (var block in BlockSpawned)
-        {
-            Destroy(block);
-        }
-        BlockSpawned.Clear();
-        int randomIndex = Random.Range(0, GameData.Instance.DataBlocks.Datas.Count);
-        ListVector2Int newCells = GameData.Instance.DataBlocks.Datas[randomIndex];
-        Cells = newCells.Array;
-        for (int i = 0; i < Cells.Length; i++)
-        {
-            GameObject newCell = Instantiate(PrefabBlock, transform);
-            newCell.transform.position = transform.position + new Vector3(Cells[i].x, -Cells[i].y, 0) * 0.5f;
-            BlockSpawned.Add(newCell);
-        }
-        gameObject.SetActive(true);
-    }
-
     void OnMouseDown()
     {
         //Debug.Log("down");
@@ -70,17 +38,13 @@ public class BlockDrag : MonoBehaviour
         _startPos = transform.position;
         _previousPosition = Input.mousePosition;
         _startScale = transform.localScale;
-        transform.DOScale(_startScale * 2f, 0.15f);
-        transform.DOMoveY(transform.position.y + 2f, 0.15f);
+        transform.DOScale(_startScale * _scaleMulti, _durationScale);
+        transform.DOMoveY(transform.position.y + _offsetY, _durationScale);
         Vector3 mousePosition = _camera.ScreenToWorldPoint(Input.mousePosition);
 
         _offset = transform.position - mousePosition;
-        transform.position += new Vector3(0, 2, 0);
-        int x = Mathf.RoundToInt(transform.position.x / 1);
 
-        int y = Mathf.RoundToInt(transform.position.y / 1);
-
-        Vector2Int cellPosition = new Vector2Int(x, y);
+        Vector2Int cellPosition = WorldToGrid(transform.position);
         _curCell = cellPosition;
     }
 
@@ -91,27 +55,24 @@ public class BlockDrag : MonoBehaviour
             Vector3 mousePosition = _camera.ScreenToWorldPoint(Input.mousePosition);
             Vector3 finalPosition = mousePosition + _offset;
             _previousPosition = Input.mousePosition;
-            transform.position = mousePosition + _offset + new Vector3(0, 2, 0);
+            transform.position = mousePosition + _offset + new Vector3(0, _offsetY, 0);
 
-            int x = Mathf.RoundToInt(transform.position.x / 1);
-            int y = Mathf.RoundToInt(transform.position.y / 1);
+            Vector2Int cellPosition = WorldToGrid(transform.position);
 
-            Vector2Int cellPosition = new Vector2Int(x, y);
             if (cellPosition != _curCell)
             {
                 _curCell = cellPosition;
-                int r = Board.Instance.Col -1 - cellPosition.y;
+                int r = Board.Instance.Col - 1 - cellPosition.y;
                 int c = cellPosition.x;
                 Board.Instance.HideAllCellHover();
                 Vector2Int posConverted = new Vector2Int(r, c);
 
                 if (Board.Instance.CanPlace(posConverted, Cells))
                 {
-                    Board.Instance.Blur(posConverted, Cells);
+                    Board.Instance.Hover(SpriteBlocks, posConverted, Cells);
                     //Debug.LogWarning($"x: {r}, y: {c}");
                 }
             }
-
             //Debug.Log($"drag");
         }
     }
@@ -127,7 +88,7 @@ public class BlockDrag : MonoBehaviour
         Vector2Int posConverted = new Vector2Int(r, c);
         if (Board.Instance.CanPlace(posConverted, Cells))
         {
-            Board.Instance.Place(posConverted, Cells);
+            Board.Instance.Place(SpriteBlocks,posConverted, Cells);
             Board.Instance.CheckAndClear(posConverted, Cells);
 
             gameObject.SetActive(false);
@@ -139,6 +100,54 @@ public class BlockDrag : MonoBehaviour
             }
             BlockManager.CheckBlocksCantPlace();
         }
+    }
+
+    private Vector2Int WorldToGrid(Vector3 worldPos)
+    {
+        int x = Mathf.RoundToInt(transform.position.x / _cellSize);
+        int y = Mathf.RoundToInt(transform.position.y / _cellSize);
+
+        Vector2Int cellPosition = new Vector2Int(x, y);
+        return cellPosition;
+    }
+    public void GrayBlocks()
+    {
+        foreach (var block in BlockSpawned)
+        {
+            block.GetComponent<SpriteRenderer>().sprite = GameData.Instance.GrayBlock;
+        }
+    }
+    public void WhiteBlocks()
+    {
+        foreach (var block in BlockSpawned)
+        {
+            block.GetComponent<SpriteRenderer>().sprite = SpriteBlocks;
+        }
+    }
+    [Button]
+    public void RefreshBlocks()
+    {
+        foreach (var block in BlockSpawned)
+        {
+            Destroy(block);
+        }
+        BlockSpawned.Clear();
+        int indexSprite = Random.Range(0, GameData.Instance.ListOfSkin.Count);
+        SpriteBlocks = GameData.Instance.ListOfSkin[indexSprite];
+        int randomIndex = Random.Range(0, GameData.Instance.DataBlocks.Datas.Count);
+        ListVector2Int newCells = GameData.Instance.DataBlocks.Datas[randomIndex];
+        Cells = newCells.Array;
+        for (int i = 0; i < Cells.Length; i++)
+        {
+            GameObject newCell = Instantiate(PrefabBlock, transform);
+            newCell.transform.position = transform.position + new Vector3(Cells[i].x, -Cells[i].y, 0) * 0.5f;
+            if(newCell.TryGetComponent(out SpriteRenderer spriteRenderer))
+            {
+                spriteRenderer.sprite = SpriteBlocks;
+            }
+            BlockSpawned.Add(newCell);
+        }
+        gameObject.SetActive(true);
     }
 
 }
