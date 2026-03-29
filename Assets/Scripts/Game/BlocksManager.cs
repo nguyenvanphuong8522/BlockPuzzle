@@ -56,6 +56,7 @@ public class BlocksManager : MonoBehaviour
         }
         if(Count > 0 && countLose >= Count)
         {
+            Time.timeScale = 0;
             PopUpReplay.Instance.Show();
             Debug.LogWarning("LOSE");
         }
