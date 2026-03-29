@@ -4,6 +4,8 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     public static Board Instance;
+    public ScoreManager ScoreManager;
+
     public GameObject CellPrefab;
     public int Row;
     public int Col;
@@ -28,6 +30,7 @@ public class Board : MonoBehaviour
     {
         Data = new int[Row, Col];
         HideAllCell();
+        ScoreManager.ResetScore();
     }
     bool IsRowFull(int y)
     {
@@ -94,6 +97,7 @@ public class Board : MonoBehaviour
         {
             HideCell(posd.x, posd.y);
         }
+        ScoreManager.AddClearScore(cellsToClear.Count);
     }
     public void Place(Sprite sprite,Vector2Int pos, Vector2Int[] cells)
     {
