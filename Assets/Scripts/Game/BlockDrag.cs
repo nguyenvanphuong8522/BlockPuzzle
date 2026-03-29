@@ -20,7 +20,7 @@ public class BlockDrag : MonoBehaviour
     private float _durationScale = 0.15f;
     private float _cellSize = 1f;
     private float _offsetY = 2f;
-    public Vector2Int[] Cells { get; set; }
+    public List<Vector2Int> Cells { get; set; }
 
     public GameObject PrefabBlock;
 
@@ -152,10 +152,10 @@ public class BlockDrag : MonoBehaviour
         }
         BlockSpawned.Clear();
         SpriteBlocks = GameData.Instance.ListOfSkin[indexSprite];
-        int randomIndex = Random.Range(0, GameData.Instance.DataBlocks.Datas.Count);
-        ListVector2Int newCells = GameData.Instance.DataBlocks.Datas[randomIndex];
-        Cells = newCells.Array;
-        for (int i = 0; i < Cells.Length; i++)
+        int randomIndex = Random.Range(0, GameData.Instance.ShapeDatas.Count);
+        List<Vector2Int> newCells = GameData.Instance.ShapeDatas[randomIndex].cells;
+        Cells = newCells;
+        for (int i = 0; i < Cells.Count; i++)
         {
             GameObject newCell = Instantiate(PrefabBlock, transform);
             Vector2 center = GetCenter();

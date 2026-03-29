@@ -52,7 +52,7 @@ public class Board : MonoBehaviour
 
         return true;
     }
-    public HashSet<Vector2Int> GetCellsSameRowCol(Vector2Int pos, Vector2Int[] placedCells)
+    public HashSet<Vector2Int> GetCellsSameRowCol(Vector2Int pos, List<Vector2Int> placedCells)
     {
         HashSet<int> rows = new HashSet<int>();
         HashSet<int> cols = new HashSet<int>();
@@ -89,7 +89,7 @@ public class Board : MonoBehaviour
         }
         return cellsToClear;
     }
-    public void CheckAndClear(Vector2Int pos, Vector2Int[] placedCells)
+    public void CheckAndClear(Vector2Int pos, List<Vector2Int> placedCells)
     {
         HashSet<Vector2Int> cellsToClear = GetCellsSameRowCol(pos, placedCells);
 
@@ -99,7 +99,7 @@ public class Board : MonoBehaviour
         }
         ScoreManager.AddClearScore(cellsToClear.Count);
     }
-    public void Place(Sprite sprite,Vector2Int pos, Vector2Int[] cells)
+    public void Place(Sprite sprite,Vector2Int pos, List<Vector2Int> cells)
     {
         foreach (var c in cells)
         {
@@ -111,7 +111,7 @@ public class Board : MonoBehaviour
             ShowCellNormal(x, y);
         }
     }
-    public void Hover(Sprite sprite, Vector2Int pos, Vector2Int[] cells)
+    public void Hover(Sprite sprite, Vector2Int pos, List<Vector2Int> cells)
     {
         foreach (var c in cells)
         {
@@ -125,7 +125,7 @@ public class Board : MonoBehaviour
         CheckHighLight(sprite,pos, cells);
     }
 
-    private void CheckHighLight(Sprite sprite,Vector2Int pos, Vector2Int[] cells)
+    private void CheckHighLight(Sprite sprite,Vector2Int pos, List<Vector2Int> cells)
     {
         HashSet<Vector2Int> cellsToClear = GetCellsSameRowCol(pos, cells);
 
@@ -134,7 +134,7 @@ public class Board : MonoBehaviour
             ShowCellHighLight(sprite,posd.x, posd.y);
         }
     }
-    public bool CanPlace(Vector2Int pos, Vector2Int[] cells)
+    public bool CanPlace(Vector2Int pos, List<Vector2Int> cells)
     {
         foreach (var c in cells)
         {
@@ -222,7 +222,7 @@ public class Board : MonoBehaviour
         Cells[x, y].ShowNormal();
     }
 
-    public bool CheckLose(Vector2Int[] cells)
+    public bool CheckLose(List<Vector2Int> cells)
     {
         for (int i = 0; i < Row; i++)
         {

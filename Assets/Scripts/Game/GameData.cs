@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GameData : MonoBehaviour
 {
-    public DataBlocks DataBlocks;
+    public List<ShapeData> ShapeDatas;
 
     public static GameData Instance;
 
