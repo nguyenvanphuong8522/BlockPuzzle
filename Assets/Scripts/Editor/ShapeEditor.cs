@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 public class ShapeEditor : EditorWindow
@@ -39,6 +39,25 @@ public class ShapeEditor : EditorWindow
             SaveShape();
         }
     }
+    void DrawShape(Vector2Int[] cells)
+    {
+        grid = new bool[size, size];
+
+        foreach (var cell in cells)
+        {
+            int x = cell.x;
+            int y = cell.y;
+
+            // nếu grid editor bị đảo Y thì phải flip:
+            int drawY = size - 1 - y;
+
+            if (x >= 0 && x < size &&
+               drawY >= 0 && drawY < size)
+            {
+                grid[x, drawY] = true;
+            }
+        }
+    }
 
     void DrawGrid()
     {
@@ -54,8 +73,7 @@ public class ShapeEditor : EditorWindow
 
                 if (GUILayout.Button("", GUILayout.Width(40), GUILayout.Height(40)))
                 {
-                    grid[x, y] =
-                    !grid[x, y];
+                    grid[x, y] = !grid[x, y];
                 }
 
                 GUI.backgroundColor = old;
@@ -83,8 +101,7 @@ public class ShapeEditor : EditorWindow
             }
         }
 
-        EditorUtility.SetDirty(
-        currentShape);
+        EditorUtility.SetDirty(currentShape);
 
         AssetDatabase.SaveAssets();
     }
