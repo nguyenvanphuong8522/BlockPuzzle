@@ -44,7 +44,7 @@ public class BlockDrag : MonoBehaviour
 
         _offset = transform.position - mousePosition;
 
-        Vector2Int cellPosition = WorldToGrid(transform.position);
+        Vector2Int cellPosition = WorldToGrid(transform.position - new Vector3(GetCenter().x, -GetCenter().y, 0));
         _curCell = cellPosition;
     }
 
@@ -57,7 +57,7 @@ public class BlockDrag : MonoBehaviour
             _previousPosition = Input.mousePosition;
             transform.position = mousePosition + _offset + new Vector3(0, _offsetY, 0);
 
-            Vector2Int cellPosition = WorldToGrid(transform.position);
+            Vector2Int cellPosition = WorldToGrid(transform.position - new Vector3(GetCenter().x, -GetCenter().y, 0));
 
             if (cellPosition != _curCell)
             {
@@ -88,7 +88,7 @@ public class BlockDrag : MonoBehaviour
         Vector2Int posConverted = new Vector2Int(r, c);
         if (Board.Instance.CanPlace(posConverted, Cells))
         {
-            Board.Instance.Place(SpriteBlocks,posConverted, Cells);
+            Board.Instance.Place(SpriteBlocks, posConverted, Cells);
             Board.Instance.CheckAndClear(posConverted, Cells);
 
             gameObject.SetActive(false);
@@ -104,8 +104,8 @@ public class BlockDrag : MonoBehaviour
 
     private Vector2Int WorldToGrid(Vector3 worldPos)
     {
-        int x = Mathf.RoundToInt(transform.position.x / _cellSize);
-        int y = Mathf.RoundToInt(transform.position.y / _cellSize);
+        int x = Mathf.RoundToInt(worldPos.x / _cellSize);
+        int y = Mathf.RoundToInt(worldPos.y / _cellSize);
 
         Vector2Int cellPosition = new Vector2Int(x, y);
         return cellPosition;
@@ -124,6 +124,25 @@ public class BlockDrag : MonoBehaviour
             block.GetComponent<SpriteRenderer>().sprite = SpriteBlocks;
         }
     }
+    Vector2 GetCenter()
+    {
+        int minX = int.MaxValue;
+        int maxX = int.MinValue;
+
+        int minY = int.MaxValue;
+        int maxY = int.MinValue;
+
+        foreach (var c in Cells)
+        {
+            if (c.x < minX) minX = c.x;
+            if (c.x > maxX) maxX = c.x;
+
+            if (c.y < minY) minY = c.y;
+            if (c.y > maxY) maxY = c.y;
+        }
+
+        return new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
+    }
     [Button]
     public void RefreshBlocks(int indexSprite)
     {
@@ -139,8 +158,10 @@ public class BlockDrag : MonoBehaviour
         for (int i = 0; i < Cells.Length; i++)
         {
             GameObject newCell = Instantiate(PrefabBlock, transform);
-            newCell.transform.position = transform.position + new Vector3(Cells[i].x, -Cells[i].y, 0) * 0.5f;
-            if(newCell.TryGetComponent(out SpriteRenderer spriteRenderer))
+            Vector2 center = GetCenter();
+
+            newCell.transform.localPosition = (new Vector3(Cells[i].x - center.x, -(Cells[i].y - center.y), 0)) * 0.5f;
+            if (newCell.TryGetComponent(out SpriteRenderer spriteRenderer))
             {
                 spriteRenderer.sprite = SpriteBlocks;
             }
