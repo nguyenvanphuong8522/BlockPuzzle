@@ -5,10 +5,20 @@ public class CellRender : MonoBehaviour
     [SerializeField]
     private SpriteRenderer _spriteRenderer;
 
+    [SerializeField]
+    private SpriteRenderer _spriteRendererShine;
     public Sprite SpritePlaced;
     public void UpdateSprite(Sprite sprite)
     {
         _spriteRenderer.sprite = sprite;
+    }
+    public void ShowEffectShine()
+    {
+        _spriteRendererShine.enabled = true;
+    }
+    public void HideEffectShine()
+    {
+        _spriteRendererShine.enabled = false;
     }
     public void Hide()
     {

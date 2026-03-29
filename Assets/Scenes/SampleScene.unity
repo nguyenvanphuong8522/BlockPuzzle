@@ -291,7 +291,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b406171a2f536349aa9d63d77c8ac1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlockDrag
-  PrefabBlock: {fileID: 4038330242070160195, guid: fce42410446e1b740afeb26ff7891251, type: 3}
   BlockSpawned: []
   BlockManager: {fileID: 7510091}
   SpriteBlocks: {fileID: 0}
@@ -631,6 +630,56 @@ MonoBehaviour:
   CellPrefab: {fileID: 6584509825958967155, guid: 346f5698b2ac1bb4cb150f4a694baf9e, type: 3}
   Row: 8
   Col: 8
+--- !u!1 &745325962
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 745325964}
+  - component: {fileID: 745325963}
+  m_Layer: 0
+  m_Name: ObjectPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &745325963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 745325962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c87a2f0eb95bb7048a32d09650132c38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectPool
+  pools: []
+  Block:
+    name: 
+    prefab: {fileID: 4038330242070160195, guid: fce42410446e1b740afeb26ff7891251, type: 3}
+    count: 10
+    actives: []
+--- !u!4 &745325964
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 745325962}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &804611819
 GameObject:
   m_ObjectHideFlags: 0
@@ -881,12 +930,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1018995280}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 3.533, y: 3.446, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1801495854}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1048942279
 GameObject:
@@ -994,7 +1043,7 @@ GameObject:
   - component: {fileID: 1162237949}
   - component: {fileID: 1162237948}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: ScoreManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1148,12 +1197,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1191825174}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 3.5, y: 3.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1801495854}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1197349477
 GameObject:
@@ -1608,7 +1657,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b406171a2f536349aa9d63d77c8ac1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlockDrag
-  PrefabBlock: {fileID: 4038330242070160195, guid: fce42410446e1b740afeb26ff7891251, type: 3}
   BlockSpawned: []
   BlockManager: {fileID: 7510091}
   SpriteBlocks: {fileID: 0}
@@ -2033,6 +2081,39 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1730347766}
   m_CullTransparentMesh: 1
+--- !u!1 &1801495853
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1801495854}
+  m_Layer: 0
+  m_Name: BackGround
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1801495854
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1801495853}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1191825176}
+  - {fileID: 1018995282}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1984210727
 GameObject:
   m_ObjectHideFlags: 0
@@ -2164,7 +2245,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b406171a2f536349aa9d63d77c8ac1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlockDrag
-  PrefabBlock: {fileID: 4038330242070160195, guid: fce42410446e1b740afeb26ff7891251, type: 3}
   BlockSpawned: []
   BlockManager: {fileID: 7510091}
   SpriteBlocks: {fileID: 0}
@@ -2486,9 +2566,9 @@ SceneRoots:
   - {fileID: 961053761}
   - {fileID: 519420032}
   - {fileID: 1723327854}
+  - {fileID: 745325964}
   - {fileID: 1162237949}
   - {fileID: 1048942280}
-  - {fileID: 1191825176}
-  - {fileID: 1018995282}
+  - {fileID: 1801495854}
   - {fileID: 643599727}
   - {fileID: 7510090}

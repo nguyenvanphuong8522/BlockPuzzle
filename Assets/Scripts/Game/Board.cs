@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class Board : MonoBehaviour
+public class Board : Singleton<Board>
 {
-    public static Board Instance;
     public ScoreManager ScoreManager;
 
     public GameObject CellPrefab;
@@ -14,9 +13,9 @@ public class Board : MonoBehaviour
 
     public int[,] Data;
 
-    private void Awake()
+    public override void Awake()
     {
-        Instance = this;
+        base.Awake();
         Application.targetFrameRate = 60;
     }
     private void Start()
@@ -178,6 +177,7 @@ public class Board : MonoBehaviour
         foreach (CellRender cell in Cells)
         {
             cell.Hide();
+            cell.HideEffectShine();
         }
     }
 
@@ -196,6 +196,7 @@ public class Board : MonoBehaviour
                 {
                     SetSpritePlaced(i, j);
                     ShowCellNormal(i, j);
+                    HideEffectShine(i, j);
                 }
             }
         }
@@ -204,11 +205,17 @@ public class Board : MonoBehaviour
     {
         Data[x, y] = 0;
         Cells[x, y].Hide();
+        Cells[x, y].HideEffectShine();
     }
 
     public void ShowCellNormal(int x, int y)
     {
         Cells[x, y].ShowNormal();
+    }
+
+    public void HideEffectShine(int x, int y)
+    {
+        Cells[x, y].HideEffectShine();
     }
 
     public void SetSpritePlaced(int x, int y)
@@ -220,6 +227,7 @@ public class Board : MonoBehaviour
     {
         Cells[x, y].UpdateSprite(sprite);
         Cells[x, y].ShowNormal();
+        Cells[x, y].ShowEffectShine();
     }
 
     public bool CheckLose(List<Vector2Int> cells)

@@ -17,12 +17,12 @@ public class BlockDrag : MonoBehaviour
     private Vector2Int _curCell;
 
     private float _scaleMulti = 2;
-    private float _durationScale = 0.15f;
+    private float _durationScale = 0.1f;
     private float _cellSize = 1f;
     private float _offsetY = 2f;
     public List<Vector2Int> Cells { get; set; }
 
-    public GameObject PrefabBlock;
+    //public GameObject PrefabBlock;
 
     public List<GameObject> BlockSpawned;
     public BlocksManager BlockManager;
@@ -34,7 +34,7 @@ public class BlockDrag : MonoBehaviour
     void OnMouseDown()
     {
         //Debug.Log("down");
-
+        transform.DOKill();
         _startPos = transform.position;
         _previousPosition = Input.mousePosition;
         _startScale = transform.localScale;
@@ -80,10 +80,12 @@ public class BlockDrag : MonoBehaviour
     void OnMouseUp()
     {
         //Debug.Log("up");
+        transform.DOKill();
+
         int r = Board.Instance.Col - 1 - _curCell.y;
         int c = _curCell.x;
         transform.position = _startPos;
-        transform.localScale = _startScale;
+        transform.localScale = Vector3.one;
 
         Vector2Int posConverted = new Vector2Int(r, c);
         if (Board.Instance.CanPlace(posConverted, Cells))
@@ -148,7 +150,7 @@ public class BlockDrag : MonoBehaviour
     {
         foreach (var block in BlockSpawned)
         {
-            Destroy(block);
+            ObjectPool.Instance.Return(block);
         }
         BlockSpawned.Clear();
         SpriteBlocks = GameData.Instance.ListOfSkin[indexSprite];
@@ -157,7 +159,9 @@ public class BlockDrag : MonoBehaviour
         Cells = newCells;
         for (int i = 0; i < Cells.Count; i++)
         {
-            GameObject newCell = Instantiate(PrefabBlock, transform);
+            GameObject newCell = ObjectPool.Instance.Get(ObjectPool.Instance.Block);
+            newCell.transform.localScale = Vector3.one * 0.5f;
+            newCell.transform.parent = transform;
             Vector2 center = GetCenter();
 
             newCell.transform.localPosition = (new Vector3(Cells[i].x - center.x, -(Cells[i].y - center.y), 0)) * 0.5f;
