@@ -1,0 +1,50 @@
+workflows:
+  unity-android:
+    name: Unity Android
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        # Create this group in Codemagic (Team settings > Global variables, or App settings > Environment variables)
+        # with UNITY_EMAIL, UNITY_PASSWORD and UNITY_SERIAL (Unity Plus/Pro serial).
+        - unity_credentials
+      vars:
+        UNITY_VERSION: 6000.3.18f1
+        UNITY_VERSION_CHANGESET: 5ebeb53e4c07
+        UNITY_HUB: /Applications/Unity Hub.app/Contents/MacOS/Unity Hub
+        UNITY_PATH: /Applications/Unity/Hub/Editor/6000.3.18f1/Unity.app/Contents/MacOS/Unity
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: master
+          include: true
+    scripts:
+      - name: Install Unity editor + Android module
+        script: |
+          if [ ! -f "$UNITY_PATH" ]; then
+            "$UNITY_HUB" -- --headless install \
+              --version $UNITY_VERSION \
+              --changeset $UNITY_VERSION_CHANGESET \
+              --module android --childModules
+          fi
+      - name: Activate Unity license
+        script: |
+          "$UNITY_PATH" -batchmode -quit -logFile - \
+            -serial ${UNITY_SERIAL?} \
+            -username ${UNITY_EMAIL?} \
+            -password ${UNITY_PASSWORD?}
+      - name: Build Android APK
+        script: |
+          "$UNITY_PATH" -batchmode -quit -logFile - \
+            -projectPath . \
+            -buildTarget Android \
+            -executeMethod BuildScript.BuildAndroid \
+            -nographics
+    artifacts:
+      - Build/Android/*.apk
+    publishing:
+      scripts:
+        - name: Return Unity license
+          script: |
+            "$UNITY_PATH" -batchmode -quit -returnlicense -nographics
