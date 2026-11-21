@@ -1,0 +1,495 @@
+using System;
+using System.Collections.Generic;
+using MessagePipe;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEngine;
+
+namespace Survivor
+{
+    // All enemies live in parallel arrays (structure of arrays): no GameObject, Collider or Rigidbody.
+    // Index i in every array is the same enemy. Removal swaps the last enemy into the hole.
+    //
+    // Per frame:
+    //   1. Burst job builds the spatial grid.
+    //   2. Burst parallel job moves every enemy (chase + separation + knockback), using all CPU cores.
+    //      Enemies outside the screen update every other frame and skip separation.
+    //   3. Burst job: hit flash, strongest contact damage, boss lookup. Main thread only runs the boss ability.
+    // On WebGL the jobs simply run on the main thread with the same results.
+    public sealed class EnemySystem : IDisposable
+    {
+        public const float MaxRadius = 1.3f;
+        const int MaxNeighborScan = 24;
+        const int MaxOverlaps = 6;
+        const int InitialCapacity = 1024;
+
+        public int Count { get; private set; }
+
+        // Read by weapons and projectiles (main thread, while no job is running).
+        public NativeArray<Vector2> Position;
+        public NativeArray<float> Hp;
+        public NativeArray<float> Radius;
+        public int[] Id = new int[InitialCapacity]; // unique per spawn, survives index swaps
+
+        // Job data
+        NativeArray<Vector2> positionNext;
+        NativeArray<Vector2> knockback;
+        NativeArray<Vector2> knockbackNext;
+        NativeArray<float> moveSpeed; // base speed x current multiplier (bosses charge)
+        NativeArray<float> flash;     // hit flash timer
+        NativeArray<float> damage;
+        NativeArray<byte> isBoss;
+        NativeArray<float> contactDamage; // [0] = strongest enemy touching the player this frame
+        NativeArray<int> bossFound;       // [0] = index of a living boss, or -1
+
+        // Main-thread-only data
+        float[] maxHp = new float[InitialCapacity];
+        float[] speed = new float[InitialCapacity];
+        int[] xp = new int[InitialCapacity];
+        int[] type = new int[InitialCapacity];
+        float[] abilityTimer = new float[InitialCapacity]; // bosses: time until next charge
+        float[] chargeTimer = new float[InitialCapacity];  // bosses: > 0 while charging
+
+        readonly GameConfig config;
+        readonly Player player;
+        readonly IPublisher<EnemyKilledEvent> killedPublisher;
+        readonly DamageNumberSystem damageNumbers;
+        readonly EnemyDrawer drawer;
+        readonly AudioService audio;
+        readonly SpatialGrid grid = new SpatialGrid(1f);
+        readonly List<int> candidates = new List<int>(128);
+        readonly List<int> dead = new List<int>(128);
+        int nextId = 1;
+        int frame;
+
+        // Current boss, for the HUD health bar. BossIndex is -1 when no boss is alive.
+        public int BossIndex { get; private set; } = -1;
+        public float BossHpRatio => BossIndex >= 0 ? Mathf.Clamp01(Hp[BossIndex] / maxHp[BossIndex]) : 0f;
+        public string BossName => BossIndex >= 0 ? config.Enemies[type[BossIndex]].Name : "";
+
+        public EnemySystem(GameConfig config, Player player, IPublisher<EnemyKilledEvent> killedPublisher,
+            DamageNumberSystem damageNumbers, EnemyDrawer drawer, AudioService audio)
+        {
+            this.config = config;
+            this.player = player;
+            this.killedPublisher = killedPublisher;
+            this.damageNumbers = damageNumbers;
+            this.drawer = drawer;
+            this.audio = audio;
+
+            Position = new NativeArray<Vector2>(InitialCapacity, Allocator.Persistent);
+            Hp = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
+            Radius = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
+            positionNext = new NativeArray<Vector2>(InitialCapacity, Allocator.Persistent);
+            knockback = new NativeArray<Vector2>(InitialCapacity, Allocator.Persistent);
+            knockbackNext = new NativeArray<Vector2>(InitialCapacity, Allocator.Persistent);
+            moveSpeed = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
+            flash = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
+            damage = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
+            isBoss = new NativeArray<byte>(InitialCapacity, Allocator.Persistent);
+            contactDamage = new NativeArray<float>(1, Allocator.Persistent);
+            bossFound = new NativeArray<int>(1, Allocator.Persistent);
+        }
+
+        public bool IsAlive(int i) => Hp[i] > 0f;
+
+        public void Spawn(int typeIndex, Vector2 position, float hpMultiplier)
+        {
+            var def = config.Enemies[typeIndex];
+            if (Count >= config.MaxEnemies && !def.IsBoss) return;
+            if (Count == Position.Length) Grow();
+
+            var i = Count++;
+            Position[i] = position;
+            Hp[i] = maxHp[i] = def.Hp * hpMultiplier;
+            Radius[i] = def.Radius;
+            Id[i] = nextId++;
+            knockback[i] = Vector2.zero;
+            speed[i] = def.IsBoss ? def.Speed : def.Speed * UnityEngine.Random.Range(0.9f, 1.1f);
+            moveSpeed[i] = speed[i];
+            damage[i] = def.Damage;
+            xp[i] = def.Xp;
+            type[i] = typeIndex;
+            isBoss[i] = (byte)(def.IsBoss ? 1 : 0);
+            flash[i] = 0f;
+            abilityTimer[i] = config.BossChargeInterval;
+            chargeTimer[i] = 0f;
+        }
+
+        public void Tick(float dt)
+        {
+            frame++;
+            var ringRadius = SpawnRingRadius();
+            var visibleRadius = ringRadius - 1.5f; // half diagonal of the screen
+
+            var positions = Position.Reinterpret<float2>();
+            var build = grid.ScheduleBuild(positions, Count, default);
+            var move = new MoveJob
+            {
+                Pos = positions,
+                KnockIn = knockback.Reinterpret<float2>(),
+                Hp = Hp,
+                Radius = Radius,
+                MoveSpeed = moveSpeed,
+                BucketStart = grid.BucketStart,
+                Items = grid.Items,
+                PosOut = positionNext.Reinterpret<float2>(),
+                KnockOut = knockbackNext.Reinterpret<float2>(),
+                Player = player.Position,
+                Dt = dt,
+                DecayNear = Mathf.Exp(-8f * dt),
+                DecayFar = Mathf.Exp(-16f * dt),
+                RingRadius = ringRadius,
+                DespawnSq = config.DespawnDistance * config.DespawnDistance,
+                FarSq = visibleRadius * visibleRadius,
+                InverseCellSize = grid.InverseCellSize,
+                Parity = frame & 1,
+            }.Schedule(Count, 64, build);
+            var post = new PostJob
+            {
+                Pos = positionNext.Reinterpret<float2>(), // the job above wrote the new positions here
+                Hp = Hp, Radius = Radius, Damage = damage, IsBoss = isBoss, Flash = flash,
+                Player = player.Position, PlayerRadius = player.Radius, Dt = dt, Count = Count,
+                ContactDamage = contactDamage, BossFound = bossFound,
+            }.Schedule(move);
+            post.Complete();
+
+            (Position, positionNext) = (positionNext, Position);
+            (knockback, knockbackNext) = (knockbackNext, knockback);
+
+            BossIndex = bossFound[0];
+            if (BossIndex >= 0) moveSpeed[BossIndex] = speed[BossIndex] * UpdateBoss(BossIndex, dt);
+            if (contactDamage[0] > 0f) player.TryHurt(contactDamage[0]);
+        }
+
+        // Single-threaded Burst pass over all enemies: hit flash, strongest contact damage, boss lookup.
+        [BurstCompile(CompileSynchronously = true)]
+        struct PostJob : IJob
+        {
+            [ReadOnly] public NativeArray<float2> Pos;
+            [ReadOnly] public NativeArray<float> Hp;
+            [ReadOnly] public NativeArray<float> Radius;
+            [ReadOnly] public NativeArray<float> Damage;
+            [ReadOnly] public NativeArray<byte> IsBoss;
+            public NativeArray<float> Flash;
+            public NativeArray<float> ContactDamage;
+            public NativeArray<int> BossFound;
+            public float2 Player;
+            public float PlayerRadius, Dt;
+            public int Count;
+
+            public void Execute()
+            {
+                var contact = 0f;
+                var boss = -1;
+                for (var i = 0; i < Count; i++)
+                {
+                    if (Hp[i] <= 0f) continue;
+                    Flash[i] = Flash[i] - Dt;
+                    if (IsBoss[i] != 0) boss = i;
+                    var reach = Radius[i] + PlayerRadius;
+                    if (math.lengthsq(Pos[i] - Player) < reach * reach) contact = math.max(contact, Damage[i]);
+                }
+                ContactDamage[0] = contact;
+                BossFound[0] = boss;
+            }
+        }
+
+        [BurstCompile(CompileSynchronously = true, FloatMode = FloatMode.Fast)]
+        struct MoveJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<float2> Pos;
+            [ReadOnly] public NativeArray<float2> KnockIn;
+            [ReadOnly] public NativeArray<float> Hp;
+            [ReadOnly] public NativeArray<float> Radius;
+            [ReadOnly] public NativeArray<float> MoveSpeed;
+            [ReadOnly] public NativeArray<int> BucketStart;
+            [ReadOnly] public NativeArray<int> Items;
+            [WriteOnly] public NativeArray<float2> PosOut;
+            [WriteOnly] public NativeArray<float2> KnockOut;
+
+            public float2 Player;
+            public float Dt, DecayNear, DecayFar, RingRadius, DespawnSq, FarSq, InverseCellSize;
+            public int Parity;
+
+            public void Execute(int i)
+            {
+                var p = Pos[i];
+                var kb = KnockIn[i];
+                if (Hp[i] <= 0f)
+                {
+                    PosOut[i] = p;
+                    KnockOut[i] = kb;
+                    return;
+                }
+
+                var toPlayer = Player - p;
+                var distSq = math.lengthsq(toPlayer);
+
+                // Too far behind: bring it back on the other side of the player instead of letting it walk forever.
+                if (distSq > DespawnSq)
+                {
+                    PosOut[i] = Player + toPlayer * (RingRadius * math.rsqrt(distSq));
+                    KnockOut[i] = float2.zero;
+                    return;
+                }
+
+                // Off screen: update every other frame with a double step, and skip separation (nobody sees it).
+                var far = distSq > FarSq;
+                if (far && ((i + Parity) & 1) == 1)
+                {
+                    PosOut[i] = p;
+                    KnockOut[i] = kb;
+                    return;
+                }
+                var step = far ? Dt * 2f : Dt;
+                kb *= far ? DecayFar : DecayNear;
+
+                var dist = math.sqrt(distSq);
+                var velocity = dist > 0.001f ? toPlayer * (MoveSpeed[i] / dist) : float2.zero;
+                var push = far ? float2.zero : Separation(i, p);
+
+                PosOut[i] = p + (velocity + kb) * step + push * 0.5f;
+                KnockOut[i] = kb;
+            }
+
+            // Push away from overlapping neighbours in the 3x3 cells around the enemy.
+            // Capped, so a dense crowd costs the same per enemy as a sparse one.
+            float2 Separation(int i, float2 p)
+            {
+                var push = float2.zero;
+                var r = Radius[i];
+                var cx = SpatialGrid.Cell(p.x, InverseCellSize);
+                var cy = SpatialGrid.Cell(p.y, InverseCellSize);
+                int scanned = 0, overlaps = 0;
+                for (var gx = cx - 1; gx <= cx + 1; gx++)
+                for (var gy = cy - 1; gy <= cy + 1; gy++)
+                {
+                    var b = SpatialGrid.Hash(gx, gy);
+                    var end = BucketStart[b + 1];
+                    for (var k = BucketStart[b]; k < end; k++)
+                    {
+                        if (++scanned > MaxNeighborScan || overlaps >= MaxOverlaps) return push;
+                        var j = Items[k];
+                        if (j == i) continue;
+                        var d = p - Pos[j];
+                        var rj = Radius[j];
+                        var minDist = r + rj;
+                        var sq = math.lengthsq(d);
+                        if (sq >= minDist * minDist) continue;
+                        overlaps++;
+                        if (sq < 0.000001f)
+                        {
+                            push += new float2((i & 1) == 0 ? 0.01f : -0.01f, 0.01f);
+                            continue;
+                        }
+                        var len = math.sqrt(sq);
+                        // Bigger neighbours push harder: small enemies can't shove a boss around.
+                        push += d * ((minDist - len) / len * (2f * rj / minDist));
+                    }
+                }
+                return push;
+            }
+        }
+
+        // Boss behaviour: walks, then periodically charges at the player. Returns the speed multiplier.
+        float UpdateBoss(int i, float dt)
+        {
+            if (chargeTimer[i] > 0f)
+            {
+                chargeTimer[i] -= dt;
+                return config.BossChargeSpeedMultiplier;
+            }
+            abilityTimer[i] -= dt;
+            if (abilityTimer[i] <= 0f)
+            {
+                abilityTimer[i] = config.BossChargeInterval;
+                chargeTimer[i] = config.BossChargeDuration;
+            }
+            // Slows down just before charging, as a warning.
+            return abilityTimer[i] < 0.6f ? 0.2f : 1f;
+        }
+
+        public void Damage(int i, float amount, Vector2 knockDirection = default, float knockForce = 0f)
+        {
+            if (Hp[i] <= 0f) return;
+            Hp[i] -= amount;
+            flash[i] = 0.08f;
+            var boss = isBoss[i] != 0;
+            if (!boss) knockback[i] += knockDirection * knockForce; // bosses ignore knockback
+            damageNumbers.Spawn(Position[i], amount, boss);
+            audio.Play(Sfx.Hit, 0.35f, 0.15f, 0.06f);
+            if (Hp[i] <= 0f) dead.Add(i);
+        }
+
+        // Debug: kills every enemy (they still drop their rewards).
+        public void KillAll()
+        {
+            for (var i = 0; i < Count; i++)
+            {
+                if (Hp[i] <= 0f) continue;
+                Hp[i] = 0f;
+                dead.Add(i);
+            }
+        }
+
+        // Deaths are applied after all weapons ran this frame, so indices stay valid while weapons iterate.
+        public void RemoveDead()
+        {
+            if (dead.Count == 0) return;
+            dead.Sort();
+            for (var k = dead.Count - 1; k >= 0; k--) // highest index first keeps the swap-remove correct
+            {
+                var i = dead[k];
+                killedPublisher.Publish(new EnemyKilledEvent(Position[i], xp[i], config.Enemies[type[i]].IsBoss));
+                if (i == BossIndex) BossIndex = -1;
+                RemoveAt(i);
+            }
+            dead.Clear();
+        }
+
+        void RemoveAt(int i)
+        {
+            var last = --Count;
+            if (i == last) return;
+            if (BossIndex == last) BossIndex = i;
+            Position[i] = Position[last];
+            Hp[i] = Hp[last];
+            Radius[i] = Radius[last];
+            Id[i] = Id[last];
+            knockback[i] = knockback[last];
+            moveSpeed[i] = moveSpeed[last];
+            maxHp[i] = maxHp[last];
+            speed[i] = speed[last];
+            damage[i] = damage[last];
+            xp[i] = xp[last];
+            type[i] = type[last];
+            flash[i] = flash[last];
+            isBoss[i] = isBoss[last];
+            abilityTimer[i] = abilityTimer[last];
+            chargeTimer[i] = chargeTimer[last];
+        }
+
+        // Alive enemies whose body touches the circle.
+        public void QueryRadius(Vector2 center, float radius, List<int> results)
+        {
+            grid.Query(center, radius + MaxRadius, candidates);
+            results.Clear();
+            foreach (var i in candidates)
+            {
+                if (i >= Count || Hp[i] <= 0f) continue;
+                var reach = radius + Radius[i];
+                if ((Position[i] - center).sqrMagnitude <= reach * reach) results.Add(i);
+            }
+        }
+
+        // The k closest alive enemies within range, closest first.
+        public void FindNearest(Vector2 center, float range, int k, List<int> results)
+        {
+            results.Clear();
+            var maxSq = range * range;
+            Span<float> bestSq = stackalloc float[8];
+            k = Mathf.Min(k, 8);
+            for (var i = 0; i < Count; i++)
+            {
+                if (Hp[i] <= 0f) continue;
+                var sq = (Position[i] - center).sqrMagnitude;
+                if (sq > maxSq) continue;
+
+                var pos = results.Count;
+                while (pos > 0 && bestSq[pos - 1] > sq) pos--;
+                if (pos >= k) continue;
+
+                if (results.Count < k) results.Add(0);
+                for (var s = results.Count - 1; s > pos; s--)
+                {
+                    results[s] = results[s - 1];
+                    bestSq[s] = bestSq[s - 1];
+                }
+                results[pos] = i;
+                bestSq[pos] = sq;
+            }
+        }
+
+        // Up to count random alive enemies within range (used by lightning).
+        public void PickRandom(Vector2 center, float range, int count, List<int> results)
+        {
+            results.Clear();
+            if (Count == 0) return;
+            var maxSq = range * range;
+            for (var attempt = 0; attempt < count * 10 && results.Count < count; attempt++)
+            {
+                var i = UnityEngine.Random.Range(0, Count);
+                if (Hp[i] <= 0f || results.Contains(i)) continue;
+                if ((Position[i] - center).sqrMagnitude <= maxSq) results.Add(i);
+            }
+        }
+
+        public float SpawnRingRadius()
+        {
+            var halfHeight = config.CameraSize;
+            var aspect = Screen.height > 0 ? (float)Screen.width / Screen.height : 16f / 9f;
+            var halfWidth = halfHeight * aspect;
+            return Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight) + 1.5f;
+        }
+
+        public void Draw(InstancedRenderer renderer)
+        {
+            drawer.Draw(renderer, Position, Radius, flash, type, Id, Count, player.Position.x);
+
+            // Boss: red warning ring while preparing / during a charge.
+            var b = BossIndex;
+            if (b >= 0 && (chargeTimer[b] > 0f || abilityTimer[b] < 0.6f))
+                renderer.Ring(RenderLayer.Effects, Position[b], Radius[b] * 1.4f, 0.12f, new Color(1f, 0.2f, 0.2f, 0.8f));
+        }
+
+        void Grow()
+        {
+            var size = Position.Length * 2;
+            GrowNative(ref Position, size);
+            GrowNative(ref Hp, size);
+            GrowNative(ref Radius, size);
+            GrowNative(ref positionNext, size);
+            GrowNative(ref knockback, size);
+            GrowNative(ref knockbackNext, size);
+            GrowNative(ref moveSpeed, size);
+            GrowNative(ref flash, size);
+            GrowNative(ref damage, size);
+            GrowNative(ref isBoss, size);
+            Array.Resize(ref Id, size);
+            Array.Resize(ref maxHp, size);
+            Array.Resize(ref speed, size);
+            Array.Resize(ref xp, size);
+            Array.Resize(ref type, size);
+            Array.Resize(ref abilityTimer, size);
+            Array.Resize(ref chargeTimer, size);
+        }
+
+        void GrowNative<T>(ref NativeArray<T> array, int size) where T : struct
+        {
+            var bigger = new NativeArray<T>(size, Allocator.Persistent);
+            NativeArray<T>.Copy(array, bigger, Count);
+            array.Dispose();
+            array = bigger;
+        }
+
+        public void Dispose()
+        {
+            grid.Dispose();
+            Position.Dispose();
+            Hp.Dispose();
+            Radius.Dispose();
+            positionNext.Dispose();
+            knockback.Dispose();
+            knockbackNext.Dispose();
+            moveSpeed.Dispose();
+            flash.Dispose();
+            damage.Dispose();
+            isBoss.Dispose();
+            contactDamage.Dispose();
+            bossFound.Dispose();
+        }
+    }
+}

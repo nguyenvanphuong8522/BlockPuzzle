@@ -1,0 +1,289 @@
+using System;
+using System.Collections.Generic;
+using Unity.Collections;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace Survivor
+{
+    // Draw order: earlier layers are drawn below later ones.
+    public enum RenderLayer { Decorations, Shadows, Gems, Pickups, Enemies, Projectiles, Weapons, Player, Effects, Overlay, Text }
+
+    // Collects shapes and sprites during the frame and draws them with GPU instancing.
+    // Shapes share one material; sprites get one material per texture. Put all sprites in one
+    // SpriteAtlas so they share a texture and everything in a layer stays in a few draw calls.
+    public sealed class InstancedRenderer : IDisposable
+    {
+        const int BatchSize = 1023;
+        const float ShapeCircle = 0f, ShapeRect = 1f, ShapeRing = 2f, ShapeSprite = 3f;
+
+        static readonly int ColorId = Shader.PropertyToID("_Color");
+        static readonly int ShapeId = Shader.PropertyToID("_Shape");
+        static readonly int UvId = Shader.PropertyToID("_UV");
+        static readonly Vector4 FullUv = new Vector4(0f, 0f, 1f, 1f);
+
+        sealed class Batch
+        {
+            public readonly Matrix4x4[] Matrices = new Matrix4x4[BatchSize];
+            public readonly Vector4[] Colors = new Vector4[BatchSize];
+            public readonly Vector4[] Shapes = new Vector4[BatchSize];
+            public readonly Vector4[] Uvs = new Vector4[BatchSize];
+        }
+
+        // Everything drawn with one material (= one texture) in one layer.
+        sealed class Group
+        {
+            public Material Material;
+            public readonly List<Batch> Batches = new List<Batch>();
+            public int Used;
+        }
+
+        sealed class Layer
+        {
+            public Group Shapes;
+            public readonly Dictionary<Texture, Group> Textured = new Dictionary<Texture, Group>();
+            public readonly List<Group> TexturedOrder = new List<Group>();
+            public int RenderQueue;
+        }
+
+        readonly Layer[] layers;
+        readonly Mesh quad;
+        readonly Material baseMaterial;
+        readonly Material groundMaterial;
+        readonly List<Material> createdMaterials = new List<Material>();
+        readonly Dictionary<Sprite, Vector4> spriteUvs = new Dictionary<Sprite, Vector4>();
+        readonly MaterialPropertyBlock block = new MaterialPropertyBlock();
+
+        // Visible world rectangle. Shapes outside it are dropped before they cost anything.
+        float viewMinX = float.MinValue, viewMaxX = float.MaxValue, viewMinY = float.MinValue, viewMaxY = float.MaxValue;
+
+        public int LastFrameInstances { get; private set; }
+        public int LastFrameDrawCalls { get; private set; }
+
+        public InstancedRenderer()
+        {
+            // Material assets (not Shader.Find) so the instancing variant is included in builds.
+            baseMaterial = Resources.Load<Material>("Shaders/InstancedShape");
+            groundMaterial = CreateMaterial(Resources.Load<Material>("Shaders/Ground"), null, 1000);
+
+            var count = Enum.GetValues(typeof(RenderLayer)).Length;
+            layers = new Layer[count];
+            for (var i = 0; i < count; i++)
+            {
+                var layer = new Layer { RenderQueue = 3000 + i };
+                layer.Shapes = new Group { Material = CreateMaterial(baseMaterial, null, layer.RenderQueue) };
+                layers[i] = layer;
+            }
+            quad = CreateQuad();
+        }
+
+        // Stretched circle, e.g. a soft shadow under a unit.
+        public void Ellipse(RenderLayer layer, Vector2 center, Vector2 size, Color color) =>
+            Add(layers[(int)layer].Shapes, center, size, color, new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv);
+
+        // Call once per frame before drawing.
+        public void SetView(Camera camera)
+        {
+            var halfH = camera.orthographicSize;
+            var halfW = halfH * camera.aspect;
+            var p = camera.transform.position;
+            viewMinX = p.x - halfW;
+            viewMaxX = p.x + halfW;
+            viewMinY = p.y - halfH;
+            viewMaxY = p.y + halfH;
+        }
+
+        // (minX, minY, maxX, maxY) of the visible world rectangle.
+        public Vector4 ViewRect => new Vector4(viewMinX, viewMinY, viewMaxX, viewMaxY);
+
+        // extent = half of the object's largest dimension.
+        public bool IsVisible(Vector2 center, float extent) =>
+            center.x + extent >= viewMinX && center.x - extent <= viewMaxX &&
+            center.y + extent >= viewMinY && center.y - extent <= viewMaxY;
+
+        public void Circle(RenderLayer layer, Vector2 center, float radius, Color color, float flash = 0f) =>
+            Add(layers[(int)layer].Shapes, center, new Vector2(radius * 2f, radius * 2f), color,
+                new Vector4(ShapeCircle, 0f, flash, 0f), FullUv);
+
+        // thickness is a fraction of the radius (0..1).
+        public void Ring(RenderLayer layer, Vector2 center, float radius, float thickness, Color color) =>
+            Add(layers[(int)layer].Shapes, center, new Vector2(radius * 2f, radius * 2f), color,
+                new Vector4(ShapeRing, 1f - Mathf.Clamp01(thickness), 0f, 0f), FullUv);
+
+        public void Rect(RenderLayer layer, Vector2 center, Vector2 size, Color color) =>
+            Add(layers[(int)layer].Shapes, center, size, color, new Vector4(ShapeRect, 0f, 0f, 0f), FullUv);
+
+        // Bar anchored on its left edge, e.g. a health bar. fill is 0..1.
+        public void Bar(RenderLayer layer, Vector2 center, Vector2 size, float fill, Color background, Color foreground)
+        {
+            Rect(layer, center, size, background);
+            var w = size.x * Mathf.Clamp01(fill);
+            Rect(layer, new Vector2(center.x - size.x / 2f + w / 2f, center.y), new Vector2(w, size.y), foreground);
+        }
+
+        // Draws a sprite with the given world height; width follows the sprite's aspect ratio.
+        public void Sprite(RenderLayer layer, Sprite sprite, Vector2 center, float height, Color tint,
+            bool flipX = false, float flash = 0f)
+        {
+            var rect = sprite.rect;
+            var width = height * rect.width / rect.height;
+            if (!IsVisible(center, Mathf.Max(width, height) * 0.5f)) return;
+            var uv = SpriteUv(sprite);
+            Add(GetTexturedGroup(layers[(int)layer], sprite.texture), center,
+                new Vector2(flipX ? -width : width, height), tint, new Vector4(ShapeSprite, 0f, flash, 0f), uv);
+        }
+
+        // Draws a sub-rectangle of a texture (used by the damage-number digit font).
+        public void TextureRect(RenderLayer layer, Texture texture, Vector4 uv, Vector2 center, Vector2 size, Color tint) =>
+            Add(GetTexturedGroup(layers[(int)layer], texture), center, size, tint,
+                new Vector4(ShapeSprite, 0f, 0f, 0f), uv);
+
+        // Sprite bounds inside its texture. Works for rect- and tight-packed atlas sprites.
+        public Vector4 SpriteUv(Sprite sprite)
+        {
+            if (spriteUvs.TryGetValue(sprite, out var uv)) return uv;
+            var min = new Vector2(float.MaxValue, float.MaxValue);
+            var max = new Vector2(float.MinValue, float.MinValue);
+            foreach (var p in sprite.uv)
+            {
+                min = Vector2.Min(min, p);
+                max = Vector2.Max(max, p);
+            }
+            uv = new Vector4(min.x, min.y, max.x - min.x, max.y - min.y);
+            spriteUvs[sprite] = uv;
+            return uv;
+        }
+
+        Group GetTexturedGroup(Layer layer, Texture texture)
+        {
+            if (layer.Textured.TryGetValue(texture, out var group)) return group;
+            group = new Group { Material = CreateMaterial(baseMaterial, texture, layer.RenderQueue) };
+            layer.Textured[texture] = group;
+            layer.TexturedOrder.Add(group);
+            return group;
+        }
+
+        // Bulk path for Burst-generated instance data: copies whole blocks into the GPU batches (memcpy),
+        // no per-instance C# work. texture = null draws with the shape material.
+        public void AddBulk(RenderLayer layerId, Texture texture, NativeArray<Matrix4x4> matrices, NativeArray<Vector4> colors,
+            NativeArray<Vector4> shapes, NativeArray<Vector4> uvs, int count)
+        {
+            var layer = layers[(int)layerId];
+            var group = texture == null ? layer.Shapes : GetTexturedGroup(layer, texture);
+            var copied = 0;
+            while (copied < count)
+            {
+                var batchIndex = group.Used / BatchSize;
+                if (batchIndex == group.Batches.Count) group.Batches.Add(new Batch());
+                var batch = group.Batches[batchIndex];
+                var offset = group.Used % BatchSize;
+                var n = Mathf.Min(BatchSize - offset, count - copied);
+                NativeArray<Matrix4x4>.Copy(matrices, copied, batch.Matrices, offset, n);
+                NativeArray<Vector4>.Copy(colors, copied, batch.Colors, offset, n);
+                NativeArray<Vector4>.Copy(shapes, copied, batch.Shapes, offset, n);
+                NativeArray<Vector4>.Copy(uvs, copied, batch.Uvs, offset, n);
+                group.Used += n;
+                copied += n;
+            }
+        }
+
+        void Add(Group group, Vector2 center, Vector2 size, Color color, Vector4 shape, Vector4 uv)
+        {
+            if (!IsVisible(center, Mathf.Max(Mathf.Abs(size.x), Mathf.Abs(size.y)) * 0.5f)) return;
+            var batchIndex = group.Used / BatchSize;
+            if (batchIndex == group.Batches.Count) group.Batches.Add(new Batch());
+            var batch = group.Batches[batchIndex];
+            var i = group.Used % BatchSize;
+
+            ref var m = ref batch.Matrices[i];
+            m = Matrix4x4.identity;
+            m.m00 = size.x;
+            m.m11 = size.y;
+            m.m03 = center.x;
+            m.m13 = center.y;
+
+            batch.Colors[i] = color;
+            batch.Shapes[i] = shape;
+            batch.Uvs[i] = uv;
+            group.Used++;
+        }
+
+        // Tiles this texture over the endless ground (null = debug checkerboard).
+        public void SetGroundTexture(Texture texture, float tileSize)
+        {
+            if (texture == null) return;
+            texture.wrapMode = TextureWrapMode.Repeat;
+            groundMaterial.mainTexture = texture;
+            groundMaterial.SetFloat("_UseTexture", 1f);
+            groundMaterial.SetFloat("_TileSize", tileSize);
+        }
+
+        public void DrawGround(Camera camera)
+        {
+            var h = camera.orthographicSize * 2f + 2f;
+            var w = h * camera.aspect + 2f;
+            var pos = camera.transform.position;
+            var matrix = Matrix4x4.TRS(new Vector3(pos.x, pos.y, 1f), Quaternion.identity, new Vector3(w, h, 1f));
+            Graphics.DrawMesh(quad, matrix, groundMaterial, 0);
+        }
+
+        // Sends everything collected this frame to the GPU, then clears for the next frame.
+        public void Flush()
+        {
+            var instances = 0;
+            var drawCalls = 0;
+            foreach (var layer in layers)
+            {
+                FlushGroup(layer.Shapes, ref instances, ref drawCalls);
+                foreach (var group in layer.TexturedOrder) FlushGroup(group, ref instances, ref drawCalls);
+            }
+            LastFrameInstances = instances;
+            LastFrameDrawCalls = drawCalls;
+        }
+
+        void FlushGroup(Group group, ref int instances, ref int drawCalls)
+        {
+            for (var start = 0; start < group.Used; start += BatchSize)
+            {
+                var batch = group.Batches[start / BatchSize];
+                var n = Mathf.Min(BatchSize, group.Used - start);
+                block.Clear();
+                block.SetVectorArray(ColorId, batch.Colors);
+                block.SetVectorArray(ShapeId, batch.Shapes);
+                block.SetVectorArray(UvId, batch.Uvs);
+                Graphics.DrawMeshInstanced(quad, 0, group.Material, batch.Matrices, n, block, ShadowCastingMode.Off, false);
+                drawCalls++;
+            }
+            instances += group.Used;
+            group.Used = 0;
+        }
+
+        Material CreateMaterial(Material source, Texture texture, int renderQueue)
+        {
+            var material = new Material(source) { enableInstancing = true, renderQueue = renderQueue };
+            if (texture != null) material.mainTexture = texture;
+            createdMaterials.Add(material);
+            return material;
+        }
+
+        static Mesh CreateQuad()
+        {
+            var mesh = new Mesh { name = "Quad" };
+            mesh.vertices = new[]
+            {
+                new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, -0.5f, 0f),
+                new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f)
+            };
+            mesh.uv = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
+            mesh.triangles = new[] { 0, 2, 1, 2, 3, 1 };
+            mesh.bounds = new Bounds(Vector3.zero, Vector3.one);
+            return mesh;
+        }
+
+        public void Dispose()
+        {
+            foreach (var material in createdMaterials) UnityEngine.Object.Destroy(material);
+            UnityEngine.Object.Destroy(quad);
+        }
+    }
+}

@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8fec4765cdb4570bf05924664a4467c, type: 3}
+  m_Name: SpriteCatalog
+  m_EditorClassIdentifier: Survivor::Survivor.SpriteCatalog
+  Player:
+    Frames:
+    - {fileID: 21300000, guid: 4af3b92e6daef914da63b0e8ae9c50b0, type: 3}
+    - {fileID: 21300000, guid: 430558040dc8ab540a7b90d31e6465e1, type: 3}
+    - {fileID: 21300000, guid: 3c7483c8ee3f29845ab341cb0cbf66d8, type: 3}
+    - {fileID: 21300000, guid: d685ac01a8881f249bbbdbde1a8dc8b8, type: 3}
+    Fps: 8
+  Enemies:
+  - Frames:
+    - {fileID: 21300000, guid: cd8769bb74d3e104a90f4e6a444fda2c, type: 3}
+    - {fileID: 21300000, guid: e9af026310bd79342ab5a29ee528d6df, type: 3}
+    Fps: 5
+  - Frames:
+    - {fileID: 21300000, guid: 90cbaf6a8ac5ea44dbed1cc33f6702fa, type: 3}
+    - {fileID: 21300000, guid: d7e381abecf02bf488be874263d02b47, type: 3}
+    Fps: 5
+  - Frames:
+    - {fileID: 21300000, guid: c3b329c89dce26a4fbf1265820724bae, type: 3}
+    - {fileID: 21300000, guid: 72673b2db802af146aae45a8e8e37920, type: 3}
+    - {fileID: 21300000, guid: 4239f3d6feab9ce44961617c81ca40f3, type: 3}
+    Fps: 5
+  - Frames:
+    - {fileID: 21300000, guid: f08f7b1ed3616004db82b8aa7c5a4e48, type: 3}
+    - {fileID: 21300000, guid: de85fee0ee13f0b4fbc216bf691a0959, type: 3}
+    Fps: 5
+  - Frames:
+    - {fileID: 21300000, guid: 4f8b25f2394d6ef4cab33a7034576f4e, type: 3}
+    - {fileID: 21300000, guid: 5ef696ea3f96a6a41ba6a8cd12d6742b, type: 3}
+    - {fileID: 21300000, guid: 7576cea9e20ae2a43a6aee227ac085b8, type: 3}
+    Fps: 5
+  - Frames:
+    - {fileID: 21300000, guid: aeb21b6f3536a614793073641cd15bda, type: 3}
+    - {fileID: 21300000, guid: bd126ceab65948c4b86f4ab4b7cdcf8a, type: 3}
+    Fps: 5
+  - Frames:
+    - {fileID: 21300000, guid: d025e2ab289583843b3e41b83c758e5b, type: 3}
+    - {fileID: 21300000, guid: e0789538b10a30e4097d258f55936df9, type: 3}
+    Fps: 5
+  MagicBolt: {fileID: 21300000, guid: 883354a28be6d1a4fb11dd1fc1266900, type: 3}
+  OrbitBlade: {fileID: 21300000, guid: 293b00a89213a8244945d4724119695c, type: 3}
+  Gem: {fileID: 21300000, guid: ee693a57515ab6b44acc71029b0c1289, type: 3}
+  Chest: {fileID: 21300000, guid: 5a536c4b08d1e7843bb7f44c095cf971, type: 3}
+  Heal: {fileID: 21300000, guid: 610b53cad8491f54aadad54065920b16, type: 3}
+  Magnet: {fileID: 21300000, guid: e57b309dad70fd347965d269ade1ad1a, type: 3}
+  GroundTile: {fileID: 2800000, guid: 46531c1e0fe869c47a47f0ae10732735, type: 3}
+  GroundTileSize: 6
+  Decorations:
+  - {fileID: 21300000, guid: 8e1c28e37f5d6aa4ebd46936474ecf77, type: 3}
+  - {fileID: 21300000, guid: 8e1c28e37f5d6aa4ebd46936474ecf77, type: 3}
+  - {fileID: 21300000, guid: 9b01964e1d535b144974dd1e099eb2ad, type: 3}
+  - {fileID: 21300000, guid: 9b01964e1d535b144974dd1e099eb2ad, type: 3}
+  - {fileID: 21300000, guid: 41ce0f3eb731145429002bf209e9b544, type: 3}
+  DecorationHeights:
+  - 0.5
+  - 0.5
+  - 1.1
+  - 1.1
+  - 3.4
+  SpriteScale: 1.5
