@@ -6,6 +6,7 @@ namespace Survivor
 {
     // Automated visual check: run the player with  -autoshot <file.png>  and it spawns a crowd and a boss,
     // takes a screenshot after a few seconds, then quits. Does nothing without that argument.
+    // Add -pause to capture the pause menu instead.
     public sealed class AutoScreenshot : ITickable
     {
         readonly string path;
@@ -44,6 +45,7 @@ namespace Survivor
             }
             if (!captured && time > 9f)
             {
+                if (Array.IndexOf(Environment.GetCommandLineArgs(), "-pause") >= 0) game.Pause(); // screenshot the pause menu
                 captured = true;
                 ScreenCapture.CaptureScreenshot(path);
             }

@@ -18,14 +18,18 @@ namespace Survivor
         readonly UpgradeService upgrades;
         readonly PickupSystem pickups;
         readonly AudioService audio;
+        readonly GemSystem gems;
+        readonly PlayerTuning tuning;
+        readonly HapticsService haptics;
         readonly List<Action> refreshers = new List<Action>();
 
         GameObject panel;
+        float columnX; // left edge of the column rows are added to
 
         public bool IsOpen => panel != null && panel.activeSelf;
 
         public DebugPanel(DebugSettings settings, Player player, EnemySystem enemies, EnemySpawner spawner,
-            PlayerProgress progress, GameStats stats, UpgradeService upgrades, PickupSystem pickups, AudioService audio)
+            PlayerProgress progress, GameStats stats, UpgradeService upgrades, PickupSystem pickups, AudioService audio, GemSystem gems, PlayerTuning tuning, HapticsService haptics)
         {
             this.settings = settings;
             this.player = player;
@@ -36,6 +40,9 @@ namespace Survivor
             this.upgrades = upgrades;
             this.pickups = pickups;
             this.audio = audio;
+            this.gems = gems;
+            this.tuning = tuning;
+            this.haptics = haptics;
         }
 
         public void Build()
@@ -62,22 +69,39 @@ namespace Survivor
             rt.SetParent(root, false);
             rt.anchorMin = rt.anchorMax = new Vector2(0f, 0f);
             rt.pivot = new Vector2(0f, 0f);
-            rt.anchoredPosition = new Vector2(16, 80);
-            rt.sizeDelta = new Vector2(420, 880);
+            rt.anchoredPosition = new Vector2(16, 70);
+            rt.sizeDelta = new Vector2(840, 760);
             panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f);
 
+            // Left column: settings
+            columnX = 0f;
             var y = -20f;
-            Label(rt, "DEBUG  (F3)", ref y);
+            Label(rt, "DEBUG  (F3)  ·  CÀI ĐẶT", ref y);
             ToggleRow(rt, "Bất tử", () => settings.GodMode, v => settings.GodMode = v, ref y);
             ToggleRow(rt, "Số sát thương", () => settings.ShowDamageNumbers, v => settings.ShowDamageNumbers = v, ref y);
             ToggleRow(rt, "Hiện FPS / thông số", () => settings.ShowStats, v => settings.ShowStats = v, ref y);
             ToggleRow(rt, "Tắt tiếng", () => audio.Muted, v => audio.Muted = v, ref y);
+            ToggleRow(rt, "Hiện tầm hút", () => settings.ShowPickupRange, v => settings.ShowPickupRange = v, ref y);
+            StepperRow(rt, () => $"Tầm hút gốc: {tuning.MagnetRadius:0.00}",
+                step => tuning.MagnetRadius = Mathf.Max(0.25f, tuning.MagnetRadius + step * 0.25f), ref y);
             SpeedRow(rt, ref y);
+            ToggleRow(rt, "Rung (điện thoại / tay cầm)", () => haptics.Enabled, v => haptics.Enabled = v, ref y);
+            StepperRow(rt, () => $"Độ rung: {Mathf.RoundToInt(haptics.Strength * 100)}%",
+                step => { haptics.Strength += step * 0.1f; haptics.Save(); haptics.PlayHit(); }, ref y);
+            StepperRow(rt, () => $"Thời gian rung: {haptics.DurationMs} ms",
+                step => { haptics.DurationMs += step * 20; haptics.Save(); haptics.PlayHit(); }, ref y);
+            ActionRow(rt, "Thử rung", haptics.PlayHit, ref y);
+
+            // Right column: actions
+            columnX = 420f;
+            y = -20f;
+            Label(rt, "HÀNH ĐỘNG", ref y);
             ActionRow(rt, "Hồi đầy máu", () => player.Heal(player.Stats.MaxHp), ref y);
             ActionRow(rt, "+1 cấp", () => progress.AddXp(progress.XpToNext.Value - progress.Xp.Value), ref y);
             ActionRow(rt, "Full vũ khí cấp tối đa", upgrades.GiveAllWeaponsMaxed, ref y);
             ActionRow(rt, "Thả 1000 quái", () => spawner.SpawnBurst(1000), ref y);
             ActionRow(rt, "Gọi boss", spawner.SpawnBoss, ref y);
+            ActionRow(rt, "Thử anim hút ngọc (F4)", () => gems.SpawnTestRing(20), ref y);
             ActionRow(rt, "Thả rương", () => pickups.Spawn(PickupKind.Chest, player.Position + new Vector2(1.5f, 0f)), ref y);
             ActionRow(rt, "Giết hết quái", enemies.KillAll, ref y);
             ActionRow(rt, "Tua thời gian +60s", () => stats.Elapsed += 60f, ref y);
@@ -99,14 +123,14 @@ namespace Survivor
 
         void Label(RectTransform parent, string text, ref float y)
         {
-            var t = CreateText(parent, text, 30, new Vector2(20, y), new Vector2(380, 44));
+            var t = CreateText(parent, text, 30, new Vector2(columnX + 20, y), new Vector2(380, 44));
             t.color = new Color(1f, 0.85f, 0.3f);
             y -= 54f;
         }
 
         void ToggleRow(RectTransform parent, string label, Func<bool> get, Action<bool> set, ref float y)
         {
-            var button = CreateButton(parent, "", new Vector2(0, 1), new Vector2(210, y - 22), new Vector2(380, 48),
+            var button = CreateButton(parent, "", new Vector2(0, 1), new Vector2(columnX + 210, y - 22), new Vector2(380, 48),
                 new Color(0.2f, 0.2f, 0.25f));
             var text = button.GetComponentInChildren<TextMeshProUGUI>();
             void UpdateLabel()
@@ -126,7 +150,7 @@ namespace Survivor
 
         void SpeedRow(RectTransform parent, ref float y)
         {
-            var button = CreateButton(parent, "", new Vector2(0, 1), new Vector2(210, y - 22), new Vector2(380, 48),
+            var button = CreateButton(parent, "", new Vector2(0, 1), new Vector2(columnX + 210, y - 22), new Vector2(380, 48),
                 new Color(0.2f, 0.2f, 0.25f));
             var text = button.GetComponentInChildren<TextMeshProUGUI>();
             void UpdateLabel() => text.text = $"Tốc độ game: x{settings.GameSpeed:0}";
@@ -141,9 +165,29 @@ namespace Survivor
             y -= 56f;
         }
 
+        // A value with − / + buttons. step is -1 or +1.
+        void StepperRow(RectTransform parent, Func<string> label, Action<int> change, ref float y)
+        {
+            var row = CreateButton(parent, "", new Vector2(0, 1), new Vector2(columnX + 210, y - 22), new Vector2(380, 48),
+                new Color(0.2f, 0.2f, 0.25f));
+            UnityEngine.Object.Destroy(row); // only the background; the two small buttons do the work
+            var text = row.GetComponentInChildren<TextMeshProUGUI>();
+            text.alignment = TextAlignmentOptions.Left;
+            text.rectTransform.sizeDelta = new Vector2(360, 48);
+            void UpdateLabel() => text.text = "  " + label();
+            var rowRect = (RectTransform)row.transform;
+            CreateButton(rowRect, "-", new Vector2(1f, 0.5f), new Vector2(-82, 0), new Vector2(52, 40), new Color(0.15f, 0.35f, 0.6f))
+                .OnPressed = () => { change(-1); UpdateLabel(); };
+            CreateButton(rowRect, "+", new Vector2(1f, 0.5f), new Vector2(-26, 0), new Vector2(52, 40), new Color(0.15f, 0.35f, 0.6f))
+                .OnPressed = () => { change(1); UpdateLabel(); };
+            refreshers.Add(UpdateLabel);
+            UpdateLabel();
+            y -= 56f;
+        }
+
         void ActionRow(RectTransform parent, string label, Action action, ref float y)
         {
-            CreateButton(parent, label, new Vector2(0, 1), new Vector2(210, y - 22), new Vector2(380, 48),
+            CreateButton(parent, label, new Vector2(0, 1), new Vector2(columnX + 210, y - 22), new Vector2(380, 48),
                 new Color(0.15f, 0.35f, 0.6f)).OnPressed = action;
             y -= 56f;
         }

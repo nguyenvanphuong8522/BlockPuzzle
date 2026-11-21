@@ -34,6 +34,17 @@ public static class BuildScript
 
     static string WindowsOutput(string folder) => $"Build/{folder}/{PlayerSettings.productName}.exe";
 
+    // WebGL: open Build/WebGL/index.html through a web server (not by double-clicking the file).
+    [MenuItem("Build/Build WebGL")]
+    public static void BuildWebGL()
+    {
+        // Brotli = smallest download; the fallback lets it run on any server, even without special headers.
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+        PlayerSettings.WebGL.decompressionFallback = true;
+        PlayerSettings.WebGL.dataCaching = true;
+        Build(BuildTarget.WebGL, "Build/WebGL", BuildOptions.None);
+    }
+
     static void Build(BuildTarget target, string output, BuildOptions buildOptions)
     {
         var options = new BuildPlayerOptions

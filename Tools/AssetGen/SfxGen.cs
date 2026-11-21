@@ -17,7 +17,11 @@ static class SfxGen
         dir = outputDir;
 
         // Combat
-        Save("sfx_shoot", Mix(Tone(0.12f, 900, 320, Square, 0.002f, 3f, 0.35f), Tone(0.08f, 1800, 600, Sine, 0.001f, 4f, 0.15f)));
+        // Flintlock "bang": sharp powder crack + low thump + short noisy tail.
+        Save("sfx_shoot", Mix(
+            Lowpass(Tone(0.05f, 0, 0, Noise, 0.0005f, 3f, 0.9f), 0.7f),
+            Tone(0.16f, 160, 45, Sine, 0.001f, 3f, 0.8f),
+            Lowpass(Tone(0.22f, 0, 0, Noise, 0.002f, 4f, 0.35f), 0.12f)));
         Save("sfx_hit", Lowpass(Tone(0.06f, 0, 0, Noise, 0.001f, 5f, 0.5f), 0.35f));
         Save("sfx_enemy_die", Mix(Tone(0.14f, 620, 140, Sine, 0.001f, 3f, 0.5f), Lowpass(Tone(0.1f, 0, 0, Noise, 0.001f, 4f, 0.3f), 0.2f)));
         Save("sfx_boss_die", Mix(Tone(1.2f, 160, 40, Saw, 0.005f, 2f, 0.4f), Lowpass(Tone(1.0f, 0, 0, Noise, 0.002f, 2f, 0.5f), 0.08f)));
@@ -26,7 +30,12 @@ static class SfxGen
         Save("sfx_wave", Swoosh(0.45f));
 
         // Pickups and progression
-        Save("sfx_gem", Mix(Tone(0.07f, 1300, 1700, Sine, 0.001f, 3f, 0.35f), Tone(0.07f, 2600, 3400, Sine, 0.001f, 4f, 0.08f)));
+        // Bright two-note "ting" (E6 then B6) with a bell-like overtone. The game raises its pitch on pickup streaks.
+        Save("sfx_gem", Mix(
+            Tone(0.22f, Midi(88), Midi(88), Sine, 0.001f, 2.5f, 0.45f),
+            Tone(0.22f, Midi(100), Midi(100), Sine, 0.001f, 3.5f, 0.12f),
+            Delay(Tone(0.25f, Midi(95), Midi(95), Sine, 0.001f, 2.5f, 0.4f), 0.045f),
+            Delay(Tone(0.25f, Midi(107), Midi(107), Sine, 0.001f, 3.5f, 0.1f), 0.045f)));
         Save("sfx_heal", Tone(0.35f, 400, 900, Triangle, 0.01f, 1.5f, 0.45f));
         Save("sfx_magnet", Vibrato(Tone(0.5f, 500, 1100, Square, 0.01f, 1.5f, 0.25f), 18f));
         Save("sfx_level_up", Arpeggio(new[] { 72, 76, 79, 84 }, 0.07f, Square, 0.3f, 0.25f));
@@ -89,6 +98,15 @@ static class SfxGen
     static void AddAt(float[] target, float[] source, int offset, float gain)
     {
         for (var i = 0; i < source.Length && offset + i < target.Length; i++) target[offset + i] += source[i] * gain;
+    }
+
+    // Shifts a sound later by seconds (adds silence in front).
+    static float[] Delay(float[] s, float seconds)
+    {
+        var offset = (int)(seconds * Rate);
+        var d = new float[s.Length + offset];
+        Array.Copy(s, 0, d, offset, s.Length);
+        return d;
     }
 
     static float[] Lowpass(float[] s, float k)

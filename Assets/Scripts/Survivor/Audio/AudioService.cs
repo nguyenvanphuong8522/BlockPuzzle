@@ -9,6 +9,8 @@ namespace Survivor
     public sealed class AudioService : IDisposable
     {
         const int Voices = 16;
+        const string MusicVolumeKey = "audio.musicVolume";
+        const string SfxVolumeKey = "audio.sfxVolume";
 
         readonly AudioCatalog catalog;
         readonly AudioClip[] clips;
@@ -19,6 +21,8 @@ namespace Survivor
         readonly GameObject root;
         readonly IDisposable subscription;
         int nextVoice;
+        float musicVolume = PlayerPrefs.GetFloat(MusicVolumeKey, 1f);
+        float sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, 1f);
 
         public AudioService(AudioCatalog catalog, ISubscriber<EnemyKilledEvent> killed)
         {
@@ -48,7 +52,11 @@ namespace Survivor
         }
 
         // pitchJitter adds variety to repeated sounds; minInterval limits how often this sound can start.
-        public void Play(Sfx id, float volume = 1f, float pitchJitter = 0.05f, float minInterval = 0.03f)
+        public void Play(Sfx id, float volume = 1f, float pitchJitter = 0.05f, float minInterval = 0.03f) =>
+            PlayAtPitch(id, 1f + UnityEngine.Random.Range(-pitchJitter, pitchJitter), volume, minInterval);
+
+        // Plays at an exact pitch (1 = original, 2 = one octave up), e.g. for rising pickup streaks.
+        public void PlayAtPitch(Sfx id, float pitch, float volume = 1f, float minInterval = 0.03f)
         {
             var i = (int)id;
             var clip = clips[i];
@@ -59,19 +67,43 @@ namespace Survivor
 
             var source = sources[nextVoice];
             nextVoice = (nextVoice + 1) % Voices;
-            source.pitch = 1f + UnityEngine.Random.Range(-pitchJitter, pitchJitter);
-            source.PlayOneShot(clip, volumes[i] * volume);
+            source.pitch = pitch;
+            source.PlayOneShot(clip, volumes[i] * volume * sfxVolume);
         }
 
         public void PlayMusic()
         {
             if (catalog.Music == null) return;
             music.clip = catalog.Music;
-            music.volume = catalog.MusicVolume;
+            music.volume = catalog.MusicVolume * musicVolume;
             music.Play();
         }
 
         public void StopMusic() => music.Stop();
+
+        // Player settings (0..1), saved between sessions. Shown as sliders in the pause menu.
+        public float MusicVolume
+        {
+            get => musicVolume;
+            set
+            {
+                musicVolume = Mathf.Clamp01(value);
+                music.volume = catalog.MusicVolume * musicVolume;
+                PlayerPrefs.SetFloat(MusicVolumeKey, musicVolume);
+            }
+        }
+
+        public float SfxVolume
+        {
+            get => sfxVolume;
+            set
+            {
+                sfxVolume = Mathf.Clamp01(value);
+                PlayerPrefs.SetFloat(SfxVolumeKey, sfxVolume);
+            }
+        }
+
+        public void SaveSettings() => PlayerPrefs.Save();
 
         public bool Muted
         {

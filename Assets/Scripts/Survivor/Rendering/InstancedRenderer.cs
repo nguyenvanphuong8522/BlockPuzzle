@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 namespace Survivor
 {
     // Draw order: earlier layers are drawn below later ones.
-    public enum RenderLayer { Decorations, Shadows, Gems, Pickups, Enemies, Projectiles, Weapons, Player, Effects, Overlay, Text }
+    public enum RenderLayer { Decorations, Shadows, Gems, Pickups, Enemies, Projectiles, Weapons, Player, Held, Effects, Overlay, Text }
 
     // Collects shapes and sprites during the frame and draws them with GPU instancing.
     // Shapes share one material; sprites get one material per texture. Put all sprites in one
@@ -133,6 +133,26 @@ namespace Survivor
                 new Vector2(flipX ? -width : width, height), tint, new Vector4(ShapeSprite, 0f, flash, 0f), uv);
         }
 
+        // Rotated sprite (angle in radians, 0 = pointing right). flipY mirrors it vertically, e.g. a gun aimed left
+        // stays upright instead of upside down.
+        public void SpriteRotated(RenderLayer layer, Sprite sprite, Vector2 center, float height, float angle, Color tint,
+            bool flipY = false, float flash = 0f)
+        {
+            var rect = sprite.rect;
+            var width = height * rect.width / rect.height;
+            if (!IsVisible(center, Mathf.Max(width, height) * 0.5f)) return;
+            AddRotated(GetTexturedGroup(layers[(int)layer], sprite.texture), center, new Vector2(width, flipY ? -height : height),
+                angle, tint, new Vector4(ShapeSprite, 0f, flash, 0f), SpriteUv(sprite));
+        }
+
+        // Stretched, rotated soft ellipse: bullet tracers, motion streaks.
+        public void Streak(RenderLayer layer, Vector2 center, float length, float width, float angle, Color color)
+        {
+            if (!IsVisible(center, length * 0.5f)) return;
+            AddRotated(layers[(int)layer].Shapes, center, new Vector2(length, width), angle, color,
+                new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv);
+        }
+
         // Draws a sub-rectangle of a texture (used by the damage-number digit font).
         public void TextureRect(RenderLayer layer, Texture texture, Vector4 uv, Vector2 center, Vector2 size, Color tint) =>
             Add(GetTexturedGroup(layers[(int)layer], texture), center, size, tint,
@@ -161,6 +181,30 @@ namespace Survivor
             layer.Textured[texture] = group;
             layer.TexturedOrder.Add(group);
             return group;
+        }
+
+        void AddRotated(Group group, Vector2 center, Vector2 size, float angle, Color color, Vector4 shape, Vector4 uv)
+        {
+            var batchIndex = group.Used / BatchSize;
+            if (batchIndex == group.Batches.Count) group.Batches.Add(new Batch());
+            var batch = group.Batches[batchIndex];
+            var i = group.Used % BatchSize;
+            var c = Mathf.Cos(angle);
+            var s = Mathf.Sin(angle);
+
+            ref var m = ref batch.Matrices[i];
+            m = Matrix4x4.identity;
+            m.m00 = c * size.x;
+            m.m01 = -s * size.y;
+            m.m10 = s * size.x;
+            m.m11 = c * size.y;
+            m.m03 = center.x;
+            m.m13 = center.y;
+
+            batch.Colors[i] = color;
+            batch.Shapes[i] = shape;
+            batch.Uvs[i] = uv;
+            group.Used++;
         }
 
         // Bulk path for Burst-generated instance data: copies whole blocks into the GPU batches (memcpy),

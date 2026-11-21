@@ -238,6 +238,8 @@ static class ArtGen
         Meat();
         Magnet();
         Cannonball();
+        Gun();
+        for (var f = 0; f < 2; f++) MuzzleFlash(f);
         Anchor();
         Palm();
         Rock();
@@ -573,6 +575,53 @@ static class ArtGen
             c.Flush();
             c.Shine(26, 58, 4, 9, 110);
             c.Save(P("pickup_magnet"));
+        }
+    }
+
+    // ---------- Flintlock pistol (points right; barrel tip at x=156, y=29 of a 160x80 canvas) ----------
+    static void Gun()
+    {
+        using (var c = new Canvas(160, 80, 3f))
+        {
+            var wood = Paint.Hex("8A4B22");
+            var steel = Paint.Hex("7D8796");
+            var brass = Paint.Hex("E3B341");
+            // Grip: curved wooden handle down-left
+            c.Add(Paint.Smooth(44, 26, 70, 30, 66, 46, 44, 70, 26, 74, 20, 64, 30, 44), wood);
+            // Trigger guard
+            c.Flush();
+            using (var pen = new Pen(brass, 5f)) c.G.DrawArc(pen, 52, 34, 22, 22, 0, 180);
+            c.Line(Paint.Ink, 3f, 63, 36, 61, 46);
+            // Barrel and stock
+            c.Add(Paint.RoundRect(40, 18, 70, 20, 6), wood);
+            c.Add(Paint.RoundRect(64, 22, 92, 14, 5), steel);
+            c.Add(Paint.RoundRect(146, 19, 11, 20, 4), steel);
+            c.Add(Paint.RoundRect(96, 20, 8, 18, 2), brass);
+            c.Flush();
+            // Hammer / flint
+            c.Add(Paint.Poly(48, 20, 44, 8, 52, 6, 56, 18), steel);
+            c.Add(Paint.Ellipse(24, 70, 7, 6), brass);
+            c.Flush();
+            c.Shine(110, 25, 30, 2.5f, 120);
+            c.Shine(56, 23, 10, 2, 70);
+            c.Save(P("weapon_gun"));
+        }
+    }
+
+    // ---------- Muzzle flash (cone pointing right, starts at the left edge) ----------
+    static void MuzzleFlash(int f)
+    {
+        using (var c = new Canvas(128, 64, 0f))
+        {
+            var len = f == 0 ? 118f : 92f;
+            var spread = f == 0 ? 26f : 18f;
+            c.Fill(Paint.Smooth(4, 32, len * 0.55f, 32 - spread, len, 32, len * 0.55f, 32 + spread), Color.FromArgb(230, 255, 140, 30));
+            c.Fill(Paint.Smooth(4, 32, len * 0.45f, 32 - spread * 0.55f, len * 0.8f, 32, len * 0.45f, 32 + spread * 0.55f), Color.FromArgb(255, 255, 220, 80));
+            c.Fill(Paint.Ellipse(14, 32, 12, 10), Color.FromArgb(255, 255, 255, 220));
+            // Side sparks
+            c.Fill(Paint.Poly(30, 32, 46, 8 + f * 6, 40, 30), Color.FromArgb(220, 255, 180, 60));
+            c.Fill(Paint.Poly(30, 32, 46, 56 - f * 6, 40, 34), Color.FromArgb(220, 255, 180, 60));
+            c.Save(P("fx_muzzle_" + f));
         }
     }
 

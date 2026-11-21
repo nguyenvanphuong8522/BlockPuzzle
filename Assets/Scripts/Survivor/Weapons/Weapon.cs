@@ -11,9 +11,12 @@ namespace Survivor
         public readonly EffectSystem Effects;
         public readonly SpriteCatalog Sprites;
         public readonly AudioService Audio;
+        public readonly PlayerGun Gun;
+        public readonly GunSettings GunSettings;
+        public readonly CameraShake Shake;
 
         public WeaponContext(Player player, EnemySystem enemies, ProjectileSystem projectiles, EffectSystem effects,
-            SpriteCatalog sprites, AudioService audio)
+            SpriteCatalog sprites, AudioService audio, PlayerGun gun, GunSettings gunSettings, CameraShake shake)
         {
             Player = player;
             Enemies = enemies;
@@ -21,6 +24,9 @@ namespace Survivor
             Effects = effects;
             Sprites = sprites;
             Audio = audio;
+            Gun = gun;
+            GunSettings = gunSettings;
+            Shake = shake;
         }
 
         public float Might => Player.Stats.Might;

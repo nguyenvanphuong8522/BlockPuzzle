@@ -12,6 +12,7 @@ namespace Survivor
 
         readonly EnemySystem enemies;
         readonly SpriteCatalog sprites;
+        readonly GunSettings gun;
         readonly List<int> hits = new List<int>(32);
 
         int count;
@@ -26,10 +27,11 @@ namespace Survivor
 
         public int Count => count;
 
-        public ProjectileSystem(EnemySystem enemies, SpriteCatalog sprites)
+        public ProjectileSystem(EnemySystem enemies, SpriteCatalog sprites, GunSettings gun)
         {
             this.enemies = enemies;
             this.sprites = sprites;
+            this.gun = gun;
         }
 
         public void Spawn(Vector2 from, Vector2 direction, float speed, float damageAmount, float lifetime,
@@ -100,12 +102,19 @@ namespace Survivor
 
         public void Draw(InstancedRenderer renderer)
         {
+            // Bullet = glowing tracer streak trailing behind + the ball itself.
             for (var i = 0; i < count; i++)
             {
+                var v = velocity[i];
+                var speed = v.magnitude;
+                var dir = speed > 0.001f ? v / speed : Vector2.right;
+                var angle = Mathf.Atan2(dir.y, dir.x);
+                var length = Mathf.Max(radius[i] * 2f, gun.TracerLength);
+                renderer.Streak(RenderLayer.Projectiles, position[i] - dir * (length * 0.4f), length, gun.TracerWidth, angle, color[i]);
                 if (sprites.MagicBolt != null)
-                    renderer.Sprite(RenderLayer.Projectiles, sprites.MagicBolt, position[i], radius[i] * 3f, Color.white, velocity[i].x < 0f);
+                    renderer.Sprite(RenderLayer.Projectiles, sprites.MagicBolt, position[i], radius[i] * 2.4f, Color.white);
                 else
-                    renderer.Circle(RenderLayer.Projectiles, position[i], radius[i], color[i]);
+                    renderer.Circle(RenderLayer.Projectiles, position[i], radius[i], new Color(0.25f, 0.25f, 0.3f));
             }
         }
 

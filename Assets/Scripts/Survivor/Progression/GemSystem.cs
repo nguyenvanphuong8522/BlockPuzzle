@@ -5,32 +5,43 @@ using UnityEngine;
 namespace Survivor
 {
     // Experience gems dropped by enemies. Listens to EnemyKilledEvent through MessagePipe.
+    // Pickup animation (tuned in GemPickupSettings): Resting -> BackOff (jump away) -> Fly (into the player) -> collected.
     public sealed class GemSystem : IDisposable
     {
-        const float PickupDistance = 0.3f;
+        const float StreakWindow = 0.4f;   // pickups closer together than this continue the streak
+        const int MaxStreakSteps = 12;     // pitch rises a semitone per pickup, up to one octave
+
+        const byte Resting = 0, BackOff = 1, Fly = 2;
 
         readonly GameConfig config;
         readonly Player player;
         readonly PlayerProgress progress;
         readonly SpriteCatalog sprites;
         readonly AudioService audio;
+        readonly GemPickupSettings pickup;
         readonly IDisposable subscription;
 
         int count;
         Vector2[] position = new Vector2[256];
         int[] value = new int[256];
-        float[] speed = new float[256]; // 0 = resting, > 0 = flying to the player
+        byte[] state = new byte[256];
+        float[] timer = new float[256];
+        Vector2[] start = new Vector2[256];   // where the current phase started
+        Vector2[] away = new Vector2[256];    // back-off direction (away from the player)
+        int streak;
+        float lastPickupTime = -1f;
 
         public int Count => count;
 
         public GemSystem(GameConfig config, Player player, PlayerProgress progress, SpriteCatalog sprites,
-            AudioService audio, ISubscriber<EnemyKilledEvent> killed)
+            AudioService audio, GemPickupSettings pickup, ISubscriber<EnemyKilledEvent> killed)
         {
             this.config = config;
             this.player = player;
             this.progress = progress;
             this.sprites = sprites;
             this.audio = audio;
+            this.pickup = pickup;
             subscription = killed.Subscribe(e => Spawn(e.Position, e.Xp));
         }
 
@@ -46,38 +57,89 @@ namespace Survivor
             var i = count++;
             position[i] = at;
             value[i] = xp;
-            speed[i] = 0f;
+            state[i] = Resting;
         }
 
-        // Pulls every gem on the map to the player (e.g. a magnet pickup later).
+        // Debug / tuning helper: a ring of gems just inside the magnet radius, so the pickup animation plays at once.
+        public void SpawnTestRing(int amount)
+        {
+            var radius = player.Stats.MagnetRadius * 0.9f;
+            for (var k = 0; k < amount; k++)
+            {
+                var a = k * Mathf.PI * 2f / amount;
+                Spawn(player.Position + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius, 1);
+            }
+        }
+
+        // Pulls every gem on the map to the player (magnet pickup).
         public void AttractAll()
         {
-            for (var i = 0; i < count; i++) speed[i] = Mathf.Max(speed[i], 6f);
+            for (var i = 0; i < count; i++)
+                if (state[i] == Resting) Begin(i);
         }
 
         public void Tick(float dt)
         {
             var playerPos = player.Position;
             var magnetSq = player.Stats.MagnetRadius * player.Stats.MagnetRadius;
-            var collect = player.Radius + PickupDistance;
 
             for (var i = count - 1; i >= 0; i--)
             {
-                var d = playerPos - position[i];
-                var sq = d.sqrMagnitude;
-                if (speed[i] <= 0f && sq > magnetSq) continue;
-
-                if (sq <= collect * collect)
+                switch (state[i])
                 {
-                    progress.AddXp(value[i]);
-                    audio.Play(Sfx.Gem, 0.45f, 0.12f, 0.04f);
-                    RemoveAt(i);
-                    continue;
-                }
+                    case Resting:
+                        if ((playerPos - position[i]).sqrMagnitude <= magnetSq) Begin(i);
+                        break;
 
-                speed[i] = Mathf.Max(speed[i], 4f) + 25f * dt;
-                position[i] += d / Mathf.Sqrt(sq) * speed[i] * dt;
+                    case BackOff:
+                    {
+                        timer[i] += dt;
+                        var t = pickup.BackDuration > 0f ? Mathf.Clamp01(timer[i] / pickup.BackDuration) : 1f;
+                        position[i] = start[i] + away[i] * (pickup.BackDistance * pickup.Back(t));
+                        if (t >= 1f)
+                        {
+                            state[i] = Fly;
+                            timer[i] = 0f;
+                            start[i] = position[i];
+                        }
+                        break;
+                    }
+
+                    case Fly:
+                    {
+                        timer[i] += dt;
+                        var t = Mathf.Clamp01(timer[i] / pickup.FlyDuration);
+                        // Target is the player's current position, so the gem still lands if the player moves.
+                        position[i] = Vector2.LerpUnclamped(start[i], playerPos, pickup.Fly(t));
+                        if (t >= 1f)
+                        {
+                            progress.AddXp(value[i]);
+                            PlayPickupSound();
+                            RemoveAt(i);
+                        }
+                        break;
+                    }
+                }
             }
+        }
+
+        void Begin(int i)
+        {
+            var dir = position[i] - player.Position;
+            away[i] = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.up;
+            start[i] = position[i];
+            timer[i] = 0f;
+            state[i] = BackOff;
+        }
+
+        // Each pickup in quick succession plays a semitone higher: collecting a pile sounds like a little melody.
+        void PlayPickupSound()
+        {
+            var now = Time.time;
+            if (now - lastPickupTime < 0.035f) return; // several gems in one frame: one sound, one step
+            streak = now - lastPickupTime < StreakWindow ? Mathf.Min(streak + 1, MaxStreakSteps) : 0;
+            lastPickupTime = now;
+            audio.PlayAtPitch(Sfx.Gem, Mathf.Pow(2f, streak / 12f), 1f, 0f);
         }
 
         void RemoveAt(int i)
@@ -85,7 +147,10 @@ namespace Survivor
             var last = --count;
             position[i] = position[last];
             value[i] = value[last];
-            speed[i] = speed[last];
+            state[i] = state[last];
+            timer[i] = timer[last];
+            start[i] = start[last];
+            away[i] = away[last];
         }
 
         public void Draw(InstancedRenderer renderer)
@@ -105,7 +170,10 @@ namespace Survivor
             var size = position.Length * 2;
             Array.Resize(ref position, size);
             Array.Resize(ref value, size);
-            Array.Resize(ref speed, size);
+            Array.Resize(ref state, size);
+            Array.Resize(ref timer, size);
+            Array.Resize(ref start, size);
+            Array.Resize(ref away, size);
         }
 
         public void Dispose() => subscription.Dispose();

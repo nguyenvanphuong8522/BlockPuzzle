@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace Survivor
 {
-    // Starting weapon: magic bolts aimed at the nearest enemies.
+    // Starting weapon: the pirate pistol the player holds. Aims at the nearest enemy and fires from the
+    // muzzle with spread, recoil, muzzle flash, smoke and a little screen shake (all tuned in GunSettings).
+    // Higher levels fire several bullets as a quick burst, one after another.
     public sealed class MagicBoltWeapon : Weapon
     {
         static readonly float[] Damage = { 10, 14, 14, 18, 24 };
@@ -11,12 +13,15 @@ namespace Survivor
         static readonly int[] Pierce = { 0, 0, 0, 1, 1 };
         static readonly float[] Cooldown = { 0.9f, 0.9f, 0.85f, 0.75f, 0.65f };
         const float Range = 10f;
+        const float BulletRadius = 0.12f;
 
-        readonly List<int> targets = new List<int>(8);
+        readonly List<int> targets = new List<int>(1);
         float timer;
+        int burstLeft;     // bullets still to fire in the current burst
+        float burstTimer;
 
-        public override string Name => "Pháo Hải Tặc";
-        public override string Description => "Bắn đạn pháo vào kẻ địch gần nhất.";
+        public override string Name => "Súng Hải Tặc";
+        public override string Description => "Súng kíp bắn vào kẻ địch gần nhất.";
         public override Color Tint => new Color(0.5f, 0.8f, 1f);
         public override string NextLevelDescription => Level switch
         {
@@ -28,21 +33,47 @@ namespace Survivor
 
         public override void Tick(float dt, WeaponContext ctx)
         {
-            timer -= dt;
-            if (timer > 0f) return;
+            // Aim every frame at the nearest enemy (or where the player walks), so the gun visibly tracks targets.
+            ctx.Enemies.FindNearest(ctx.Player.Position, Range, 1, targets);
+            var hasTarget = targets.Count > 0;
+            var aim = hasTarget ? ctx.Enemies.Position[targets[0]] - ctx.Player.Position : ctx.Player.Facing;
+            ctx.Gun.Tick(dt, aim);
 
-            ctx.Enemies.FindNearest(ctx.Player.Position, Range, At(Bolts), targets);
-            if (targets.Count == 0) return; // keep the shot ready until something is in range
-
-            ctx.Audio.Play(Sfx.Shoot, 0.5f, 0.08f, 0.06f);
-            timer = At(Cooldown) * ctx.Haste;
-            for (var k = 0; k < At(Bolts); k++)
+            if (burstLeft > 0)
             {
-                var target = targets[k % targets.Count];
-                var dir = ctx.Enemies.Position[target] - ctx.Player.Position;
-                ctx.Projectiles.Spawn(ctx.Player.Position, dir, 12f, At(Damage) * ctx.Might, 1.2f, 0.18f, At(Pierce), Tint);
+                burstTimer -= dt;
+                if (burstTimer <= 0f) FireOne(ctx);
+                return;
             }
+
+            timer -= dt;
+            if (timer > 0f || !hasTarget) return; // keep the shot ready until something is in range
+            timer = At(Cooldown) * ctx.Haste;
+            burstLeft = At(Bolts);
+            FireOne(ctx);
         }
+
+        void FireOne(WeaponContext ctx)
+        {
+            var s = ctx.GunSettings;
+            burstLeft--;
+            burstTimer = s.BurstInterval;
+
+            var muzzle = ctx.Gun.MuzzlePosition();
+            var spread = Random.Range(-s.SpreadDegrees, s.SpreadDegrees) * Mathf.Deg2Rad;
+            var aim = ctx.Gun.AimDirection;
+            var dir = new Vector2(aim.x * Mathf.Cos(spread) - aim.y * Mathf.Sin(spread), aim.x * Mathf.Sin(spread) + aim.y * Mathf.Cos(spread));
+            ctx.Projectiles.Spawn(muzzle, dir, s.BulletSpeed, At(Damage) * ctx.Might, Range / s.BulletSpeed, BulletRadius,
+                At(Pierce), s.TracerColor);
+
+            ctx.Gun.Kick();
+            ctx.Effects.Smoke(muzzle + dir * 0.15f, s.SmokeSize);
+            ctx.Shake.Add(s.ScreenShake);
+            ctx.Audio.Play(Sfx.Shoot, 0.5f, 0.08f, 0.03f);
+        }
+
+        // The gun is drawn even between shots.
+        public override void Draw(InstancedRenderer renderer, WeaponContext ctx) => ctx.Gun.Draw(renderer);
     }
 
     // Blades circling the player, hurting everything they touch.

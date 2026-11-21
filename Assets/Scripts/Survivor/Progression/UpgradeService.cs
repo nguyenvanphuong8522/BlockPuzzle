@@ -40,17 +40,17 @@ namespace Survivor
         readonly Passive[] passives =
         {
             new Passive { Name = "Giày Gió", Description = "Tốc độ chạy +10%.", Tint = new Color(0.5f, 1f, 0.8f),
-                Apply = p => p.Stats.MoveSpeed *= 1.1f },
+                Apply = p => p.Stats.MoveSpeedMultiplier *= 1.1f },
             new Passive { Name = "Tim Thép", Description = "Máu tối đa +20 và hồi 20 máu.", Tint = new Color(1f, 0.4f, 0.4f),
                 Apply = p => p.IncreaseMaxHp(20f) },
             new Passive { Name = "Nam Châm", Description = "Tầm hút kinh nghiệm +30%.", Tint = new Color(0.4f, 0.7f, 1f),
-                Apply = p => p.Stats.MagnetRadius *= 1.3f },
+                Apply = p => p.Stats.MagnetMultiplier *= 1.3f },
             new Passive { Name = "Sức Mạnh", Description = "Sát thương +10%.", Tint = new Color(1f, 0.6f, 0.2f),
-                Apply = p => p.Stats.Might += 0.1f },
+                Apply = p => p.Stats.BonusMight += 0.1f },
             new Passive { Name = "Đồng Hồ Cát", Description = "Hồi chiêu nhanh hơn 8%.", Tint = new Color(0.9f, 0.85f, 0.4f),
-                Apply = p => p.Stats.Haste *= 0.92f },
+                Apply = p => p.Stats.HasteMultiplier *= 0.92f },
             new Passive { Name = "Bùa Rộng", Description = "Phạm vi vũ khí +10%.", Tint = new Color(0.8f, 0.5f, 1f),
-                Apply = p => p.Stats.Area += 0.1f },
+                Apply = p => p.Stats.BonusArea += 0.1f },
         };
 
         public UpgradeService(WeaponSystem weapons, Player player)

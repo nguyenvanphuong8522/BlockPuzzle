@@ -6,7 +6,7 @@ namespace Survivor
     // Short visual effects (explosions, lightning). Purely cosmetic.
     public sealed class EffectSystem
     {
-        enum Kind { Ring, Burst, Bolt }
+        enum Kind { Ring, Burst, Bolt, Smoke }
 
         int count;
         Kind[] kind = new Kind[64];
@@ -21,6 +21,9 @@ namespace Survivor
 
         // Expanding filled circle that fades out.
         public void Burst(Vector2 at, float radius, Color tint, float time = 0.25f) => Add(Kind.Burst, at, radius, tint, time);
+
+        // Grey puff that grows, drifts up and fades (gun smoke).
+        public void Smoke(Vector2 at, float radius, float time = 0.35f) => Add(Kind.Smoke, at, radius, new Color(0.85f, 0.85f, 0.85f, 0.55f), time);
 
         // Vertical lightning strike landing on a point.
         public void Bolt(Vector2 at, Color tint, float time = 0.2f) => Add(Kind.Bolt, at, 6f, tint, time);
@@ -68,6 +71,9 @@ namespace Survivor
                     case Kind.Burst:
                         c.a *= 0.5f;
                         renderer.Circle(RenderLayer.Effects, position[i], Mathf.Lerp(size[i] * 0.3f, size[i], t), c);
+                        break;
+                    case Kind.Smoke:
+                        renderer.Circle(RenderLayer.Effects, position[i] + new Vector2(0f, t * 0.35f), Mathf.Lerp(size[i] * 0.4f, size[i], t), c);
                         break;
                     case Kind.Bolt:
                         renderer.Rect(RenderLayer.Effects, position[i] + new Vector2(0f, size[i] / 2f),

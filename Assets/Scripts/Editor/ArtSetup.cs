@@ -28,6 +28,9 @@ public static class ArtSetup
     const string AtlasPath = "Assets/Art/GameSprites.spriteatlasv2";
     const string SpriteCatalogPath = "Assets/Resources/SpriteCatalog.asset";
     const string AudioCatalogPath = "Assets/Resources/AudioCatalog.asset";
+    const string GemPickupSettingsPath = "Assets/Resources/GemPickupSettings.asset";
+    const string PlayerTuningPath = "Assets/Resources/PlayerTuning.asset";
+    const string GunSettingsPath = "Assets/Resources/GunSettings.asset";
 
     static readonly (string name, float height)[] Decorations =
     {
@@ -44,6 +47,9 @@ public static class ArtSetup
         CreateAtlas();
         FillSpriteCatalog();
         FillAudioCatalog();
+        LoadOrCreate<GemPickupSettings>(GemPickupSettingsPath); // created once with defaults, never overwritten
+        LoadOrCreate<PlayerTuning>(PlayerTuningPath);
+        LoadOrCreate<GunSettings>(GunSettingsPath);
         AssetDatabase.SaveAssets();
         Debug.Log("Survivor: art & audio setup done.");
     }
@@ -129,6 +135,8 @@ public static class ArtSetup
         for (var i = 0; i < enemyCount; i++)
             catalog.Enemies[i] = new SpriteAnim { Frames = Frames($"enemy{i}_"), Fps = 5f };
 
+        catalog.Gun = Single("weapon_gun");
+        catalog.MuzzleFlash = new SpriteAnim { Frames = Frames("fx_muzzle_"), Fps = 30f };
         catalog.MagicBolt = Single("weapon_cannonball");
         catalog.OrbitBlade = Single("weapon_anchor");
         catalog.Gem = Single("pickup_pearl");
@@ -170,7 +178,7 @@ public static class ArtSetup
     static float DefaultVolume(Sfx id) => id switch
     {
         Sfx.Hit => 0.45f,
-        Sfx.Gem => 0.5f,
+        Sfx.Gem => 0.8f,
         Sfx.EnemyDie => 0.55f,
         Sfx.Shoot => 0.5f,
         _ => 0.8f

@@ -9,7 +9,7 @@ namespace Survivor
     // Runs the game loop in a fixed, explicit order every frame (no per-enemy Update calls).
     public sealed class GameController : IStartable, ITickable, ILateTickable
     {
-        enum State { Playing, Choosing, Ended }
+        enum State { Playing, Choosing, Paused, Ended }
 
         readonly GameConfig config;
         readonly InputService input;
@@ -27,14 +27,20 @@ namespace Survivor
         readonly GameStats stats;
         readonly HudView hud;
         readonly DebugPanel debugPanel;
+        readonly PauseView pauseView;
         readonly DebugSettings debug;
         readonly InstancedRenderer renderer;
         readonly AudioService audio;
         readonly DecorationSystem decorations;
         readonly SpriteCatalog sprites;
+        readonly CameraShake shake;
+        readonly HapticsService haptics;
 
         State state;
         bool choosingForChest;
+        int selectedCard;
+        float menuOpenedAt;             // ignore stick / buttons briefly after a menu opens, so a held input does not pick by accident
+        const float MenuInputDelay = 0.35f;
         List<UpgradeOption> options;
         Camera camera;
         float fpsTimer;
@@ -51,8 +57,8 @@ namespace Survivor
         public GameController(GameConfig config, InputService input, Player player, EnemySystem enemies,
             EnemySpawner spawner, ProjectileSystem projectiles, GemSystem gems, PickupSystem pickups,
             EffectSystem effects, DamageNumberSystem damageNumbers, WeaponSystem weapons, UpgradeService upgrades,
-            PlayerProgress progress, GameStats stats, HudView hud, DebugPanel debugPanel, DebugSettings debug,
-            InstancedRenderer renderer, AudioService audio, DecorationSystem decorations, SpriteCatalog sprites)
+            PlayerProgress progress, GameStats stats, HudView hud, DebugPanel debugPanel, PauseView pauseView, DebugSettings debug,
+            InstancedRenderer renderer, AudioService audio, DecorationSystem decorations, SpriteCatalog sprites, CameraShake shake, HapticsService haptics)
         {
             this.config = config;
             this.input = input;
@@ -70,11 +76,14 @@ namespace Survivor
             this.stats = stats;
             this.hud = hud;
             this.debugPanel = debugPanel;
+            this.pauseView = pauseView;
             this.debug = debug;
             this.renderer = renderer;
             this.audio = audio;
             this.decorations = decorations;
             this.sprites = sprites;
+            this.shake = shake;
+            this.haptics = haptics;
         }
 
         public void Start()
@@ -90,6 +99,7 @@ namespace Survivor
             renderer.SetGroundTexture(sprites.GroundTile, sprites.GroundTileSize);
             hud.Build();
             debugPanel.Build();
+            pauseView.Build(onPauseButton: Pause, onResume: Resume, onRestart: Restart);
             upgrades.GiveStartingWeapon();
             audio.PlayMusic();
         }
@@ -97,16 +107,26 @@ namespace Survivor
         public void Tick()
         {
             if (input.WasPressed(Key.F3)) debugPanel.Toggle();
+            if (debug.ToolsAvailable && input.WasPressed(Key.F4)) gems.SpawnTestRing(20); // test the gem pickup animation
 
             switch (state)
             {
                 case State.Choosing:
-                    var key = input.UpgradeKeyPressed();
-                    if (key >= 0 && key < options.Count) ChooseUpgrade(key);
+                    HandleChoiceInput();
+                    return;
+                case State.Paused:
+                    if (input.PausePressed) Resume();
+                    else pauseView.HandleNavigation(input.NavigateVertical(), input.NavigateHorizontal(), input.SubmitPressed);
                     return;
                 case State.Ended:
-                    if (input.WasPressed(Key.R)) Restart();
+                    if (input.WasPressed(Key.R) || (MenuReady && input.SubmitPressed)) Restart();
                     return;
+            }
+
+            if (input.PausePressed)
+            {
+                Pause();
+                return;
             }
 
             var start = Time.realtimeSinceStartup;
@@ -137,7 +157,9 @@ namespace Survivor
         public void LateTick()
         {
             var start = Time.realtimeSinceStartup;
-            camera.transform.position = new Vector3(player.Position.x, player.Position.y, -10f);
+            haptics.Update();
+            var offset = shake.Tick(Time.unscaledDeltaTime);
+            camera.transform.position = new Vector3(player.Position.x + offset.x, player.Position.y + offset.y, -10f);
             renderer.SetView(camera);
 
             renderer.DrawGround(camera);
@@ -165,6 +187,49 @@ namespace Survivor
             options = upgrades.Roll(3);
             if (!forChest) audio.Play(Sfx.LevelUp, 1f, 0f);
             hud.ShowLevelUp(forChest ? "RƯƠNG BÁU!" : "LÊN CẤP!", options, ChooseUpgrade);
+            selectedCard = 0;
+            hud.HighlightCard(selectedCard);
+            menuOpenedAt = Time.unscaledTime;
+        }
+
+        // The game loop simply stops ticking while paused (music keeps playing, quieter settings apply live).
+        public void Pause()
+        {
+            if (state != State.Playing) return;
+            state = State.Paused;
+            haptics.Stop();
+            input.Joystick = Vector2.zero;
+            pauseView.Show();
+        }
+
+        public void Resume()
+        {
+            if (state != State.Paused) return;
+            pauseView.Hide();
+            state = State.Playing;
+        }
+
+        bool MenuReady => Time.unscaledTime - menuOpenedAt > MenuInputDelay;
+
+        // Keys 1/2/3 pick directly; stick / d-pad / arrows move the highlight and Submit (gamepad A, Enter) confirms.
+        void HandleChoiceInput()
+        {
+            var key = input.UpgradeKeyPressed();
+            if (key >= 0 && key < options.Count)
+            {
+                ChooseUpgrade(key);
+                return;
+            }
+            if (!MenuReady) return;
+
+            var step = input.NavigateHorizontal();
+            if (step != 0)
+            {
+                selectedCard = (selectedCard + step + options.Count) % options.Count;
+                hud.HighlightCard(selectedCard);
+                audio.Play(Sfx.Click, 0.5f, 0f, 0f);
+            }
+            if (input.SubmitPressed) ChooseUpgrade(selectedCard);
         }
 
         public void ChooseUpgrade(int index)
@@ -181,6 +246,8 @@ namespace Survivor
         void End(bool survived)
         {
             state = State.Ended;
+            haptics.Stop();
+            menuOpenedAt = Time.unscaledTime;
             audio.StopMusic();
             audio.Play(survived ? Sfx.Victory : Sfx.GameOver, 1f, 0f, 0f);
             hud.ShowResult(survived, stats.Elapsed, stats.Kills.Value, progress.Level.Value, Restart);
@@ -195,7 +262,8 @@ namespace Survivor
             if (fpsTimer < 0.5f) return;
             var fps = fpsFrames / fpsTimer;
             hud.SetDebug(debug.ShowStats
-                ? $"FPS {fps:0}  ·  Quái {enemies.Count}  ·  Logic {simulationMs:0.0}ms  ·  Vẽ {renderMs:0.0}ms  ·  Draw call {renderer.LastFrameDrawCalls}"
+                ? $"FPS {fps:0}  ·  Quái {enemies.Count}  ·  Logic {simulationMs:0.0}ms  ·  Vẽ {renderMs:0.0}ms  ·  Draw call {renderer.LastFrameDrawCalls}" +
+                  $"\nTầm hút {player.Stats.MagnetRadius:0.00}"
                 : "");
             fpsFrames = 0;
             fpsTimer = 0f;

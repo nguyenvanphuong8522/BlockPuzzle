@@ -32,6 +32,8 @@ namespace Survivor
         public SpriteAnim[] Enemies = new SpriteAnim[0];
 
         [Header("Weapons")]
+        public Sprite Gun;
+        public SpriteAnim MuzzleFlash = new SpriteAnim();
         public Sprite MagicBolt;
         public Sprite OrbitBlade;
 

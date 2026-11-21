@@ -50,6 +50,10 @@ MonoBehaviour:
     - {fileID: 21300000, guid: d025e2ab289583843b3e41b83c758e5b, type: 3}
     - {fileID: 21300000, guid: e0789538b10a30e4097d258f55936df9, type: 3}
     Fps: 5
+  Gun: {fileID: 8510352229001544910, guid: f3e8bf44a9b0d9641b8b9191b69f9a2f, type: 3}
+  MuzzleFlash:
+    Frames: []
+    Fps: 6
   MagicBolt: {fileID: 21300000, guid: 883354a28be6d1a4fb11dd1fc1266900, type: 3}
   OrbitBlade: {fileID: 21300000, guid: 293b00a89213a8244945d4724119695c, type: 3}
   Gem: {fileID: 21300000, guid: ee693a57515ab6b44acc71029b0c1289, type: 3}

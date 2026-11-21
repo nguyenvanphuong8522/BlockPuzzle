@@ -25,6 +25,7 @@ namespace Survivor
         TextMeshProUGUI debugText;
         VirtualJoystick joystick;
         GameObject levelUpPanel;
+        readonly List<Image> cards = new List<Image>();
         GameObject bossBar;
         Image bossFill;
         TextMeshProUGUI bossName;
@@ -66,7 +67,7 @@ namespace Survivor
             levelText = CreateText(xpBack.rectTransform, "", 28, new Vector2(0, 0.5f), new Vector2(110, 0), new Vector2(200, 36));
 
             timeText = CreateText(root, "00:00", 56, new Vector2(0.5f, 1f), new Vector2(0, -85), new Vector2(300, 70));
-            killText = CreateText(root, "", 34, new Vector2(1f, 1f), new Vector2(-170, -75), new Vector2(300, 50));
+            killText = CreateText(root, "", 34, new Vector2(1f, 1f), new Vector2(-290, -80), new Vector2(300, 50));
             debugText = CreateText(root, "", 24, new Vector2(0f, 1f), new Vector2(230, -75), new Vector2(420, 40));
             debugText.alignment = TextAlignmentOptions.Left;
             debugText.color = new Color(1f, 1f, 1f, 0.9f);
@@ -99,9 +100,10 @@ namespace Survivor
             var panel = (RectTransform)levelUpPanel.transform;
             CreateText(panel, title, 90, new Vector2(0.5f, 0.5f), new Vector2(0, 360), new Vector2(1000, 120))
                 .color = new Color(1f, 0.85f, 0.3f);
-            CreateText(panel, "Chọn 1 nâng cấp (phím 1 / 2 / 3)", 30, new Vector2(0.5f, 0.5f), new Vector2(0, 280),
+            CreateText(panel, "Chọn 1 nâng cấp: phím 1 / 2 / 3, chuột, hoặc tay cầm (gạt trái/phải + A)", 30, new Vector2(0.5f, 0.5f), new Vector2(0, 280),
                 new Vector2(1000, 50));
 
+            cards.Clear();
             const float cardWidth = 440f, gap = 40f;
             var startX = -(options.Count - 1) * (cardWidth + gap) / 2f;
             for (var i = 0; i < options.Count; i++)
@@ -125,6 +127,23 @@ namespace Survivor
                 desc.textWrappingMode = TextWrappingModes.Normal;
 
                 card.gameObject.AddComponent<TapButton>().OnPressed = () => onPick(index);
+                var outline = card.gameObject.AddComponent<Outline>();
+                outline.effectColor = new Color(1f, 0.85f, 0.3f);
+                outline.effectDistance = new Vector2(6f, -6f);
+                outline.enabled = false;
+                cards.Add(card);
+            }
+        }
+
+        // Gamepad / arrow-key selection: enlarges the chosen card and gives it a gold border.
+        public void HighlightCard(int index)
+        {
+            for (var i = 0; i < cards.Count; i++)
+            {
+                if (cards[i] == null) continue;
+                var selected = i == index;
+                cards[i].GetComponent<Outline>().enabled = selected;
+                cards[i].rectTransform.localScale = Vector3.one * (selected ? 1.06f : 1f);
             }
         }
 
@@ -156,6 +175,7 @@ namespace Survivor
         {
             if (levelUpPanel != null) UnityEngine.Object.Destroy(levelUpPanel);
             levelUpPanel = null;
+            cards.Clear();
         }
 
         public void ShowResult(bool survived, float seconds, int kills, int level, Action onRestart)
@@ -171,7 +191,7 @@ namespace Survivor
 
             var button = CreateImage(panel, "Restart", UiSprites.Square, new Color(0.2f, 0.6f, 1f));
             Place(button.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0, -200), new Vector2(460, 120));
-            CreateText(button.rectTransform, "Chơi lại (R)", 52, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(460, 120));
+            CreateText(button.rectTransform, "Chơi lại (R / A)", 52, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(460, 120));
             button.gameObject.AddComponent<TapButton>().OnPressed = onRestart;
         }
 

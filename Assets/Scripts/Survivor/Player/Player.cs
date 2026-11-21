@@ -20,16 +20,19 @@ namespace Survivor
         readonly DebugSettings debug;
         readonly SpriteCatalog sprites;
         readonly AudioService audio;
+        readonly HapticsService haptics;
         float hurtTimer;
 
-        public Player(GameConfig config, DebugSettings debug, SpriteCatalog sprites, AudioService audio)
+        public Player(GameConfig config, PlayerTuning tuning, DebugSettings debug, SpriteCatalog sprites, AudioService audio,
+            HapticsService haptics)
         {
-            Stats = config.CreatePlayerStats();
+            Stats = new PlayerStats(tuning);
             Radius = config.PlayerRadius;
             hurtCooldown = config.PlayerHurtCooldown;
             this.debug = debug;
             this.sprites = sprites;
             this.audio = audio;
+            this.haptics = haptics;
             Hp = new ReactiveProperty<float>(Stats.MaxHp);
         }
 
@@ -51,6 +54,7 @@ namespace Survivor
             hurtTimer = hurtCooldown;
             HurtFlash = 0.12f;
             audio.Play(Sfx.Hurt, 0.6f, 0.08f, 0.2f);
+            haptics.PlayHit(); // phone / gamepad vibration (also in god mode, so it can be tuned)
             if (debug.GodMode || debug.SessionGodMode) return; // still flashes, so you can see you were hit
             Hp.Value = Mathf.Max(0f, Hp.Value - damage);
         }
@@ -59,7 +63,7 @@ namespace Survivor
 
         public void IncreaseMaxHp(float amount)
         {
-            Stats.MaxHp += amount;
+            Stats.BonusMaxHp += amount;
             Heal(amount);
         }
 
@@ -79,6 +83,13 @@ namespace Survivor
             {
                 renderer.Circle(RenderLayer.Player, Position, Radius, new Color(0.35f, 0.75f, 1f), flash);
                 renderer.Circle(RenderLayer.Player, Position + Facing * Radius * 0.55f, Radius * 0.28f, Color.white);
+            }
+
+            if (debug.ShowPickupRange)
+            {
+                var r = Stats.MagnetRadius;
+                renderer.Circle(RenderLayer.Shadows, Position, r, new Color(0.3f, 0.8f, 1f, 0.12f));
+                renderer.Ring(RenderLayer.Overlay, Position, r, 0.04f, new Color(0.3f, 0.8f, 1f, 0.9f));
             }
 
             if (debug.GodMode)

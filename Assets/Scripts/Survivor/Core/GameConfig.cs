@@ -33,16 +33,6 @@ namespace Survivor
         public readonly float PlayerRadius = 0.45f;
         public readonly float PlayerHurtCooldown = 0.25f;
 
-        public PlayerStats CreatePlayerStats() => new PlayerStats
-        {
-            MaxHp = 100f,
-            MoveSpeed = 4.5f,
-            MagnetRadius = 1.6f,
-            Might = 1f,
-            Haste = 1f,
-            Area = 1f
-        };
-
         // Index = enemy type. SpriteCatalog.Enemies uses the same order (art files enemy0_..., enemy1_...).
         public readonly EnemyDefinition[] Enemies =
         {

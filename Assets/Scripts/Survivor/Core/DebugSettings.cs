@@ -9,10 +9,12 @@ namespace Survivor
         const string GodModeKey = "debug.godMode";
         const string StatsKey = "debug.showStats";
         const string DamageNumbersKey = "debug.damageNumbers";
+        const string PickupRangeKey = "debug.pickupRange";
 
         bool godMode = PlayerPrefs.GetInt(GodModeKey, 0) == 1;
         bool showStats = PlayerPrefs.GetInt(StatsKey, 1) == 1;
         bool showDamageNumbers = PlayerPrefs.GetInt(DamageNumbersKey, 1) == 1;
+        bool showPickupRange = PlayerPrefs.GetInt(PickupRangeKey, 0) == 1;
 
         public bool ToolsAvailable => Application.isEditor || Debug.isDebugBuild;
 
@@ -33,6 +35,13 @@ namespace Survivor
         {
             get => showDamageNumbers;
             set => Save(DamageNumbersKey, showDamageNumbers = value);
+        }
+
+        // Draws the gem pickup (magnet) radius around the player.
+        public bool ShowPickupRange
+        {
+            get => showPickupRange;
+            set => Save(PickupRangeKey, showPickupRange = value);
         }
 
         public float GameSpeed { get; set; } = 1f;
