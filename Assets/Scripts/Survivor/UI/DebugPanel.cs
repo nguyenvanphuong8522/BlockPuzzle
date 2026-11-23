@@ -28,6 +28,9 @@ namespace Survivor
 
         public bool IsOpen => panel != null && panel.activeSelf;
 
+        // Raised with true when the panel opens, false when it closes (keyboard, gamepad or the DEBUG button).
+        public event Action<bool> Toggled;
+
         public DebugPanel(DebugSettings settings, Player player, EnemySystem enemies, EnemySpawner spawner,
             PlayerProgress progress, GameStats stats, UpgradeService upgrades, PickupSystem pickups, AudioService audio, GemSystem gems, PlayerTuning tuning, HapticsService haptics)
         {
@@ -56,8 +59,8 @@ namespace Survivor
             canvas.sortingOrder = 100;
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.referenceResolution = new Vector2(1080, 1920); // portrait
+            scaler.matchWidthOrHeight = 0f;                       // scale by width
             var root = (RectTransform)canvasGo.transform;
 
             var toggleButton = CreateButton(root, "DEBUG", new Vector2(0f, 0f), new Vector2(90, 40), new Vector2(150, 56),
@@ -76,7 +79,7 @@ namespace Survivor
             // Left column: settings
             columnX = 0f;
             var y = -20f;
-            Label(rt, "DEBUG  (F3)  ·  CÀI ĐẶT", ref y);
+            Label(rt, "DEBUG (F3 / Back)  ·  CÀI ĐẶT", ref y);
             ToggleRow(rt, "Bất tử", () => settings.GodMode, v => settings.GodMode = v, ref y);
             ToggleRow(rt, "Số sát thương", () => settings.ShowDamageNumbers, v => settings.ShowDamageNumbers = v, ref y);
             ToggleRow(rt, "Hiện FPS / thông số", () => settings.ShowStats, v => settings.ShowStats = v, ref y);
@@ -98,6 +101,7 @@ namespace Survivor
             Label(rt, "HÀNH ĐỘNG", ref y);
             ActionRow(rt, "Hồi đầy máu", () => player.Heal(player.Stats.MaxHp), ref y);
             ActionRow(rt, "+1 cấp", () => progress.AddXp(progress.XpToNext.Value - progress.Xp.Value), ref y);
+            ActionRow(rt, "Full đệ tử cấp tối đa", upgrades.GiveAllCompanionsMaxed, ref y);
             ActionRow(rt, "Full vũ khí cấp tối đa", upgrades.GiveAllWeaponsMaxed, ref y);
             ActionRow(rt, "Thả 1000 quái", () => spawner.SpawnBurst(1000), ref y);
             ActionRow(rt, "Gọi boss", spawner.SpawnBoss, ref y);
@@ -113,6 +117,7 @@ namespace Survivor
         {
             if (panel == null) return;
             panel.SetActive(!panel.activeSelf);
+            Toggled?.Invoke(panel.activeSelf);
             Refresh();
         }
 

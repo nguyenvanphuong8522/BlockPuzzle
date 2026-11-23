@@ -1,7 +1,8 @@
 ﻿<Solution>
   <Project Path="Survivor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Sirenix.OdinInspector.Modules.Unity.Addressables.csproj" />
   <Project Path="SurvivorSmokeTests.csproj" />
   <Project Path="Sirenix.OdinInspector.Modules.UnityMathematics.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

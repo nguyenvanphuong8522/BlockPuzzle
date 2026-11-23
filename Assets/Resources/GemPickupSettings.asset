@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05b89b82cfe059d4ab0b8e95335ae9a3, type: 3}
   m_Name: GemPickupSettings
   m_EditorClassIdentifier: Survivor::Survivor.GemPickupSettings
-  BackDistance: 0.8
-  BackDuration: 0.07
+  BackDistance: 1.5
+  BackDuration: 0.15
   BackEase: 6
   FlyDuration: 0.12
   FlyEase: 26

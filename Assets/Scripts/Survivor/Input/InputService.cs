@@ -58,6 +58,11 @@ namespace Survivor
             (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) ||
             (Gamepad.current != null && Gamepad.current.startButton.wasPressedThisFrame);
 
+        // Opens / closes the debug panel: F3 on keyboard, Back / View / Select on gamepad.
+        public bool DebugTogglePressed =>
+            (Keyboard.current != null && Keyboard.current.f3Key.wasPressedThisFrame) ||
+            (Gamepad.current != null && Gamepad.current.selectButton.wasPressedThisFrame);
+
         public bool SubmitPressed => submit != null && submit.WasPressedThisFrame();
 
         // 0, 1, 2 when the player presses 1/2/3 this frame, otherwise -1.

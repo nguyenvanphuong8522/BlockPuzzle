@@ -74,11 +74,14 @@ namespace Survivor
             if (player.IsDead) return;
             var a = VisualAngle();
             var center = GunCenter();
+            // In front of the body (optionally behind it while aiming up, see GunSettings).
+            var behind = settings.BehindPlayerWhenAimingUp && Mathf.Sin(angle) > 0.35f;
+            var sortY = player.FeetY + (behind ? 0.01f : -0.01f);
 
             if (sprites.Gun != null)
-                renderer.SpriteRotated(RenderLayer.Held, sprites.Gun, center, settings.GunSize, a, Color.white, Flipped);
+                renderer.SpriteRotated(RenderLayer.World, sprites.Gun, center, settings.GunSize, a, Color.white, Flipped, sortY: sortY);
             else
-                renderer.Streak(RenderLayer.Held, center, settings.GunSize * 1.6f, settings.GunSize * 0.4f, a, new Color(0.45f, 0.5f, 0.58f));
+                renderer.Streak(RenderLayer.Effects, center, settings.GunSize * 1.6f, settings.GunSize * 0.4f, a, new Color(0.45f, 0.5f, 0.58f));
 
             if (flashTimer > 0f)
             {

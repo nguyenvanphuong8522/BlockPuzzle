@@ -16,6 +16,8 @@ namespace Survivor
         public float HoldHeight = -0.05f;
         [Tooltip("How fast the gun turns toward the target (degrees per second).")]
         [Min(1f)] public float AimTurnSpeed = 900f;
+        [Tooltip("Off = the gun is always drawn in front of the player. On = it goes behind the player while aiming up.")]
+        public bool BehindPlayerWhenAimingUp = false;
         [Tooltip("Muzzle point in the gun sprite, in units of the gun height (x along the barrel, y up).")]
         public Vector2 MuzzleOffset = new Vector2(0.95f, 0.14f);
 

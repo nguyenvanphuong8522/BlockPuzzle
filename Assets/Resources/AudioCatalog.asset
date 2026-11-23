@@ -61,5 +61,8 @@ MonoBehaviour:
   - Id: 15
     Clip: {fileID: 8300000, guid: 288a8760ffeae9048a1c3cf729800a5a, type: 3}
     Volume: 0.8
+  - Id: 16
+    Clip: {fileID: 8300000, guid: 9e118b5b7f3a8b940a2613cde09fcd19, type: 3}
+    Volume: 0.8
   Music: {fileID: 8300000, guid: 08896f00bbd60b44987a611b35efeba6, type: 3}
   MusicVolume: 0.35

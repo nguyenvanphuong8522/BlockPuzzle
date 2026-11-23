@@ -36,7 +36,10 @@ namespace Survivor
 
                 var height = index < sprites.DecorationHeights.Length ? sprites.DecorationHeights[index] : 1f;
                 var pos = new Vector2((x + 0.15f + Rand(h, 2) * 0.7f) * CellSize, (y + 0.15f + Rand(h, 3) * 0.7f) * CellSize);
-                renderer.Sprite(RenderLayer.Decorations, sprite, pos, height, Color.white, flipX: Rand(h, 4) > 0.5f);
+                // Tall props (rocks, palms) are depth-sorted with characters by their base; flat ones (shells) lie on the ground.
+                var tall = height >= 0.8f;
+                renderer.Sprite(tall ? RenderLayer.World : RenderLayer.Decorations, sprite, pos, height, Color.white,
+                    flipX: Rand(h, 4) > 0.5f, sortY: pos.y - height * 0.45f);
             }
         }
 

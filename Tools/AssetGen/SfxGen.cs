@@ -28,6 +28,7 @@ static class SfxGen
         Save("sfx_hurt", Mix(Tone(0.18f, 240, 110, Square, 0.002f, 2.5f, 0.35f), Lowpass(Tone(0.1f, 0, 0, Noise, 0.001f, 4f, 0.25f), 0.3f)));
         Save("sfx_lightning", Mix(Lowpass(Tone(0.35f, 0, 0, Noise, 0.001f, 3.5f, 0.7f), 0.6f), Tone(0.4f, 90, 50, Saw, 0.01f, 2f, 0.3f)));
         Save("sfx_wave", Swoosh(0.45f));
+        Save("sfx_throw", Swoosh(0.2f)); // banana / boomerang throw
 
         // Pickups and progression
         // Bright two-note "ting" (E6 then B6) with a bell-like overtone. The game raises its pitch on pickup streaks.

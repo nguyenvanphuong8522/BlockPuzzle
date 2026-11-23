@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Survivor
 {
     // Draw order: earlier layers are drawn below later ones.
-    public enum RenderLayer { Decorations, Shadows, Gems, Pickups, Enemies, Projectiles, Weapons, Player, Held, Effects, Overlay, Text }
+    // World is depth-sorted: player, gun, enemies and tall props are ordered by their feet (sortY), so whatever is
+    // lower on screen (closer to the viewer) is drawn on top.
+    public enum RenderLayer { Decorations, Shadows, Gems, Pickups, World, Projectiles, Weapons, Effects, Overlay, Text }
 
     // Collects shapes and sprites during the frame and draws them with GPU instancing.
     // Shapes share one material; sprites get one material per texture. Put all sprites in one
@@ -28,13 +32,15 @@ namespace Survivor
             public readonly Vector4[] Colors = new Vector4[BatchSize];
             public readonly Vector4[] Shapes = new Vector4[BatchSize];
             public readonly Vector4[] Uvs = new Vector4[BatchSize];
+            public readonly float[] Keys = new float[BatchSize]; // sortY, only used by sorted layers
         }
 
         // Everything drawn with one material (= one texture) in one layer.
         sealed class Group
         {
             public Material Material;
-            public readonly List<Batch> Batches = new List<Batch>();
+            public List<Batch> Batches = new List<Batch>();
+            public List<Batch> Scratch = new List<Batch>(); // reordered copy while sorting
             public int Used;
         }
 
@@ -44,6 +50,7 @@ namespace Survivor
             public readonly Dictionary<Texture, Group> Textured = new Dictionary<Texture, Group>();
             public readonly List<Group> TexturedOrder = new List<Group>();
             public int RenderQueue;
+            public bool Sorted;
         }
 
         readonly Layer[] layers;
@@ -53,6 +60,7 @@ namespace Survivor
         readonly List<Material> createdMaterials = new List<Material>();
         readonly Dictionary<Sprite, Vector4> spriteUvs = new Dictionary<Sprite, Vector4>();
         readonly MaterialPropertyBlock block = new MaterialPropertyBlock();
+        NativeArray<SortItem> sortItems;
 
         // Visible world rectangle. Shapes outside it are dropped before they cost anything.
         float viewMinX = float.MinValue, viewMaxX = float.MaxValue, viewMinY = float.MinValue, viewMaxY = float.MaxValue;
@@ -70,7 +78,7 @@ namespace Survivor
             layers = new Layer[count];
             for (var i = 0; i < count; i++)
             {
-                var layer = new Layer { RenderQueue = 3000 + i };
+                var layer = new Layer { RenderQueue = 3000 + i, Sorted = i == (int)RenderLayer.World };
                 layer.Shapes = new Group { Material = CreateMaterial(baseMaterial, null, layer.RenderQueue) };
                 layers[i] = layer;
             }
@@ -79,7 +87,7 @@ namespace Survivor
 
         // Stretched circle, e.g. a soft shadow under a unit.
         public void Ellipse(RenderLayer layer, Vector2 center, Vector2 size, Color color) =>
-            Add(layers[(int)layer].Shapes, center, size, color, new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv);
+            Add(layers[(int)layer].Shapes, center, size, color, new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv, center.y);
 
         // Call once per frame before drawing.
         public void SetView(Camera camera)
@@ -101,17 +109,18 @@ namespace Survivor
             center.x + extent >= viewMinX && center.x - extent <= viewMaxX &&
             center.y + extent >= viewMinY && center.y - extent <= viewMaxY;
 
-        public void Circle(RenderLayer layer, Vector2 center, float radius, Color color, float flash = 0f) =>
+        // sortY: depth key on the World layer (usually the feet). NaN = use the center.
+        public void Circle(RenderLayer layer, Vector2 center, float radius, Color color, float flash = 0f, float sortY = float.NaN) =>
             Add(layers[(int)layer].Shapes, center, new Vector2(radius * 2f, radius * 2f), color,
-                new Vector4(ShapeCircle, 0f, flash, 0f), FullUv);
+                new Vector4(ShapeCircle, 0f, flash, 0f), FullUv, float.IsNaN(sortY) ? center.y : sortY);
 
         // thickness is a fraction of the radius (0..1).
         public void Ring(RenderLayer layer, Vector2 center, float radius, float thickness, Color color) =>
             Add(layers[(int)layer].Shapes, center, new Vector2(radius * 2f, radius * 2f), color,
-                new Vector4(ShapeRing, 1f - Mathf.Clamp01(thickness), 0f, 0f), FullUv);
+                new Vector4(ShapeRing, 1f - Mathf.Clamp01(thickness), 0f, 0f), FullUv, center.y);
 
         public void Rect(RenderLayer layer, Vector2 center, Vector2 size, Color color) =>
-            Add(layers[(int)layer].Shapes, center, size, color, new Vector4(ShapeRect, 0f, 0f, 0f), FullUv);
+            Add(layers[(int)layer].Shapes, center, size, color, new Vector4(ShapeRect, 0f, 0f, 0f), FullUv, center.y);
 
         // Bar anchored on its left edge, e.g. a health bar. fill is 0..1.
         public void Bar(RenderLayer layer, Vector2 center, Vector2 size, float fill, Color background, Color foreground)
@@ -123,26 +132,27 @@ namespace Survivor
 
         // Draws a sprite with the given world height; width follows the sprite's aspect ratio.
         public void Sprite(RenderLayer layer, Sprite sprite, Vector2 center, float height, Color tint,
-            bool flipX = false, float flash = 0f)
+            bool flipX = false, float flash = 0f, float sortY = float.NaN)
         {
             var rect = sprite.rect;
             var width = height * rect.width / rect.height;
             if (!IsVisible(center, Mathf.Max(width, height) * 0.5f)) return;
             var uv = SpriteUv(sprite);
             Add(GetTexturedGroup(layers[(int)layer], sprite.texture), center,
-                new Vector2(flipX ? -width : width, height), tint, new Vector4(ShapeSprite, 0f, flash, 0f), uv);
+                new Vector2(flipX ? -width : width, height), tint, new Vector4(ShapeSprite, 0f, flash, 0f), uv,
+                float.IsNaN(sortY) ? center.y : sortY);
         }
 
         // Rotated sprite (angle in radians, 0 = pointing right). flipY mirrors it vertically, e.g. a gun aimed left
         // stays upright instead of upside down.
         public void SpriteRotated(RenderLayer layer, Sprite sprite, Vector2 center, float height, float angle, Color tint,
-            bool flipY = false, float flash = 0f)
+            bool flipY = false, float flash = 0f, float sortY = float.NaN)
         {
             var rect = sprite.rect;
             var width = height * rect.width / rect.height;
             if (!IsVisible(center, Mathf.Max(width, height) * 0.5f)) return;
             AddRotated(GetTexturedGroup(layers[(int)layer], sprite.texture), center, new Vector2(width, flipY ? -height : height),
-                angle, tint, new Vector4(ShapeSprite, 0f, flash, 0f), SpriteUv(sprite));
+                angle, tint, new Vector4(ShapeSprite, 0f, flash, 0f), SpriteUv(sprite), float.IsNaN(sortY) ? center.y : sortY);
         }
 
         // Stretched, rotated soft ellipse: bullet tracers, motion streaks.
@@ -150,13 +160,13 @@ namespace Survivor
         {
             if (!IsVisible(center, length * 0.5f)) return;
             AddRotated(layers[(int)layer].Shapes, center, new Vector2(length, width), angle, color,
-                new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv);
+                new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv, center.y);
         }
 
         // Draws a sub-rectangle of a texture (used by the damage-number digit font).
         public void TextureRect(RenderLayer layer, Texture texture, Vector4 uv, Vector2 center, Vector2 size, Color tint) =>
             Add(GetTexturedGroup(layers[(int)layer], texture), center, size, tint,
-                new Vector4(ShapeSprite, 0f, 0f, 0f), uv);
+                new Vector4(ShapeSprite, 0f, 0f, 0f), uv, center.y);
 
         // Sprite bounds inside its texture. Works for rect- and tight-packed atlas sprites.
         public Vector4 SpriteUv(Sprite sprite)
@@ -183,7 +193,7 @@ namespace Survivor
             return group;
         }
 
-        void AddRotated(Group group, Vector2 center, Vector2 size, float angle, Color color, Vector4 shape, Vector4 uv)
+        void AddRotated(Group group, Vector2 center, Vector2 size, float angle, Color color, Vector4 shape, Vector4 uv, float key)
         {
             var batchIndex = group.Used / BatchSize;
             if (batchIndex == group.Batches.Count) group.Batches.Add(new Batch());
@@ -204,13 +214,14 @@ namespace Survivor
             batch.Colors[i] = color;
             batch.Shapes[i] = shape;
             batch.Uvs[i] = uv;
+            batch.Keys[i] = key;
             group.Used++;
         }
 
         // Bulk path for Burst-generated instance data: copies whole blocks into the GPU batches (memcpy),
-        // no per-instance C# work. texture = null draws with the shape material.
+        // no per-instance C# work. texture = null draws with the shape material. keys = sortY per instance (World layer).
         public void AddBulk(RenderLayer layerId, Texture texture, NativeArray<Matrix4x4> matrices, NativeArray<Vector4> colors,
-            NativeArray<Vector4> shapes, NativeArray<Vector4> uvs, int count)
+            NativeArray<Vector4> shapes, NativeArray<Vector4> uvs, int count, NativeArray<float> keys = default)
         {
             var layer = layers[(int)layerId];
             var group = texture == null ? layer.Shapes : GetTexturedGroup(layer, texture);
@@ -226,12 +237,13 @@ namespace Survivor
                 NativeArray<Vector4>.Copy(colors, copied, batch.Colors, offset, n);
                 NativeArray<Vector4>.Copy(shapes, copied, batch.Shapes, offset, n);
                 NativeArray<Vector4>.Copy(uvs, copied, batch.Uvs, offset, n);
+                if (keys.IsCreated) NativeArray<float>.Copy(keys, copied, batch.Keys, offset, n);
                 group.Used += n;
                 copied += n;
             }
         }
 
-        void Add(Group group, Vector2 center, Vector2 size, Color color, Vector4 shape, Vector4 uv)
+        void Add(Group group, Vector2 center, Vector2 size, Color color, Vector4 shape, Vector4 uv, float key)
         {
             if (!IsVisible(center, Mathf.Max(Mathf.Abs(size.x), Mathf.Abs(size.y)) * 0.5f)) return;
             var batchIndex = group.Used / BatchSize;
@@ -249,6 +261,7 @@ namespace Survivor
             batch.Colors[i] = color;
             batch.Shapes[i] = shape;
             batch.Uvs[i] = uv;
+            batch.Keys[i] = key;
             group.Used++;
         }
 
@@ -278,11 +291,66 @@ namespace Survivor
             var drawCalls = 0;
             foreach (var layer in layers)
             {
+                if (layer.Sorted)
+                {
+                    SortGroup(layer.Shapes);
+                    foreach (var group in layer.TexturedOrder) SortGroup(group);
+                }
                 FlushGroup(layer.Shapes, ref instances, ref drawCalls);
                 foreach (var group in layer.TexturedOrder) FlushGroup(group, ref instances, ref drawCalls);
             }
             LastFrameInstances = instances;
             LastFrameDrawCalls = drawCalls;
+        }
+
+        // Reorders a group back-to-front by its keys (higher sortY = farther away = drawn first).
+        // Instances inside one instanced draw call are rendered in buffer order, so this fixes overlap.
+        void SortGroup(Group group)
+        {
+            var n = group.Used;
+            if (n < 2) return;
+            if (!sortItems.IsCreated || sortItems.Length < n)
+            {
+                if (sortItems.IsCreated) sortItems.Dispose();
+                sortItems = new NativeArray<SortItem>(Mathf.NextPowerOfTwo(n), Allocator.Persistent);
+            }
+
+            for (var i = 0; i < n; i++)
+                sortItems[i] = new SortItem { Key = -group.Batches[i / BatchSize].Keys[i % BatchSize], Index = i };
+            new SortJob { Items = sortItems.GetSubArray(0, n) }.Run();
+
+            while (group.Scratch.Count < group.Batches.Count) group.Scratch.Add(new Batch());
+            for (var i = 0; i < n; i++)
+            {
+                var src = sortItems[i].Index;
+                var from = group.Batches[src / BatchSize];
+                var to = group.Scratch[i / BatchSize];
+                int s = src % BatchSize, d = i % BatchSize;
+                to.Matrices[d] = from.Matrices[s];
+                to.Colors[d] = from.Colors[s];
+                to.Shapes[d] = from.Shapes[s];
+                to.Uvs[d] = from.Uvs[s];
+            }
+            (group.Batches, group.Scratch) = (group.Scratch, group.Batches);
+        }
+
+        struct SortItem : IComparable<SortItem>
+        {
+            public float Key;
+            public int Index;
+
+            public int CompareTo(SortItem other)
+            {
+                var c = Key.CompareTo(other.Key);
+                return c != 0 ? c : Index.CompareTo(other.Index); // stable for equal depth
+            }
+        }
+
+        [BurstCompile(CompileSynchronously = true)]
+        struct SortJob : IJob
+        {
+            public NativeArray<SortItem> Items;
+            public void Execute() => Items.Sort();
         }
 
         void FlushGroup(Group group, ref int instances, ref int drawCalls)
@@ -328,6 +396,7 @@ namespace Survivor
         {
             foreach (var material in createdMaterials) UnityEngine.Object.Destroy(material);
             UnityEngine.Object.Destroy(quad);
+            if (sortItems.IsCreated) sortItems.Dispose();
         }
     }
 }

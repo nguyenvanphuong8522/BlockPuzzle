@@ -32,6 +32,7 @@ namespace Survivor
         NativeArray<int> idNative;
         NativeArray<Matrix4x4> matrices, shadowMatrices;
         NativeArray<Vector4> colors, shapes, uvs, shadowColors, shadowShapes, shadowUvs;
+        NativeArray<float> keys; // depth (feet y) per instance for the sorted World layer
         NativeArray<int> counts; // [0] = instances written, [1] = shadows written
 
         public EnemyDrawer(GameConfig config, SpriteCatalog sprites)
@@ -64,7 +65,7 @@ namespace Survivor
                     Count = count, View = renderer.ViewRect, Time = Time.time, SpriteScale = sprites.SpriteScale,
                     PlayerX = playerX, Texture = pass,
                     Matrices = matrices.Reinterpret<float4x4>(), Colors = colors.Reinterpret<float4>(),
-                    Shapes = shapes.Reinterpret<float4>(), Uvs = uvs.Reinterpret<float4>(),
+                    Shapes = shapes.Reinterpret<float4>(), Uvs = uvs.Reinterpret<float4>(), Keys = keys,
                     ShadowMatrices = shadowMatrices.Reinterpret<float4x4>(), ShadowColors = shadowColors.Reinterpret<float4>(),
                     ShadowShapes = shadowShapes.Reinterpret<float4>(), ShadowUvs = shadowUvs.Reinterpret<float4>(),
                     Counts = counts,
@@ -72,7 +73,7 @@ namespace Survivor
 
                 var texture = pass < 0 ? null : textures[pass];
                 if (pass < 0) renderer.AddBulk(RenderLayer.Shadows, null, shadowMatrices, shadowColors, shadowShapes, shadowUvs, counts[1]);
-                renderer.AddBulk(RenderLayer.Enemies, texture, matrices, colors, shapes, uvs, counts[0]);
+                renderer.AddBulk(RenderLayer.World, texture, matrices, colors, shapes, uvs, counts[0], keys);
             }
         }
 
@@ -99,6 +100,7 @@ namespace Survivor
 
             public NativeArray<float4x4> Matrices;
             public NativeArray<float4> Colors, Shapes, Uvs;
+            public NativeArray<float> Keys;
             public NativeArray<float4x4> ShadowMatrices;
             public NativeArray<float4> ShadowColors, ShadowShapes, ShadowUvs;
             public NativeArray<int> Counts;
@@ -131,6 +133,7 @@ namespace Survivor
                         Colors[n] = TypeColor[t];
                         Shapes[n] = new float4(0f, 0f, flash, 0f);
                         Uvs[n] = fullUv;
+                        Keys[n] = p.y - r;
                         n++;
                         continue;
                     }
@@ -148,6 +151,7 @@ namespace Survivor
                     Colors[n] = new float4(1f, 1f, 1f, 1f);
                     Shapes[n] = new float4(3f, 0f, flash, 0f);
                     Uvs[n] = FrameUv[frame];
+                    Keys[n] = p.y - r; // feet: lower on screen = drawn later = in front
                     n++;
                 }
                 Counts[0] = n;
@@ -226,6 +230,7 @@ namespace Survivor
             colors = new NativeArray<Vector4>(size, Allocator.Persistent);
             shapes = new NativeArray<Vector4>(size, Allocator.Persistent);
             uvs = new NativeArray<Vector4>(size, Allocator.Persistent);
+            keys = new NativeArray<float>(size, Allocator.Persistent);
             shadowMatrices = new NativeArray<Matrix4x4>(size, Allocator.Persistent);
             shadowColors = new NativeArray<Vector4>(size, Allocator.Persistent);
             shadowShapes = new NativeArray<Vector4>(size, Allocator.Persistent);
@@ -241,6 +246,7 @@ namespace Survivor
             colors.Dispose();
             shapes.Dispose();
             uvs.Dispose();
+            keys.Dispose();
             shadowMatrices.Dispose();
             shadowColors.Dispose();
             shadowShapes.Dispose();

@@ -13,19 +13,17 @@ namespace Survivor
         public Action Apply;
     }
 
-    // Builds the 3 random choices shown on level-up: new weapons, weapon levels and passive bonuses.
+    // Builds the choices shown on level-up (and when opening a chest). Every choice is a companion:
+    // recruit a new one into a free slot (up to 6), or level up one you already have.
     public sealed class UpgradeService
     {
-        sealed class Passive
+        // Add new companion types here (one line each); they appear in level-up choices automatically.
+        static readonly Func<Companion>[] CompanionFactories =
         {
-            public string Name;
-            public string Description;
-            public Color Tint;
-            public Action<Player> Apply;
-            public int Level;
-            public const int MaxLevel = 5;
-        }
+            () => new MonkeyCompanion(),
+        };
 
+        // Still used by debug tools; the player's own gun is the only weapon in normal play.
         static readonly Func<Weapon>[] WeaponFactories =
         {
             () => new MagicBoltWeapon(),
@@ -35,30 +33,18 @@ namespace Survivor
         };
 
         readonly WeaponSystem weapons;
+        readonly CompanionSystem companions;
         readonly Player player;
         readonly List<UpgradeOption> candidates = new List<UpgradeOption>();
-        readonly Passive[] passives =
-        {
-            new Passive { Name = "Giày Gió", Description = "Tốc độ chạy +10%.", Tint = new Color(0.5f, 1f, 0.8f),
-                Apply = p => p.Stats.MoveSpeedMultiplier *= 1.1f },
-            new Passive { Name = "Tim Thép", Description = "Máu tối đa +20 và hồi 20 máu.", Tint = new Color(1f, 0.4f, 0.4f),
-                Apply = p => p.IncreaseMaxHp(20f) },
-            new Passive { Name = "Nam Châm", Description = "Tầm hút kinh nghiệm +30%.", Tint = new Color(0.4f, 0.7f, 1f),
-                Apply = p => p.Stats.MagnetMultiplier *= 1.3f },
-            new Passive { Name = "Sức Mạnh", Description = "Sát thương +10%.", Tint = new Color(1f, 0.6f, 0.2f),
-                Apply = p => p.Stats.BonusMight += 0.1f },
-            new Passive { Name = "Đồng Hồ Cát", Description = "Hồi chiêu nhanh hơn 8%.", Tint = new Color(0.9f, 0.85f, 0.4f),
-                Apply = p => p.Stats.HasteMultiplier *= 0.92f },
-            new Passive { Name = "Bùa Rộng", Description = "Phạm vi vũ khí +10%.", Tint = new Color(0.8f, 0.5f, 1f),
-                Apply = p => p.Stats.BonusArea += 0.1f },
-        };
 
-        public UpgradeService(WeaponSystem weapons, Player player)
+        public UpgradeService(WeaponSystem weapons, CompanionSystem companions, Player player)
         {
             this.weapons = weapons;
+            this.companions = companions;
             this.player = player;
         }
 
+        // The hero's gun.
         public void GiveStartingWeapon() => weapons.Add(new MagicBoltWeapon());
 
         // Debug: every weapon at max level.
@@ -77,20 +63,37 @@ namespace Survivor
             }
         }
 
+        // Debug: recruit every companion type and max it.
+        public void GiveAllCompanionsMaxed()
+        {
+            foreach (var factory in CompanionFactories)
+            {
+                var sample = factory();
+                var companion = companions.Find(sample.GetType());
+                if (companion == null)
+                {
+                    if (!companions.HasFreeSlot) continue;
+                    companion = sample;
+                    companions.Add(companion);
+                }
+                while (!companion.IsMaxLevel) companion.LevelUp();
+            }
+        }
+
         public List<UpgradeOption> Roll(int count)
         {
             candidates.Clear();
 
-            foreach (var factory in WeaponFactories)
+            foreach (var factory in CompanionFactories)
             {
                 var sample = factory();
-                var owned = weapons.Find(sample.GetType());
-                if (owned == null && weapons.Weapons.Count < WeaponSystem.MaxWeapons)
+                var owned = companions.Find(sample.GetType());
+                if (owned == null && companions.HasFreeSlot)
                 {
                     candidates.Add(new UpgradeOption
                     {
                         Title = sample.Name, Badge = "MỚI!", Description = sample.Description, Tint = sample.Tint,
-                        Apply = () => weapons.Add(sample)
+                        Apply = () => companions.Add(sample)
                     });
                 }
                 else if (owned != null && !owned.IsMaxLevel)
@@ -103,22 +106,6 @@ namespace Survivor
                 }
             }
 
-            foreach (var passive in passives)
-            {
-                if (passive.Level >= Passive.MaxLevel) continue;
-                var p = passive;
-                candidates.Add(new UpgradeOption
-                {
-                    Title = p.Name, Badge = p.Level == 0 ? "MỚI!" : $"Cấp {p.Level + 1}", Description = p.Description,
-                    Tint = p.Tint,
-                    Apply = () =>
-                    {
-                        p.Level++;
-                        p.Apply(player);
-                    }
-                });
-            }
-
             // Shuffle and keep the first `count`.
             for (var i = candidates.Count - 1; i > 0; i--)
             {
@@ -127,6 +114,7 @@ namespace Survivor
             }
             var result = candidates.GetRange(0, Mathf.Min(count, candidates.Count));
 
+            // Nothing left to recruit or level up: offer healing instead.
             if (result.Count == 0)
             {
                 result.Add(new UpgradeOption

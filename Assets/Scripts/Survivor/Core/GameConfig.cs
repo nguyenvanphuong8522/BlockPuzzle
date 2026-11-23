@@ -6,7 +6,12 @@ namespace Survivor
     public sealed class GameConfig
     {
         public readonly float SurviveSeconds = 600f;
-        public readonly float CameraSize = 8f;
+        // Portrait game: the camera keeps this much world WIDTH visible on every screen shape
+        // (taller phones simply see more above and below).
+        public readonly float ViewWidth = 13f;
+
+        // Orthographic size (half the visible height) for a screen aspect (width / height).
+        public float CameraSizeFor(float aspect) => ViewWidth * 0.5f / Mathf.Max(0.1f, aspect);
 
         // Spawning
         public int MaxEnemies = 6000; // settable so benchmarks / debug tools can raise it

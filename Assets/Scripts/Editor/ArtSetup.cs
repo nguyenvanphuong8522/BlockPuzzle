@@ -54,6 +54,15 @@ public static class ArtSetup
         Debug.Log("Survivor: art & audio setup done.");
     }
 
+    // Re-links SpriteCatalog / AudioCatalog from file names without touching import settings.
+    // Called automatically by ArtAutoSetup whenever art or audio files change.
+    public static void RefreshCatalogs()
+    {
+        FillSpriteCatalog();
+        FillAudioCatalog();
+        AssetDatabase.SaveAssets();
+    }
+
     static IEnumerable<string> Files(string dir, string pattern) =>
         Directory.Exists(dir)
             ? Directory.GetFiles(dir, pattern).Select(p => p.Replace('\\', '/')).OrderBy(p => p, StringComparer.Ordinal)
@@ -136,6 +145,8 @@ public static class ArtSetup
             catalog.Enemies[i] = new SpriteAnim { Frames = Frames($"enemy{i}_"), Fps = 5f };
 
         catalog.Gun = Single("weapon_gun");
+        catalog.Monkey = new SpriteAnim { Frames = Frames("companion_monkey_"), Fps = 2f };
+        catalog.Banana = Single("projectile_banana");
         catalog.MuzzleFlash = new SpriteAnim { Frames = Frames("fx_muzzle_"), Fps = 30f };
         catalog.MagicBolt = Single("weapon_cannonball");
         catalog.OrbitBlade = Single("weapon_anchor");

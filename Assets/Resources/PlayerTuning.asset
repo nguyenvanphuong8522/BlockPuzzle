@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxHp: 100
   MoveSpeed: 4.5
-  MagnetRadius: 2.5
+  MagnetRadius: 1.5
   Might: 1
   Haste: 1
   Area: 1

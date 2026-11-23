@@ -239,6 +239,8 @@ static class ArtGen
         Magnet();
         Cannonball();
         Gun();
+        for (var f = 0; f < 2; f++) Monkey(f);
+        Banana();
         for (var f = 0; f < 2; f++) MuzzleFlash(f);
         Anchor();
         Palm();
@@ -605,6 +607,68 @@ static class ArtGen
             c.Shine(110, 25, 30, 2.5f, 120);
             c.Shine(56, 23, 10, 2, 70);
             c.Save(P("weapon_gun"));
+        }
+    }
+
+    // ---------- Companion: monkey (frame 1 = throwing pose with the arm up) ----------
+    static void Monkey(int f)
+    {
+        using (var c = new Canvas(128, 128, 3f))
+        {
+            var fur = Paint.Hex("A0612E");
+            var face = Paint.Hex("F2C99A");
+            var bob = f == 1 ? -3f : 0f;
+            // Curly tail behind
+            c.Limb(fur, 7, 40, 96, 22, 92, 16, 76, 26, 66, 34, 72);
+            // Body and feet
+            c.Add(Paint.Ellipse(50, 112, 9, 6), fur);
+            c.Add(Paint.Ellipse(78, 112, 9, 6), fur);
+            c.Add(Paint.Ellipse(64, 92 + bob, 24, 22), fur);
+            c.Flush();
+            c.Fill(Paint.Ellipse(64, 96 + bob, 14, 13), face);
+            // Arm: down holding the banana, or raised to throw
+            if (f == 0) c.Limb(fur, 9, 84, 86 + bob, 96, 98);
+            else c.Limb(fur, 9, 82, 80 + bob, 98, 56);
+            c.Flush();
+            // Head with big ears
+            c.Add(Paint.Ellipse(36, 50 + bob, 11, 11), fur);
+            c.Add(Paint.Ellipse(92, 50 + bob, 11, 11), fur);
+            c.Add(Paint.Ellipse(64, 52 + bob, 28, 25), fur);
+            c.Flush();
+            c.Fill(Paint.Ellipse(36, 50 + bob, 6, 6), face);
+            c.Fill(Paint.Ellipse(92, 50 + bob, 6, 6), face);
+            c.Fill(Paint.Smooth(44, 50 + bob, 64, 40 + bob, 84, 50 + bob, 80, 70 + bob, 64, 76 + bob, 48, 70 + bob), face);
+            c.Eye(56, 54 + bob, 6, 7.5f, 0.5f, 0f);
+            c.Eye(72, 54 + bob, 6, 7.5f, 0.5f, 0f);
+            c.Smile(66, 66 + bob, 12, 5);
+            c.Blush(48, 64 + bob);
+            c.Blush(82, 64 + bob);
+            // Banana in the hand
+            var bx = f == 0 ? 98f : 100f;
+            var by = f == 0 ? 100f : 50f;
+            c.Add(BananaPath(bx, by, 0.55f), Paint.Hex("FFD93A"));
+            c.Flush();
+            c.Save(P("companion_monkey_" + f));
+        }
+    }
+
+    // Crescent banana centered on (cx, cy).
+    static GraphicsPath BananaPath(float cx, float cy, float s)
+    {
+        return Paint.Smooth(cx - 30 * s, cy - 18 * s, cx - 4 * s, cy + 10 * s, cx + 26 * s, cy + 2 * s, cx + 34 * s, cy - 14 * s,
+            cx + 20 * s, cy - 4 * s, cx - 6 * s, cy - 2 * s);
+    }
+
+    static void Banana()
+    {
+        using (var c = new Canvas(64, 64, 2.5f))
+        {
+            c.Add(BananaPath(30, 34, 0.9f), Paint.Hex("FFD93A"));
+            c.Flush();
+            c.Fill(Paint.Ellipse(4, 18, 3, 3), Paint.Hex("6B4A22"));
+            c.Fill(Paint.Ellipse(60, 21, 2.5f, 2.5f), Paint.Hex("6B4A22"));
+            c.Shine(28, 34, 10, 2.5f, 120);
+            c.Save(P("projectile_banana"));
         }
     }
 

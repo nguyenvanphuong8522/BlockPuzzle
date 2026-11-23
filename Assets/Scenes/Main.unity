@@ -259,6 +259,7 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
+  hudPrefab: {fileID: 3112886472620908565, guid: c11bc801346db6e49a4f18891fae4dba, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

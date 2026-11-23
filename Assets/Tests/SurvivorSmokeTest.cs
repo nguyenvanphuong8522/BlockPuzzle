@@ -78,6 +78,8 @@ public class SurvivorSmokeTest
         catalog.Enemies = savedEnemies;
 
         // 4) Stress: 5000 enemies.
+        c.Resolve<UpgradeService>().GiveAllCompanionsMaxed();
+        Assert.Greater(c.Resolve<CompanionSystem>().Companions.Count, 0, "no companion recruited");
         c.Resolve<UpgradeService>().GiveAllWeaponsMaxed();
         spawner.SpawnBurst(5000);
         for (var i = 0; i < 120; i++)

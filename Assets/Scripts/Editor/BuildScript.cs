@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -32,6 +33,18 @@ public static class BuildScript
     public static void BuildWindowsDevelopment() =>
         Build(BuildTarget.StandaloneWindows64, WindowsOutput("WindowsDev"), BuildOptions.Development);
 
+    // The game is portrait on every platform.
+    static void ApplyPortraitSettings()
+    {
+        PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait; // Android / iOS
+        PlayerSettings.defaultWebScreenWidth = 540;                         // WebGL canvas
+        PlayerSettings.defaultWebScreenHeight = 960;
+        PlayerSettings.fullScreenMode = FullScreenMode.Windowed;            // Windows: portrait window
+        PlayerSettings.defaultScreenWidth = 720;
+        PlayerSettings.defaultScreenHeight = 1280;
+        PlayerSettings.resizableWindow = true;
+    }
+
     static string WindowsOutput(string folder) => $"Build/{folder}/{PlayerSettings.productName}.exe";
 
     // WebGL: open Build/WebGL/index.html through a web server (not by double-clicking the file).
@@ -47,6 +60,19 @@ public static class BuildScript
 
     static void Build(BuildTarget target, string output, BuildOptions buildOptions)
     {
+        ApplyPortraitSettings();
+
+        // Popups are Addressables: their content must be built for this platform before the player.
+        if (EditorUserBuildSettings.activeBuildTarget != target)
+            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildPipeline.GetBuildTargetGroup(target), target);
+        AddressableAssetSettings.BuildPlayerContent(out var addressablesResult);
+        if (!string.IsNullOrEmpty(addressablesResult.Error))
+        {
+            Debug.LogError("Addressables build failed: " + addressablesResult.Error);
+            if (Application.isBatchMode) EditorApplication.Exit(1);
+            return;
+        }
+
         var options = new BuildPlayerOptions
         {
             scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray(),

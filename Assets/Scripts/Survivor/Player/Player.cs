@@ -16,6 +16,9 @@ namespace Survivor
         public float HurtFlash { get; private set; }
         public bool IsMoving { get; private set; }
 
+        // Depth key for the World layer: where the feet touch the ground.
+        public float FeetY => Position.y - Radius;
+
         readonly float hurtCooldown;
         readonly DebugSettings debug;
         readonly SpriteCatalog sprites;
@@ -76,13 +79,13 @@ namespace Survivor
             {
                 // Walk cycle while moving, standing frame when idle.
                 var frame = IsMoving ? sprites.Player.Frame(Time.time) : sprites.Player.Frames[sprites.Player.Frames.Length > 1 ? 1 : 0];
-                renderer.Sprite(RenderLayer.Player, frame, Position + new Vector2(0f, Radius * 0.35f),
-                    Radius * 2f * sprites.SpriteScale, Color.white, flipX: Facing.x < 0f, flash: flash);
+                renderer.Sprite(RenderLayer.World, frame, Position + new Vector2(0f, Radius * 0.35f),
+                    Radius * 2f * sprites.SpriteScale, Color.white, flipX: Facing.x < 0f, flash: flash, sortY: FeetY);
             }
             else
             {
-                renderer.Circle(RenderLayer.Player, Position, Radius, new Color(0.35f, 0.75f, 1f), flash);
-                renderer.Circle(RenderLayer.Player, Position + Facing * Radius * 0.55f, Radius * 0.28f, Color.white);
+                renderer.Circle(RenderLayer.World, Position, Radius, new Color(0.35f, 0.75f, 1f), flash, FeetY);
+                renderer.Circle(RenderLayer.World, Position + Facing * Radius * 0.55f, Radius * 0.28f, Color.white, 0f, FeetY - 0.001f);
             }
 
             if (debug.ShowPickupRange)

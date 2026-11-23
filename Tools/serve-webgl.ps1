@@ -13,9 +13,15 @@ $types = @{
     ".png" = "image/png"; ".ico" = "image/x-icon"; ".json" = "application/json"
 }
 
-$listener = New-Object System.Net.HttpListener
-$listener.Prefixes.Add("http://localhost:$Port/")
-$listener.Start()
+# If the port is taken (e.g. the server is already running in another window), try the next ones.
+$listener = $null
+for ($p = $Port; $p -lt $Port + 20; $p++) {
+    $candidate = New-Object System.Net.HttpListener
+    $candidate.Prefixes.Add("http://localhost:$p/")
+    try { $candidate.Start(); $listener = $candidate; $Port = $p; break }
+    catch { Write-Host "Port $p is busy (another server already running?), trying $($p + 1)..." }
+}
+if ($null -eq $listener) { throw "No free port between $Port and $($Port + 19)." }
 Write-Host "Serving $root at http://localhost:$Port/  (Ctrl+C to stop)"
 
 try {
@@ -42,5 +48,5 @@ try {
         }
     }
 } finally {
-    $listener.Stop()
+    if ($listener.IsListening) { $listener.Stop() }
 }

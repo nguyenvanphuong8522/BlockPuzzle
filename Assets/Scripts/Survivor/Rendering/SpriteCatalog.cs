@@ -37,6 +37,10 @@ namespace Survivor
         public Sprite MagicBolt;
         public Sprite OrbitBlade;
 
+        [Header("Companions")]
+        public SpriteAnim Monkey = new SpriteAnim();
+        public Sprite Banana;
+
         [Header("Pickups")]
         public Sprite Gem;
         public Sprite Chest;

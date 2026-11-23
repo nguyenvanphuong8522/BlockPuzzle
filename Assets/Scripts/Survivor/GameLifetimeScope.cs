@@ -1,4 +1,5 @@
 using MessagePipe;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -7,6 +8,9 @@ namespace Survivor
     // Composition root: every system of the game is registered here.
     public class GameLifetimeScope : LifetimeScope
     {
+        [Tooltip("HUD prefab (Assets/Prefabs/UI/Hud.prefab). Filled by Survivor > Build UI Prefabs.")]
+        [SerializeField] HudView hudPrefab;
+
         protected override void Configure(IContainerBuilder builder)
         {
             var options = builder.RegisterMessagePipe();
@@ -40,12 +44,16 @@ namespace Survivor
 
             builder.Register<WeaponContext>(Lifetime.Singleton);
             builder.Register<WeaponSystem>(Lifetime.Singleton);
+            builder.Register<BoomerangSystem>(Lifetime.Singleton);
+            builder.Register<CompanionContext>(Lifetime.Singleton);
+            builder.Register<CompanionSystem>(Lifetime.Singleton);
             builder.Register<UpgradeService>(Lifetime.Singleton);
 
             builder.Register<InstancedRenderer>(Lifetime.Singleton);
-            builder.Register<HudView>(Lifetime.Singleton);
+            builder.RegisterComponentInNewPrefab(hudPrefab, Lifetime.Singleton);
+            builder.RegisterInstance(PopupCatalog.LoadOrEmpty());
+            builder.Register<PopupController>(Lifetime.Singleton);
             builder.Register<DebugPanel>(Lifetime.Singleton);
-            builder.Register<PauseView>(Lifetime.Singleton);
 
             builder.RegisterEntryPoint<GameController>().AsSelf();
             builder.RegisterEntryPoint<AutoScreenshot>();

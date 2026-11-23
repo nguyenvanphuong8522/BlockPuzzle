@@ -429,9 +429,9 @@ namespace Survivor
 
         public float SpawnRingRadius()
         {
-            var halfHeight = config.CameraSize;
-            var aspect = Screen.height > 0 ? (float)Screen.width / Screen.height : 16f / 9f;
-            var halfWidth = halfHeight * aspect;
+            var aspect = Screen.height > 0 ? (float)Screen.width / Screen.height : 9f / 16f;
+            var halfWidth = config.ViewWidth * 0.5f;
+            var halfHeight = config.CameraSizeFor(aspect);
             return Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight) + 1.5f;
         }
 
