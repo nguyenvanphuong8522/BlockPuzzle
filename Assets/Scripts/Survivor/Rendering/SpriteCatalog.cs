@@ -28,6 +28,10 @@ namespace Survivor
     {
         [Header("Characters")]
         public SpriteAnim Player = new SpriteAnim();
+        [Tooltip("Blue upside-down triangle floating over the hero, so you can tell them apart from companions")]
+        public Sprite HeroMarker;
+        [Tooltip("Standing still: frames 0-3 loop (breathing), last frame = blink")]
+        public SpriteAnim PlayerIdle = new SpriteAnim();
         [Tooltip("Same order as GameConfig.Enemies")]
         public SpriteAnim[] Enemies = new SpriteAnim[0];
 
@@ -40,6 +44,15 @@ namespace Survivor
         [Header("Companions")]
         public SpriteAnim Monkey = new SpriteAnim();
         public Sprite Banana;
+        [Tooltip("Frames 0-3 idle, 4 dash, 5 slash, 6 blink")]
+        public SpriteAnim Otter = new SpriteAnim();
+        [Tooltip("120-degree slash arc pointing right: swing start, full arc, fading")]
+        public SpriteAnim Slash = new SpriteAnim();
+        [Tooltip("Frames 0-3 idle, 4 cast, 5 blink")]
+        public SpriteAnim Turtle = new SpriteAnim();
+        public SpriteAnim MagicOrb = new SpriteAnim();
+        [Tooltip("Magic explosion: flash, burst, puffs, fading ring")]
+        public SpriteAnim Blast = new SpriteAnim();
 
         [Header("Pickups")]
         public Sprite Gem;

@@ -25,6 +25,16 @@ public sealed class ArtAutoSetup : AssetPostprocessor
             importer.filterMode = FilterMode.Bilinear;
             importer.wrapMode = TextureWrapMode.Clamp;
         }
+        else if (assetPath == "Assets/Resources/DigitFont.png")
+        {
+            // Damage number font: crisp, no compression artifacts on the outline.
+            importer.textureType = TextureImporterType.Default;
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = true;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.filterMode = FilterMode.Bilinear;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+        }
         else if (assetPath.StartsWith(GroundDir))
         {
             importer.textureType = TextureImporterType.Default;

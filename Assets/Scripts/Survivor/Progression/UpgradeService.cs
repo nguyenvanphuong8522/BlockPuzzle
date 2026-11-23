@@ -21,6 +21,8 @@ namespace Survivor
         static readonly Func<Companion>[] CompanionFactories =
         {
             () => new MonkeyCompanion(),
+            () => new SwordOtterCompanion(),
+            () => new TurtleMageCompanion(),
         };
 
         // Still used by debug tools; the player's own gun is the only weapon in normal play.

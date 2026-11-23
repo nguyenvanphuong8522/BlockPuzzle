@@ -11,10 +11,12 @@ namespace Survivor
         public readonly EffectSystem Effects;
         public readonly AudioService Audio;
         public readonly SpriteCatalog Sprites;
+        public readonly CameraShake Shake;
 
         public CompanionContext(Player player, EnemySystem enemies, BoomerangSystem boomerangs, EffectSystem effects,
-            AudioService audio, SpriteCatalog sprites)
+            AudioService audio, SpriteCatalog sprites, CameraShake shake)
         {
+            Shake = shake;
             Player = player;
             Enemies = enemies;
             Boomerangs = boomerangs;
@@ -33,7 +35,13 @@ namespace Survivor
         public int Level { get; private set; } = 1;
         public bool IsMaxLevel => Level >= MaxLevel;
         public int Slot { get; internal set; }
-        public Vector2 Position { get; internal set; }
+        public Vector2 Position { get; protected internal set; }
+
+        // Its place next to the hero, updated every frame by CompanionSystem.
+        public Vector2 Home { get; internal set; }
+
+        // True = glued to Home (default). A companion that runs off to attack returns false while it is away.
+        public virtual bool StaysHome => true;
 
         public abstract string Name { get; }
         public abstract string Description { get; }

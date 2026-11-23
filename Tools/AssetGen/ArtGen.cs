@@ -225,6 +225,7 @@ static class ArtGen
     {
         dir = outputDir;
         for (var f = 0; f < 4; f++) Player(f);
+        for (var f = 0; f < 5; f++) PlayerIdle(f);
         for (var f = 0; f < 2; f++) Crab("enemy0_crab_" + f, f, 128, Paint.Hex("FF6B4A"), false);
         for (var f = 0; f < 2; f++) FlyingFish(f);
         for (var f = 0; f < 3; f++) Jelly(f);
@@ -239,7 +240,14 @@ static class ArtGen
         Magnet();
         Cannonball();
         Gun();
-        for (var f = 0; f < 2; f++) Monkey(f);
+        for (var f = 0; f < 6; f++) Monkey(f);
+        for (var f = 0; f < 7; f++) Otter(f);
+        for (var f = 0; f < 3; f++) Slash(f);
+        for (var f = 0; f < 6; f++) Turtle(f);
+        for (var f = 0; f < 2; f++) MagicOrb(f);
+        for (var f = 0; f < 4; f++) Blast(f);
+        HeroMarker();
+        DigitAtlas();
         Banana();
         for (var f = 0; f < 2; f++) MuzzleFlash(f);
         Anchor();
@@ -255,16 +263,30 @@ static class ArtGen
     }
 
     // ---------- Player: young pirate (teal bandana, white shirt, blue shorts) ----------
+    // Walk cycle: player_0..3.
     static void Player(int f)
+    {
+        var bob = f % 2 == 1 ? -3f : 0f;
+        var step = f == 0 ? 5f : f == 2 ? -5f : 0f;
+        DrawPlayer("player_" + f, bob, step, 0f, false);
+    }
+
+    // Standing still: hero_idle_0..3 = breathing loop (head and body sink a little, bandana tails flutter), 4 = blink.
+    static void PlayerIdle(int f)
+    {
+        float[] breathe = { 0f, 1.2f, 2.4f, 1.2f };
+        float[] flutter = { 0f, 2f, 3f, 1f };
+        var i = f == 4 ? 0 : f;
+        DrawPlayer("hero_idle_" + f, breathe[i], 0f, flutter[i], f == 4);
+    }
+
+    static void DrawPlayer(string name, float bob, float step, float flutter, bool blink)
     {
         using (var c = new Canvas(128, 128, 3f))
         {
-            var bob = f % 2 == 1 ? -3f : 0f;
-            var step = f == 0 ? 5f : f == 2 ? -5f : 0f;
-
             // Back: bandana tails and legs
-            c.Add(Paint.Poly(30, 40 + bob, 16, 34 + bob, 20, 48 + bob), Paint.Hex("1FB5A8"));
-            c.Add(Paint.Poly(30, 44 + bob, 14, 52 + bob, 24, 56 + bob), Paint.Hex("1FB5A8"));
+            c.Add(Paint.Poly(30, 40 + bob, 16, 34 + bob - flutter, 20, 48 + bob - flutter * 0.5f), Paint.Hex("1FB5A8"));
+            c.Add(Paint.Poly(30, 44 + bob, 14 - flutter * 0.5f, 52 + bob + flutter * 0.4f, 24, 56 + bob), Paint.Hex("1FB5A8"));
             c.Add(Paint.Ellipse(54 + step, 112, 10, 7), Paint.Hex("7A4A2A"));
             c.Add(Paint.Ellipse(74 - step, 112, 10, 7), Paint.Hex("7A4A2A"));
             c.Add(Paint.RoundRect(50 + step * 0.6f, 96, 9, 14, 3), Paint.Hex("F6C9A0"));
@@ -297,12 +319,20 @@ static class ArtGen
             c.Fill(Paint.Ellipse(78, 30 + bob, 3, 3), Color.White);
 
             // Face, looking right
-            c.Eye(58, 55 + bob, 6.5f, 8.5f, 0.7f, 0.1f);
-            c.Eye(76, 55 + bob, 6.5f, 8.5f, 0.7f, 0.1f);
+            if (blink)
+            {
+                c.Smile(58, 53 + bob, 13, 4);   // closed eyes
+                c.Smile(76, 53 + bob, 13, 4);
+            }
+            else
+            {
+                c.Eye(58, 55 + bob, 6.5f, 8.5f, 0.7f, 0.1f);
+                c.Eye(76, 55 + bob, 6.5f, 8.5f, 0.7f, 0.1f);
+            }
             c.Blush(50, 66 + bob);
             c.Blush(84, 66 + bob);
             c.Smile(68, 66 + bob, 14, 6);
-            c.Save(P("player_" + f));
+            c.Save(P(name));
         }
     }
 
@@ -610,24 +640,32 @@ static class ArtGen
         }
     }
 
-    // ---------- Companion: monkey (frame 1 = throwing pose with the arm up) ----------
+    // ---------- Companion: monkey ----------
+    // Frames 0-3 = idle loop (breathing, tail sway), 4 = throwing pose with the arm up, 5 = blink.
     static void Monkey(int f)
     {
         using (var c = new Canvas(128, 128, 3f))
         {
             var fur = Paint.Hex("A0612E");
             var face = Paint.Hex("F2C99A");
-            var bob = f == 1 ? -3f : 0f;
+            var throwing = f == 4;
+            var blink = f == 5;
+            var idle = throwing ? 0 : (blink ? 0 : f);
+            float[] breathe = { 0f, 1.5f, 3f, 1.5f };   // head/body sink a little on the out-breath
+            float[] tailSway = { 0f, -3f, -5f, -3f };
+            var bob = throwing ? -3f : breathe[idle];
+            var sway = throwing ? 2f : tailSway[idle];
+            var widen = throwing ? 0f : breathe[idle] * 0.5f;  // belly gets a bit wider as it sinks
             // Curly tail behind
-            c.Limb(fur, 7, 40, 96, 22, 92, 16, 76, 26, 66, 34, 72);
+            c.Limb(fur, 7, 40, 96, 22 + sway * 0.4f, 92, 16 + sway, 76, 26 + sway, 66 + sway * 0.3f, 34 + sway * 0.6f, 72);
             // Body and feet
             c.Add(Paint.Ellipse(50, 112, 9, 6), fur);
             c.Add(Paint.Ellipse(78, 112, 9, 6), fur);
-            c.Add(Paint.Ellipse(64, 92 + bob, 24, 22), fur);
+            c.Add(Paint.Ellipse(64, 92 + bob * 0.5f, 24 + widen, 22 - widen * 0.5f), fur);
             c.Flush();
-            c.Fill(Paint.Ellipse(64, 96 + bob, 14, 13), face);
-            // Arm: down holding the banana, or raised to throw
-            if (f == 0) c.Limb(fur, 9, 84, 86 + bob, 96, 98);
+            c.Fill(Paint.Ellipse(64, 96 + bob * 0.5f, 14 + widen * 0.5f, 13), face);
+            // Arm: down holding the banana (swinging a little), or raised to throw
+            if (!throwing) c.Limb(fur, 9, 84, 86 + bob * 0.5f, 96, 98 + bob * 0.4f);
             else c.Limb(fur, 9, 82, 80 + bob, 98, 56);
             c.Flush();
             // Head with big ears
@@ -638,17 +676,343 @@ static class ArtGen
             c.Fill(Paint.Ellipse(36, 50 + bob, 6, 6), face);
             c.Fill(Paint.Ellipse(92, 50 + bob, 6, 6), face);
             c.Fill(Paint.Smooth(44, 50 + bob, 64, 40 + bob, 84, 50 + bob, 80, 70 + bob, 64, 76 + bob, 48, 70 + bob), face);
-            c.Eye(56, 54 + bob, 6, 7.5f, 0.5f, 0f);
-            c.Eye(72, 54 + bob, 6, 7.5f, 0.5f, 0f);
+            if (blink)
+            {
+                c.Smile(56, 52 + bob, 12, 4);   // closed eyes: happy little arcs
+                c.Smile(72, 52 + bob, 12, 4);
+            }
+            else
+            {
+                c.Eye(56, 54 + bob, 6, 7.5f, 0.5f, 0f);
+                c.Eye(72, 54 + bob, 6, 7.5f, 0.5f, 0f);
+            }
             c.Smile(66, 66 + bob, 12, 5);
             c.Blush(48, 64 + bob);
             c.Blush(82, 64 + bob);
             // Banana in the hand
-            var bx = f == 0 ? 98f : 100f;
-            var by = f == 0 ? 100f : 50f;
+            var bx = throwing ? 100f : 98f;
+            var by = throwing ? 50f : 100f + bob * 0.4f;
             c.Add(BananaPath(bx, by, 0.55f), Paint.Hex("FFD93A"));
             c.Flush();
             c.Save(P("companion_monkey_" + f));
+        }
+    }
+
+    // ---------- Companion: otter swordsman (faces right) ----------
+    // 0-3 = idle loop (breathing, sword on the shoulder), 4 = dash (leaning in, sword held back),
+    // 5 = slash (sword swung forward), 6 = blink.
+    static void Otter(int f)
+    {
+        using (var c = new Canvas(128, 128, 3f))
+        {
+            var fur = Paint.Hex("8A6248");
+            var belly = Paint.Hex("F3E2C4");
+            var band = Paint.Hex("E8443A");
+            var dash = f == 4;
+            var slash = f == 5;
+            var blink = f == 6;
+            float[] breathe = { 0f, 1.2f, 2.4f, 1.2f };
+            var bob = f <= 3 ? breathe[f] : 0f;
+            var lean = dash ? 7f : slash ? 4f : 0f;   // upper body leans toward the enemy
+
+            if (dash) Sword(c, 46, 86, 195f, 36);    // held back, behind the body
+            // Tail and feet
+            c.Limb(fur, 10, 48, 104, 32, 109 - bob * 0.5f, 18, 100 - bob);
+            c.Add(Paint.Ellipse(52, 114, 10, 6), fur);
+            c.Add(Paint.Ellipse(76, 114, 10, 6), fur);
+            // Body
+            c.Add(Paint.Ellipse(64 + lean * 0.5f, 92 + bob * 0.5f, 22 + bob * 0.4f, 22 - bob * 0.2f), fur);
+            c.Flush();
+            c.Fill(Paint.Ellipse(67 + lean * 0.5f, 95 + bob * 0.5f, 14, 15), belly);
+
+            // Head with small round ears
+            var hx = 62 + lean;
+            var hy = 52 + bob;
+            c.Add(Paint.Ellipse(hx - 21, hy - 19, 8, 8), fur);
+            c.Add(Paint.Ellipse(hx + 21, hy - 19, 8, 8), fur);
+            c.Add(Paint.Ellipse(hx, hy, 29, 25), fur);
+            c.Flush();
+            c.Fill(Paint.Ellipse(hx - 21, hy - 19, 4, 4), belly);
+            c.Fill(Paint.Ellipse(hx + 21, hy - 19, 4, 4), belly);
+            // Red headband with tails flying behind
+            c.Fill(Paint.Poly(hx - 26, hy - 12, hx - 42, hy - 20 - (dash ? 5 : 0), hx - 38, hy - 6), band);
+            c.Fill(Paint.Poly(hx - 26, hy - 10, hx - 40, hy - 2 - (dash ? 3 : 0), hx - 32, hy + 2), band);
+            c.Fill(Paint.RoundRect(hx - 28, hy - 17, 56, 9, 4), band);
+            // Muzzle, eyes, whiskers
+            c.Fill(Paint.Ellipse(hx + 5, hy + 10, 15, 11), belly);
+            if (blink)
+            {
+                c.Smile(hx - 4, hy - 1, 12, 4);
+                c.Smile(hx + 13, hy - 1, 12, 4);
+            }
+            else
+            {
+                var look = dash || slash ? 0.9f : 0.5f;
+                c.Eye(hx - 4, hy + 1, 5.5f, 7f, look, 0f);
+                c.Eye(hx + 13, hy + 1, 5.5f, 7f, look, 0f);
+            }
+            c.Fill(Paint.Ellipse(hx + 6, hy + 7, 4, 3), Paint.Ink);
+            c.Smile(hx + 6, hy + 14, 9, 3);
+            c.Line(Paint.Ink, 1.5f, hx + 16, hy + 9, hx + 27, hy + 6);
+            c.Line(Paint.Ink, 1.5f, hx + 16, hy + 12, hx + 27, hy + 13);
+            c.Blush(hx - 12, hy + 10);
+
+            // Arm and sword in front
+            if (slash)
+            {
+                Sword(c, hx + 18, 82, 8f, 36);
+                c.Limb(fur, 9, 70 + lean * 0.5f, 84, hx + 16, 82);
+            }
+            else if (dash)
+            {
+                c.Limb(fur, 9, 58, 86, 48, 86);
+            }
+            else
+            {
+                Sword(c, 86, 94 + bob * 0.5f, 62f, 44);  // resting on the shoulder
+                c.Limb(fur, 9, 76, 88 + bob * 0.5f, 86, 94 + bob * 0.5f);
+            }
+            c.Save(P("companion_otter_" + f));
+        }
+    }
+
+    // Sword from its hilt at (x, y) pointing at deg (0 = right, 90 = up), blade length len.
+    static void Sword(Canvas c, float x, float y, float deg, float len)
+    {
+        var a = deg * Math.PI / 180.0;
+        float dx = (float)Math.Cos(a), dy = -(float)Math.Sin(a);
+        float px = -dy, py = dx;
+        const float w = 4.5f;
+        c.Limb(Paint.Hex("6B3E22"), 5, x - dx * 10, y - dy * 10, x, y);  // handle
+        float bx = x + dx * 4, by = y + dy * 4;
+        float mx = bx + dx * (len - 9), my = by + dy * (len - 9);
+        c.Add(Paint.Poly(bx + px * w, by + py * w, mx + px * w, my + py * w, bx + dx * len, by + dy * len,
+            mx - px * w, my - py * w, bx - px * w, by - py * w), Paint.Hex("DCE6F2"));
+        c.Flush();
+        c.Line(Color.FromArgb(200, 255, 255, 255), 1.6f, bx + dx * 4 + px * 1.2f, by + dy * 4 + py * 1.2f,
+            mx + px * 1.2f, my + py * 1.2f);
+        c.Limb(Paint.Hex("F2B632"), 5, x + px * 9, y + py * 9, x - px * 9, y - py * 9);  // guard
+    }
+
+    // ---------- Slash effect: a 120-degree crescent centered on the image, pointing right ----------
+    // White so the game can tint it. 0 = first half of the swing, 1 = full arc, 2 = fading thin arc.
+    static void Slash(int f)
+    {
+        using (var c = new Canvas(256, 256, 0f))
+        {
+            const float cx = 128, cy = 128, outer = 120;
+            var end = f == 0 ? 0f : 60f;          // swing goes from -60 (bottom) to +60 (top)
+            var thick = f == 2 ? 0.55f : 1f;
+            var alpha = f == 2 ? 150 : 235;
+            c.Fill(Crescent(cx, cy, outer + 4, -60, end, 78 * thick), Color.FromArgb(alpha / 3, 255, 255, 255)); // glow
+            c.Fill(Crescent(cx, cy, outer, -60, end, 58 * thick), Color.FromArgb(alpha, 230, 245, 255));
+            c.Fill(Crescent(cx, cy, outer - 5, -60, end, 22 * thick), Color.FromArgb(Math.Min(255, alpha + 20), 255, 255, 255));
+            c.Save(P("fx_slash_" + f));
+        }
+    }
+
+    // Arc band between angles a0..a1 (degrees, 0 = right, up positive); thickest in the middle of the full 120-degree swing.
+    static GraphicsPath Crescent(float cx, float cy, float outer, float a0, float a1, float maxWidth)
+    {
+        const int steps = 32;
+        var pts = new List<PointF>();
+        var inner = new List<PointF>();
+        for (var i = 0; i <= steps; i++)
+        {
+            var deg = a0 + (a1 - a0) * i / steps;
+            var t = (deg + 60f) / 120f;
+            var width = maxWidth * (float)Math.Pow(Math.Sin(Math.PI * Math.Min(1f, Math.Max(0f, t))), 0.7) + 1f;
+            var r = deg * Math.PI / 180.0;
+            float cos = (float)Math.Cos(r), sin = (float)Math.Sin(r);
+            pts.Add(new PointF(cx + cos * outer, cy - sin * outer));
+            inner.Add(new PointF(cx + cos * (outer - width), cy - sin * (outer - width)));
+        }
+        inner.Reverse();
+        pts.AddRange(inner);
+        var path = new GraphicsPath();
+        path.AddPolygon(pts.ToArray());
+        return path;
+    }
+
+    // ---------- Companion: turtle mage (faces right) ----------
+    // 0-3 = idle loop (breathing, gem glow pulsing), 4 = cast (staff thrust forward, gem flaring), 5 = blink.
+    static void Turtle(int f)
+    {
+        using (var c = new Canvas(128, 128, 3f))
+        {
+            var skin = Paint.Hex("8FD48A");
+            var shell = Paint.Hex("3E9B5A");
+            var plate = Paint.Hex("6CC27A");
+            var hat = Paint.Hex("7A4FD8");
+            var gem = Paint.Hex("D86BFF");
+            var cast = f == 4;
+            var blink = f == 5;
+            float[] breathe = { 0f, 1.2f, 2.4f, 1.2f };
+            int[] glow = { 70, 100, 130, 100 };
+            var bob = f <= 3 ? breathe[f] : 0f;
+            var lean = cast ? 3f : 0f;
+
+            // Staff behind the arm: upright when idle, thrust forward when casting.
+            float sx0 = cast ? 98 : 108, sy0 = 112, sx1 = cast ? 118 : 110, sy1 = cast ? 46 : 50 + bob;
+            c.Limb(Paint.Hex("8A5A30"), 5, sx0, sy0, sx1, sy1 + 6);
+
+            // Feet, shell, belly rim
+            c.Add(Paint.Ellipse(40, 110, 9, 6), skin);
+            c.Add(Paint.Ellipse(74, 112, 9, 6), skin);
+            c.Add(Paint.Ellipse(26, 96 + bob * 0.5f, 7, 5), skin);  // little tail
+            c.Add(Paint.Ellipse(56, 90 + bob * 0.5f, 32, 24 - bob * 0.3f), shell);
+            c.Flush();
+            c.Fill(Paint.Ellipse(56, 82 + bob * 0.5f, 10, 8), plate);
+            c.Fill(Paint.Ellipse(40, 90 + bob * 0.5f, 8, 7), plate);
+            c.Fill(Paint.Ellipse(72, 90 + bob * 0.5f, 8, 7), plate);
+            c.Fill(Paint.Ellipse(56, 99 + bob * 0.5f, 9, 5), plate);
+            c.Fill(Paint.RoundRect(26, 104 + bob * 0.5f, 62, 6, 3), Paint.Hex("F2E2A6"));
+
+            // Head
+            var hx = 88 + lean;
+            var hy = 66 + bob;
+            c.Add(Paint.Ellipse(hx, hy, 18, 16), skin);
+            c.Flush();
+            if (blink)
+            {
+                c.Smile(hx + 4, hy - 2, 10, 3.5f);
+            }
+            else
+            {
+                c.Eye(hx + 4, hy - 1, 5f, 6.5f, cast ? 0.9f : 0.5f, 0f);
+            }
+            c.Smile(hx + 8, hy + 8, 9, 3);
+            c.Blush(hx - 6, hy + 6);
+
+            // Wizard hat with a star, tip flopping back
+            c.Add(Paint.Smooth(hx - 16, hy - 10, hx - 4, hy - 34, hx - 14, hy - 50, hx - 2, hy - 44, hx + 8, hy - 26, hx + 16, hy - 10), hat);
+            c.Add(Paint.Ellipse(hx, hy - 10, 21, 5), hat);
+            c.Flush();
+            c.Fill(Paint.Star(hx + 1, hy - 24, 6, 2.6f, 5, -90), Paint.Hex("FFD93A"));
+
+            // Arm holding the staff
+            c.Limb(skin, 8, 74 + lean, 86 + bob * 0.5f, cast ? 104 : 108, cast ? 80 : 86 + bob * 0.5f);
+
+            // Gem on top of the staff with a glow
+            var ga = cast ? 200 : glow[Math.Min(f, 3)];
+            using (var b = new SolidBrush(Color.FromArgb(ga, 230, 150, 255)))
+            {
+                var gr = cast ? 15f : 10f;
+                c.G.FillEllipse(b, sx1 - gr, sy1 - gr, gr * 2, gr * 2);
+            }
+            c.Add(Paint.Ellipse(sx1, sy1, 6, 6), gem);
+            c.Flush();
+            c.Shine(sx1 - 2, sy1 - 2, 2, 2, 230);
+            if (cast)
+            {
+                c.Fill(Paint.Star(sx1 - 14, sy1 + 12, 4, 1.5f, 4, 0), Color.White);
+                c.Fill(Paint.Star(sx1 + 2, sy1 - 16 + 4, 3, 1.2f, 4, 0), Color.White);
+            }
+            c.Save(P("companion_turtle_" + f));
+        }
+    }
+
+    // Magic orb: glowing pink-violet ball with a white core. Two frames shimmer.
+    static void MagicOrb(int f)
+    {
+        using (var c = new Canvas(64, 64, 0f))
+        {
+            var g = f == 0 ? 0f : 3f;
+            c.Fill(Paint.Ellipse(32, 32, 28 + g * 0.5f, 28 + g * 0.5f), Color.FromArgb(70, 210, 120, 255));
+            c.Fill(Paint.Ellipse(32, 32, 20, 20), Color.FromArgb(220, 200, 100, 255));
+            c.Fill(Paint.Ellipse(32, 32, 13, 13), Color.FromArgb(255, 245, 180, 255));
+            c.Fill(Paint.Ellipse(32, 32, 7, 7), Color.White);
+            c.Fill(Paint.Star(f == 0 ? 18 : 46, f == 0 ? 18 : 20, 6, 1.6f, 4, 0), Color.White);
+            c.Fill(Paint.Star(f == 0 ? 46 : 20, f == 0 ? 44 : 46, 4, 1.2f, 4, 0), Color.FromArgb(220, 255, 255, 255));
+            c.Save(P("projectile_orb_" + f));
+        }
+    }
+
+    // Magic explosion, centered, filling the image at its largest:
+    // 0 = bright flash, 1 = big starry burst, 2 = ring of puffs, 3 = thin fading ring with sparkles.
+    static void Blast(int f)
+    {
+        using (var c = new Canvas(256, 256, 0f))
+        {
+            const float cx = 128, cy = 128;
+            var violet = Color.FromArgb(200, 190, 90, 255);
+            var pink = Color.FromArgb(230, 255, 140, 230);
+            switch (f)
+            {
+                case 0:
+                    c.Fill(Paint.Ellipse(cx, cy, 70, 70), Color.FromArgb(120, 210, 130, 255));
+                    c.Fill(Paint.Star(cx, cy, 64, 26, 8, -90), pink);
+                    c.Fill(Paint.Ellipse(cx, cy, 30, 30), Color.White);
+                    break;
+                case 1:
+                    c.Fill(Paint.Ellipse(cx, cy, 118, 118), Color.FromArgb(90, 190, 90, 255));
+                    c.Fill(Paint.Star(cx, cy, 116, 62, 12, -90), violet);
+                    c.Fill(Paint.Ellipse(cx, cy, 64, 64), pink);
+                    c.Fill(Paint.Ellipse(cx, cy, 34, 34), Color.FromArgb(240, 255, 255, 255));
+                    break;
+                case 2:
+                    for (var i = 0; i < 10; i++)
+                    {
+                        var a = i * Math.PI * 2 / 10;
+                        float px = cx + (float)Math.Cos(a) * 92, py = cy + (float)Math.Sin(a) * 92;
+                        c.Fill(Paint.Ellipse(px, py, 22, 22), Color.FromArgb(150, 200, 110, 255));
+                        c.Fill(Paint.Ellipse(px, py, 11, 11), Color.FromArgb(170, 255, 190, 245));
+                    }
+                    c.Fill(Paint.Ellipse(cx, cy, 70, 70), Color.FromArgb(70, 230, 160, 255));
+                    break;
+                default:
+                    using (var pen = new Pen(Color.FromArgb(160, 230, 170, 255), 7f))
+                        c.G.DrawEllipse(pen, cx - 116, cy - 116, 232, 232);
+                    for (var i = 0; i < 8; i++)
+                    {
+                        var a = (i + 0.5) * Math.PI * 2 / 8;
+                        c.Fill(Paint.Star(cx + (float)Math.Cos(a) * 100, cy + (float)Math.Sin(a) * 100, 9, 3, 4, 0),
+                            Color.FromArgb(200, 255, 255, 255));
+                    }
+                    break;
+            }
+            c.Save(P("fx_blast_" + f));
+        }
+    }
+
+    // Damage number font: digits 0-9 side by side, chunky white with a dark outline (the game tints them).
+    // Saved to Assets/Resources/DigitFont.png, loaded by DigitFont.cs.
+    static void DigitAtlas()
+    {
+        const int cellW = 48, cellH = 64;
+        using (var bmp = new Bitmap(cellW * 10, cellH, PixelFormat.Format32bppArgb))
+        using (var g = Graphics.FromImage(bmp))
+        using (var family = new FontFamily("Arial Black"))
+        using (var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+        using (var outline = new Pen(Paint.Ink, 9f) { LineJoin = LineJoin.Round })
+        using (var white = new SolidBrush(Color.White))
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            for (var d = 0; d < 10; d++)
+            {
+                using (var path = new GraphicsPath())
+                {
+                    path.AddString(d.ToString(), family, (int)FontStyle.Regular, 50f,
+                        new RectangleF(d * cellW, 3, cellW, cellH), format);
+                    g.DrawPath(outline, path);
+                    g.FillPath(white, path);
+                }
+            }
+            var file = Path.Combine(dir, "..", "Resources", "DigitFont.png");
+            Directory.CreateDirectory(Path.GetDirectoryName(file));
+            bmp.Save(file, ImageFormat.Png);
+        }
+    }
+
+    // Blue upside-down triangle shown over the hero's head.
+    static void HeroMarker()
+    {
+        using (var c = new Canvas(64, 64, 3.5f))
+        {
+            c.Add(Paint.Poly(8, 12, 56, 12, 32, 54), Paint.Hex("2E8BFF"));
+            c.Flush();
+            c.Shine(24, 20, 8, 3.5f, 150);
+            c.Save(P("ui_hero_marker"));
         }
     }
 

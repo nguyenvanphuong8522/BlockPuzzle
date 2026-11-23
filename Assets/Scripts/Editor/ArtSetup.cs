@@ -140,13 +140,20 @@ public static class ArtSetup
         var enemyCount = new GameConfig().Enemies.Length;
 
         catalog.Player = new SpriteAnim { Frames = Frames("player_"), Fps = 8f };
+        catalog.PlayerIdle = new SpriteAnim { Frames = Frames("hero_idle_"), Fps = 5f };
         catalog.Enemies = new SpriteAnim[enemyCount];
         for (var i = 0; i < enemyCount; i++)
             catalog.Enemies[i] = new SpriteAnim { Frames = Frames($"enemy{i}_"), Fps = 5f };
 
+        catalog.HeroMarker = Single("ui_hero_marker");
         catalog.Gun = Single("weapon_gun");
-        catalog.Monkey = new SpriteAnim { Frames = Frames("companion_monkey_"), Fps = 2f };
+        catalog.Monkey = new SpriteAnim { Frames = Frames("companion_monkey_"), Fps = 6f };
         catalog.Banana = Single("projectile_banana");
+        catalog.Otter = new SpriteAnim { Frames = Frames("companion_otter_"), Fps = 6f };
+        catalog.Slash = new SpriteAnim { Frames = Frames("fx_slash_"), Fps = 20f };
+        catalog.Turtle = new SpriteAnim { Frames = Frames("companion_turtle_"), Fps = 6f };
+        catalog.MagicOrb = new SpriteAnim { Frames = Frames("projectile_orb_"), Fps = 10f };
+        catalog.Blast = new SpriteAnim { Frames = Frames("fx_blast_"), Fps = 12f };
         catalog.MuzzleFlash = new SpriteAnim { Frames = Frames("fx_muzzle_"), Fps = 30f };
         catalog.MagicBolt = Single("weapon_cannonball");
         catalog.OrbitBlade = Single("weapon_anchor");

@@ -18,6 +18,36 @@ namespace Survivor
         [Tooltip("Size multiplier for area weapons")]
         [Min(0.1f)] public float Area = 1f;
 
+        [Header("Đệ tử (companions)")]
+        [Tooltip("Distance from the hero to each companion. They share a circle: 1 = above the head, 2 = above + below, " +
+                 "3 = every 120 degrees, and so on.")]
+        [Min(0f)] public float CompanionDistance = 1.8f;
+        [Tooltip("Squashes the circle vertically for a top-down look (1 = perfect circle).")]
+        [Range(0.3f, 1f)] public float CompanionCircleSquash = 0.85f;
+        [Tooltip("How fast companions slide to their new places when one joins (higher = snappier).")]
+        [Min(0.1f)] public float CompanionRegroupSpeed = 8f;
+
+        [Header("Dấu hiệu hero")]
+        [Tooltip("Size of the blue triangle over the hero's head (world units).")]
+        [Min(0f)] public float MarkerSize = 0.3f;
+        [Tooltip("Height of the triangle above the hero's center (the head top is at ~0.85).")]
+        public float MarkerHeight = 1.02f;
+        [Tooltip("Tint for the triangle. White = the original blue art.")]
+        public Color MarkerTint = Color.white;
+
+        [Header("Số sát thương")]
+        [Tooltip("Height of one digit at scale 1 (world units). Every scale below multiplies this.")]
+        [Min(0.05f)] public float NumberBaseHeight = 0.32f;
+        [Tooltip("Color of the numbers when you hit a normal enemy.")]
+        public Color EnemyNumberColor = Color.white;
+        [Min(0.1f)] public float EnemyNumberScale = 1f;
+        [Tooltip("Color of the numbers when you hit a boss.")]
+        public Color BossNumberColor = new Color(1f, 0.85f, 0.3f);
+        [Min(0.1f)] public float BossNumberScale = 1.6f;
+        [Tooltip("Color of the number shown when the hero loses HP.")]
+        public Color HurtNumberColor = new Color(1f, 0.22f, 0.2f);
+        [Min(0.1f)] public float HurtNumberScale = 2f;
+
         public static PlayerTuning LoadOrDefault()
         {
             var tuning = Resources.Load<PlayerTuning>("PlayerTuning");

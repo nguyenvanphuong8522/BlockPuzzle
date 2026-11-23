@@ -14,6 +14,9 @@ namespace Survivor
         const float SpreadDegrees = 18f;      // angle between bananas when it throws several
         const float SightRange = 9f;
         const float ThrowPoseTime = 0.25f;    // arm stays up this long after a throw
+        const float Radius = 0.4f;            // drawn ~1.05 units tall; the hero is ~1.35
+        const int IdleFrames = 4, ThrowFrame = 4, BlinkFrame = 5;
+        const float IdleFps = 6f, BlinkEvery = 3.2f, BlinkTime = 0.13f;
 
         readonly List<int> targets = new List<int>(1);
         float timer = 0.5f;
@@ -59,24 +62,36 @@ namespace Survivor
 
         public override void Draw(InstancedRenderer renderer, CompanionContext ctx)
         {
-            const float radius = 0.32f;
-            var feet = Position.y - radius;
-            renderer.Ellipse(RenderLayer.Shadows, new Vector2(Position.x, feet + 0.05f), new Vector2(radius * 1.8f, radius * 0.55f),
+            var feet = Position.y - Radius;
+            renderer.Ellipse(RenderLayer.Shadows, new Vector2(Position.x, feet + 0.05f), new Vector2(Radius * 1.8f, Radius * 0.55f),
                 new Color(0f, 0f, 0f, 0.22f));
 
             var anim = ctx.Sprites.Monkey;
             if (anim != null && !anim.IsEmpty)
             {
-                // Frame 0 = idle (with a small bob), frame 1 = arm up right after a throw.
-                var frame = anim.Frames[throwPose > 0f && anim.Frames.Length > 1 ? 1 : 0];
-                var bob = throwPose > 0f ? 0f : Mathf.Abs(Mathf.Sin(Time.time * 5f + Slot)) * 0.05f;
-                renderer.Sprite(RenderLayer.World, frame, new Vector2(Position.x, Position.y + radius * 0.4f + bob),
-                    radius * 2.6f, Color.white, flipX: facingLeft, sortY: feet);
+                var frame = PickFrame(anim);
+                renderer.Sprite(RenderLayer.World, frame, new Vector2(Position.x, Position.y + Radius * 0.4f),
+                    Radius * 2.6f, Color.white, flipX: facingLeft, sortY: feet);
             }
             else
             {
-                renderer.Circle(RenderLayer.World, Position, radius, new Color(0.63f, 0.38f, 0.18f), 0f, feet);
+                renderer.Circle(RenderLayer.World, Position, Radius, new Color(0.63f, 0.38f, 0.18f), 0f, feet);
             }
+        }
+
+        // Sprite frames: 0-3 idle loop, 4 = throw pose, 5 = blink.
+        Sprite PickFrame(SpriteAnim anim)
+        {
+            var frames = anim.Frames;
+            if (frames.Length < 6) return frames[throwPose > 0f && frames.Length > 1 ? frames.Length - 1 : 0]; // old 2-frame art
+            if (throwPose > 0f) return frames[ThrowFrame];
+
+            // Blink for a moment every few seconds; each slot blinks at its own time.
+            var t = Time.time + Slot * 1.37f;
+            if (t % BlinkEvery < BlinkTime) return frames[BlinkFrame];
+
+            var i = (int)((Time.time + Slot * 0.3f) * IdleFps) % IdleFrames;
+            return frames[i];
         }
     }
 }

@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace Survivor
 {
-    // Tiny 3x5 pixel font for damage numbers, baked into a texture with a black outline.
+    // Font for damage numbers: Assets/Resources/DigitFont.png (digits 0-9 side by side, made by Tools/AssetGen).
+    // If that file is missing, falls back to a tiny 3x5 pixel font baked at runtime.
     // Each digit is drawn as one instanced quad, so thousands of numbers cost almost nothing.
     public static class DigitFont
     {
@@ -16,10 +17,19 @@ namespace Survivor
 
         static Texture2D texture;
 
-        public static Texture2D Texture => texture != null ? texture : texture = Build();
+        public static Texture2D Texture
+        {
+            get
+            {
+                if (texture != null) return texture;
+                texture = Resources.Load<Texture2D>("DigitFont");
+                if (texture == null) texture = Build();
+                return texture;
+            }
+        }
 
         // Width / height of one digit cell.
-        public const float Aspect = CellW / (float)CellH;
+        public static float Aspect => Texture.width / 10f / Texture.height;
 
         public static Vector4 Uv(int digit)
         {

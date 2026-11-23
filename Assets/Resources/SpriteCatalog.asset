@@ -19,6 +19,15 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 3c7483c8ee3f29845ab341cb0cbf66d8, type: 3}
     - {fileID: 21300000, guid: d685ac01a8881f249bbbdbde1a8dc8b8, type: 3}
     Fps: 8
+  HeroMarker: {fileID: 21300000, guid: 57db9e55451968b47b39e0ea0f416d30, type: 3}
+  PlayerIdle:
+    Frames:
+    - {fileID: 21300000, guid: 0ad7e28f157a4664abc9b4526a0edf09, type: 3}
+    - {fileID: 21300000, guid: aec3c936aee9282409c6066b45b76eb5, type: 3}
+    - {fileID: 21300000, guid: 6f0c3f8250f19c24c8c98373deacc4a7, type: 3}
+    - {fileID: 21300000, guid: 474799b02670a91498e991c675b88f40, type: 3}
+    - {fileID: 21300000, guid: dc4ab0a7cb235f7468ba99299738a281, type: 3}
+    Fps: 5
   Enemies:
   - Frames:
     - {fileID: 21300000, guid: cd8769bb74d3e104a90f4e6a444fda2c, type: 3}
@@ -62,8 +71,49 @@ MonoBehaviour:
     Frames:
     - {fileID: 21300000, guid: 173b8833399a76945bf0fb4af89e0457, type: 3}
     - {fileID: 21300000, guid: f17db1348746ff24dbc303b7d7cbbeab, type: 3}
-    Fps: 2
+    - {fileID: 21300000, guid: 85b418a620021094882a38873401ca10, type: 3}
+    - {fileID: 21300000, guid: db1176c0a48f9844f9f72bf0bbd6619e, type: 3}
+    - {fileID: 21300000, guid: 8deeb3f356792644fa4009294329caf0, type: 3}
+    - {fileID: 21300000, guid: 1a3a8919dd02ed543a681b491b01d775, type: 3}
+    Fps: 6
   Banana: {fileID: 21300000, guid: b3297a9ec2ce75a45883d3b6dc967b0b, type: 3}
+  Otter:
+    Frames:
+    - {fileID: 21300000, guid: ffb228cfa678c6d48a91d08959878156, type: 3}
+    - {fileID: 21300000, guid: 424f2fad66d186947bf92da4b5f62e32, type: 3}
+    - {fileID: 21300000, guid: 848ef2946aa77244992ebb4264a7b4cd, type: 3}
+    - {fileID: 21300000, guid: d4bac60b775aeba468da4164038424b4, type: 3}
+    - {fileID: 21300000, guid: 7349599ed26a2dd47899cd7c93b417cd, type: 3}
+    - {fileID: 21300000, guid: fdefa83bbd20ba24f8d9a67570deb69f, type: 3}
+    - {fileID: 21300000, guid: 6a13d6be4546d674d919c80ec2be45d4, type: 3}
+    Fps: 6
+  Slash:
+    Frames:
+    - {fileID: 21300000, guid: 8a7be4d2a861134429071a08ec0db7fa, type: 3}
+    - {fileID: 21300000, guid: 2f217571d1743e840ace1ba563e4bc6a, type: 3}
+    - {fileID: 21300000, guid: 4dc5b5b1a9965574e8ee5a6eee6e3710, type: 3}
+    Fps: 20
+  Turtle:
+    Frames:
+    - {fileID: 21300000, guid: ea19f6f33fcdb764a969dfc9b3afdeab, type: 3}
+    - {fileID: 21300000, guid: cb76df1c3fef56c4ba8ac8c034bd33a6, type: 3}
+    - {fileID: 21300000, guid: 8a9314fdf469d6946baf4f9828ab5dae, type: 3}
+    - {fileID: 21300000, guid: 8b22bf91ce0d2da4ab8429db3334c1ad, type: 3}
+    - {fileID: 21300000, guid: ca835aad1984fd1408b81dac9e2c2bbb, type: 3}
+    - {fileID: 21300000, guid: ccde9a709bee647458444e7ac7773690, type: 3}
+    Fps: 6
+  MagicOrb:
+    Frames:
+    - {fileID: 21300000, guid: 81e9a9e6646166947b2019811e00d5c2, type: 3}
+    - {fileID: 21300000, guid: 6fa17a7c96dc67345b2ebb563f6deb80, type: 3}
+    Fps: 10
+  Blast:
+    Frames:
+    - {fileID: 21300000, guid: 8a7210c2fd19c7c4085c9439a5a0d459, type: 3}
+    - {fileID: 21300000, guid: f810cbb8858f58a4eae7a50742924bed, type: 3}
+    - {fileID: 21300000, guid: 729f80fa4438e0344acbd4bdb373e4c6, type: 3}
+    - {fileID: 21300000, guid: c4b94be617c2adb4db44c1c7a6ae92f0, type: 3}
+    Fps: 12
   Gem: {fileID: 21300000, guid: ee693a57515ab6b44acc71029b0c1289, type: 3}
   Chest: {fileID: 21300000, guid: 5a536c4b08d1e7843bb7f44c095cf971, type: 3}
   Heal: {fileID: 21300000, guid: 610b53cad8491f54aadad54065920b16, type: 3}

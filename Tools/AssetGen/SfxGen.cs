@@ -47,6 +47,13 @@ static class SfxGen
         Save("sfx_game_over", Melody(new[] { 67, 66, 65, 64, 60 }, new[] { 2, 2, 2, 2, 6 }, 0.14f, Triangle, 0.4f));
 
         Save("music_beach", BeachTune());
+
+        // Added later: kept at the end so the random sounds above stay the same.
+        // Sword slash: fast bright whoosh + short metallic ring.
+        Save("sfx_slash", Mix(Highpass(Swoosh(0.16f)), Tone(0.18f, 2400, 1900, Triangle, 0.001f, 6f, 0.12f)));
+        // Magic orb cast: rising shimmer. Explosion: soft magic boom with a sparkly tail.
+        Save("sfx_cast", Vibrato(Tone(0.22f, 600, 1400, Triangle, 0.005f, 2.5f, 0.3f), 22f));
+        Save("sfx_explode", Mix(Tone(0.4f, 140, 40, Sine, 0.002f, 2.5f, 0.6f), Lowpass(Tone(0.35f, 0, 0, Noise, 0.002f, 3.5f, 0.45f), 0.25f), Sparkle(0.4f)));
     }
 
     // ---------- Building blocks ----------
@@ -117,6 +124,18 @@ static class SfxGen
         {
             y += k * (s[i] - y);
             s[i] = y;
+        }
+        return s;
+    }
+
+    // Removes the low rumble: keeps the airy, sharp part of a sound.
+    static float[] Highpass(float[] s)
+    {
+        float y = 0;
+        for (var i = 0; i < s.Length; i++)
+        {
+            y += 0.15f * (s[i] - y);
+            s[i] = (s[i] - y) * 1.8f;
         }
         return s;
     }

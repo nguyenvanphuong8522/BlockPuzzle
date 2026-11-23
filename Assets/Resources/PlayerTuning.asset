@@ -18,3 +18,11 @@ MonoBehaviour:
   Might: 1
   Haste: 1
   Area: 1
+  CompanionDistance: 1.7
+  CompanionCircleSquash: 0.85
+  CompanionRegroupSpeed: 8
+  MarkerSize: 1.26
+  MarkerHeight: 1.02
+  MarkerTint: {r: 1, g: 1, b: 1, a: 1}
+  HurtNumberColor: {r: 1, g: 0.22, b: 0.2, a: 1}
+  HurtNumberScale: 2

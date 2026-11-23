@@ -24,11 +24,15 @@ namespace Survivor
         readonly SpriteCatalog sprites;
         readonly AudioService audio;
         readonly HapticsService haptics;
+        readonly DamageNumberSystem damageNumbers;
+        readonly PlayerTuning tuning;
         float hurtTimer;
 
         public Player(GameConfig config, PlayerTuning tuning, DebugSettings debug, SpriteCatalog sprites, AudioService audio,
-            HapticsService haptics)
+            HapticsService haptics, DamageNumberSystem damageNumbers)
         {
+            this.damageNumbers = damageNumbers;
+            this.tuning = tuning;
             Stats = new PlayerStats(tuning);
             Radius = config.PlayerRadius;
             hurtCooldown = config.PlayerHurtCooldown;
@@ -58,6 +62,7 @@ namespace Survivor
             HurtFlash = 0.12f;
             audio.Play(Sfx.Hurt, 0.6f, 0.08f, 0.2f);
             haptics.PlayHit(); // phone / gamepad vibration (also in god mode, so it can be tuned)
+            damageNumbers.SpawnHurt(Position + new Vector2(0.75f, Radius * 1.2f), damage); // red number, beside the marker (also in god mode)
             if (debug.GodMode || debug.SessionGodMode) return; // still flashes, so you can see you were hit
             Hp.Value = Mathf.Max(0f, Hp.Value - damage);
         }
@@ -70,6 +75,19 @@ namespace Survivor
             Heal(amount);
         }
 
+        const float BlinkEvery = 3.5f, BlinkTime = 0.13f;
+
+        // hero_idle_0..3 loop, last frame = blink. Falls back to a walk frame if the idle art is missing.
+        Sprite IdleFrame()
+        {
+            var idle = sprites.PlayerIdle;
+            if (idle == null || idle.IsEmpty || idle.Frames.Length < 2)
+                return sprites.Player.Frames[sprites.Player.Frames.Length > 1 ? 1 : 0];
+            var loop = idle.Frames.Length - 1;
+            if (Time.time % BlinkEvery < BlinkTime) return idle.Frames[loop];
+            return idle.Frames[(int)(Time.time * idle.Fps) % loop];
+        }
+
         public void Draw(InstancedRenderer renderer)
         {
             var flash = HurtFlash > 0f ? 1f : 0f;
@@ -77,8 +95,8 @@ namespace Survivor
                 new Color(0f, 0f, 0f, 0.25f));
             if (sprites.Player != null && !sprites.Player.IsEmpty)
             {
-                // Walk cycle while moving, standing frame when idle.
-                var frame = IsMoving ? sprites.Player.Frame(Time.time) : sprites.Player.Frames[sprites.Player.Frames.Length > 1 ? 1 : 0];
+                // Walk cycle while moving, breathing idle loop (with a blink now and then) when standing still.
+                var frame = IsMoving ? sprites.Player.Frame(Time.time) : IdleFrame();
                 renderer.Sprite(RenderLayer.World, frame, Position + new Vector2(0f, Radius * 0.35f),
                     Radius * 2f * sprites.SpriteScale, Color.white, flipX: Facing.x < 0f, flash: flash, sortY: FeetY);
             }
@@ -100,6 +118,18 @@ namespace Survivor
 
             renderer.Bar(RenderLayer.Overlay, Position + new Vector2(0f, -Radius - 0.25f), new Vector2(1f, 0.12f),
                 Hp.Value / Stats.MaxHp, new Color(0f, 0f, 0f, 0.7f), new Color(0.9f, 0.2f, 0.2f));
+
+            DrawMarker(renderer);
+        }
+
+        // Blue upside-down triangle bobbing over the head: "this one is you".
+        void DrawMarker(InstancedRenderer renderer)
+        {
+            var at = Position + new Vector2(0f, tuning.MarkerHeight + Mathf.Sin(Time.time * 4f) * 0.06f);
+            if (sprites.HeroMarker != null)
+                renderer.Sprite(RenderLayer.Overlay, sprites.HeroMarker, at, tuning.MarkerSize, tuning.MarkerTint);
+            else
+                renderer.Circle(RenderLayer.Overlay, at, tuning.MarkerSize * 0.4f, new Color(0.2f, 0.55f, 1f) * tuning.MarkerTint);
         }
 
         public void Dispose() => Hp.Dispose();
