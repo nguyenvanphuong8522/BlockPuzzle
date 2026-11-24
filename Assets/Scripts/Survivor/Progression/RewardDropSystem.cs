@@ -12,11 +12,15 @@ namespace Survivor
         readonly EnemyDropSettings settings;
         readonly GemSystem gems;
         readonly PickupSystem pickups;
+        readonly Player player;
+        readonly PlayerTuning tuning;
         readonly IDisposable subscription;
 
-        public RewardDropSystem(EnemyDropSettings settings, GemSystem gems, PickupSystem pickups,
-            ISubscriber<EnemyKilledEvent> killed)
+        public RewardDropSystem(EnemyDropSettings settings, GemSystem gems, PickupSystem pickups, Player player,
+            PlayerTuning tuning, ISubscriber<EnemyKilledEvent> killed)
         {
+            this.player = player;
+            this.tuning = tuning;
             this.settings = settings;
             this.gems = gems;
             this.pickups = pickups;
@@ -28,16 +32,17 @@ namespace Survivor
             foreach (var reward in settings.RewardsFor(e.Type))
             {
                 if (reward == null || UnityEngine.Random.value * 100f >= reward.ChancePercent) continue;
-                Give(reward, e.Position);
+                Give(reward, e.Position, e.IsBoss);
             }
         }
 
-        void Give(EnemyDropSettings.Reward reward, Vector2 at)
+        void Give(EnemyDropSettings.Reward reward, Vector2 at, bool fromBoss)
         {
             switch (reward.Type)
             {
                 case RewardType.Gem:
-                    gems.Spawn(at, reward.Amount); // one gem holding all the experience
+                    if (fromBoss) gems.SpawnTrail(at, player.Position, reward.Amount, tuning.BossTrailGems); // a line of gems
+                    else gems.Spawn(at, reward.Amount); // one gem holding all the experience
                     break;
                 case RewardType.Heal:
                     SpawnPickups(PickupKind.Heal, at, reward.Amount);

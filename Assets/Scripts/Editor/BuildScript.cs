@@ -9,7 +9,7 @@ using UnityEngine;
 //   Unity -batchmode -quit -projectPath . -executeMethod BuildScript.BuildWindows
 public static class BuildScript
 {
-    private const string AndroidOutput = "Build/Android/BlockPuzzle.apk";
+    private const string AndroidOutput = "Build/Android/PalRush.apk";
 
     [MenuItem("Build/Build Android (CI)")]
     public static void BuildAndroid()
@@ -45,7 +45,12 @@ public static class BuildScript
         PlayerSettings.resizableWindow = true;
     }
 
-    static string WindowsOutput(string folder) => $"Build/{folder}/{PlayerSettings.productName}.exe";
+    // Exe named after the game; characters Windows forbids in file names (: ? * ...) are dropped.
+    static string WindowsOutput(string folder)
+    {
+        var name = string.Concat(PlayerSettings.productName.Split(System.IO.Path.GetInvalidFileNameChars())).Trim();
+        return $"Build/{folder}/{(name.Length > 0 ? name : "Game")}.exe";
+    }
 
     // WebGL: open Build/WebGL/index.html through a web server (not by double-clicking the file).
     [MenuItem("Build/Build WebGL")]

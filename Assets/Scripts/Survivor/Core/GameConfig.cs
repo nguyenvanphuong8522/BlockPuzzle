@@ -32,7 +32,7 @@ namespace Survivor
 
         // Bosses appear at these times (seconds). Each one is stronger than the last.
         public readonly float[] BossTimes = { 180f, 360f, 540f };
-        public readonly float BossHpGrowthPerAppearance = 0.6f;
+        // Boss HP and its growth per appearance are in PlayerTuning ("Đấu boss").
         public readonly float BossChargeInterval = 4f;
         public readonly float BossChargeDuration = 0.7f;
         public readonly float BossChargeSpeedMultiplier = 4f;

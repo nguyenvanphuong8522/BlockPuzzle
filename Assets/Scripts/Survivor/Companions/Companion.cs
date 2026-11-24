@@ -64,6 +64,13 @@ namespace Survivor
 
         public abstract void Draw(InstancedRenderer renderer, CompanionContext ctx);
 
+        // How far it looks for enemies, and from where. Drawn by the debug option "Hiện tầm nhìn đệ tử" (F3).
+        public abstract float SightRadius(CompanionContext ctx);
+        public virtual Vector2 SightCenter(CompanionContext ctx) => Position;
+
+        // Debug option "Hiện vùng chém rái cá" (F3): outline of the area its attack hits. Nothing by default.
+        public virtual void DrawAttackArea(InstancedRenderer renderer, CompanionContext ctx) { }
+
         // Value for the current level from a per-level table.
         protected T At<T>(T[] table) => table[Mathf.Clamp(Level - 1, 0, table.Length - 1)];
     }

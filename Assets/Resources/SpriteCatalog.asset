@@ -133,6 +133,8 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 789c64c5aa889244b9da02b85d083e3a, type: 3}
     Fps: 6
   Pellet: {fileID: 21300000, guid: 208612e541033bd4d8c228c1e31402ac, type: 3}
+  BarbedFence: {fileID: 21300000, guid: 32ac351bec9b2aa4381d522c177ae224, type: 3}
+  HealPlus: {fileID: 21300000, guid: e5670ae1d0432bf408a9c459effb66b8, type: 3}
   Gem: {fileID: 21300000, guid: ee693a57515ab6b44acc71029b0c1289, type: 3}
   Chest: {fileID: 21300000, guid: 5a536c4b08d1e7843bb7f44c095cf971, type: 3}
   Heal: {fileID: 21300000, guid: 610b53cad8491f54aadad54065920b16, type: 3}

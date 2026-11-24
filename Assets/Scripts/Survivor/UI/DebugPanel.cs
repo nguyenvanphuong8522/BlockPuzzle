@@ -73,7 +73,7 @@ namespace Survivor
             rt.anchorMin = rt.anchorMax = new Vector2(0f, 0f);
             rt.pivot = new Vector2(0f, 0f);
             rt.anchoredPosition = new Vector2(16, 70);
-            rt.sizeDelta = new Vector2(840, 760);
+            rt.sizeDelta = new Vector2(840, 810);
             panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f);
 
             // Left column: settings
@@ -85,6 +85,8 @@ namespace Survivor
             ToggleRow(rt, "Hiện FPS / thông số", () => settings.ShowStats, v => settings.ShowStats = v, ref y);
             ToggleRow(rt, "Tắt tiếng", () => audio.Muted, v => audio.Muted = v, ref y);
             ToggleRow(rt, "Hiện tầm hút", () => settings.ShowPickupRange, v => settings.ShowPickupRange = v, ref y);
+            ToggleRow(rt, "Hiện tầm nhìn đệ tử", () => settings.ShowCompanionRange, v => settings.ShowCompanionRange = v, ref y);
+            ToggleRow(rt, "Hiện vùng chém rái cá", () => settings.ShowAttackArea, v => settings.ShowAttackArea = v, ref y);
             StepperRow(rt, () => $"Tầm hút gốc: {tuning.MagnetRadius:0.00}",
                 step => tuning.MagnetRadius = Mathf.Max(0.25f, tuning.MagnetRadius + step * 0.25f), ref y);
             SpeedRow(rt, ref y);

@@ -38,6 +38,7 @@ namespace Survivor
         readonly SpriteCatalog sprites;
         readonly CameraShake shake;
         readonly HapticsService haptics;
+        readonly BossArenaSystem arena;
 
         State state;
         bool choosingForChest;
@@ -63,8 +64,10 @@ namespace Survivor
             EffectSystem effects, DamageNumberSystem damageNumbers, WeaponSystem weapons, CompanionSystem companions,
             BoomerangSystem boomerangs, UpgradeService upgrades,
             PlayerProgress progress, GameStats stats, HudView hud, DebugPanel debugPanel, PopupController popups, DebugSettings debug,
-            InstancedRenderer renderer, AudioService audio, DecorationSystem decorations, SpriteCatalog sprites, CameraShake shake, HapticsService haptics)
+            InstancedRenderer renderer, AudioService audio, DecorationSystem decorations, SpriteCatalog sprites, CameraShake shake, HapticsService haptics,
+            BossArenaSystem arena)
         {
+            this.arena = arena;
             this.config = config;
             this.input = input;
             this.player = player;
@@ -112,6 +115,7 @@ namespace Survivor
             debugPanel.Toggled += OnDebugToggled;
             popups.PreloadAsync().Forget(); // level-up / pause / result load in the background
             upgrades.GiveStartingWeapon();
+            upgrades.GiveStartingCompanions(); // "Đệ tử khởi đầu" in PlayerTuning
             audio.PlayMusic();
         }
 
@@ -151,6 +155,7 @@ namespace Survivor
             player.Tick(input.Move, dt);
             spawner.Tick(dt);
             enemies.Tick(dt);
+            arena.Tick(dt);          // boss arena: wall, keeps hero and boss inside
             weapons.Tick(dt);
             companions.Tick(dt);
             boomerangs.Tick(dt);
@@ -184,6 +189,7 @@ namespace Survivor
             gems.Draw(renderer);
             pickups.Draw(renderer);
             enemies.Draw(renderer);
+            arena.Draw(renderer);
             projectiles.Draw(renderer);
             weapons.Draw(renderer);
             companions.Draw(renderer);

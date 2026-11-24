@@ -138,9 +138,41 @@ namespace Survivor
             var width = height * rect.width / rect.height;
             if (!IsVisible(center, Mathf.Max(width, height) * 0.5f)) return;
             var uv = SpriteUv(sprite);
-            Add(GetTexturedGroup(layers[(int)layer], sprite.texture), center,
-                new Vector2(flipX ? -width : width, height), tint, new Vector4(ShapeSprite, 0f, flash, 0f), uv,
+            var trim = SpriteTrim(sprite);
+            var drawCenter = center + new Vector2((flipX ? -trim.x : trim.x) * width, trim.y * height);
+            var w = width * trim.z;
+            Add(GetTexturedGroup(layers[(int)layer], sprite.texture), drawCenter,
+                new Vector2(flipX ? -w : w, height * trim.w), tint, new Vector4(ShapeSprite, 0f, flash, 0f), uv,
                 float.IsNaN(sortY) ? center.y : sortY);
+        }
+
+        // The atlas packer cuts away transparent borders, so sprite.uv only covers the visible part of the image.
+        // This says where that part sits inside the full image: (center x, center y) as a fraction of the full size
+        // measured from the image center, and (width, height) as a fraction of the full size. Untrimmed = (0, 0, 1, 1).
+        readonly Dictionary<Sprite, Vector4> spriteTrims = new Dictionary<Sprite, Vector4>();
+        public Vector4 SpriteTrim(Sprite sprite)
+        {
+            if (spriteTrims.TryGetValue(sprite, out var trim)) return trim;
+            var ppu = sprite.pixelsPerUnit;
+            var rect = sprite.rect;
+            var fullMin = -sprite.pivot / ppu;
+            var fullSize = rect.size / ppu;
+            var min = new Vector2(float.MaxValue, float.MaxValue);
+            var max = new Vector2(float.MinValue, float.MinValue);
+            foreach (var v in sprite.vertices)
+            {
+                min = Vector2.Min(min, v);
+                max = Vector2.Max(max, v);
+            }
+            if (fullSize.x <= 0f || fullSize.y <= 0f || min.x > max.x) trim = new Vector4(0f, 0f, 1f, 1f);
+            else
+            {
+                var c = ((min + max) * 0.5f - fullMin) / fullSize - new Vector2(0.5f, 0.5f);
+                var s = (max - min) / fullSize;
+                trim = new Vector4(c.x, c.y, s.x, s.y);
+            }
+            spriteTrims[sprite] = trim;
+            return trim;
         }
 
         // Rotated sprite (angle in radians, 0 = pointing right). flipY mirrors it vertically, e.g. a gun aimed left
@@ -151,7 +183,12 @@ namespace Survivor
             var rect = sprite.rect;
             var width = height * rect.width / rect.height;
             if (!IsVisible(center, Mathf.Max(width, height) * 0.5f)) return;
-            AddRotated(GetTexturedGroup(layers[(int)layer], sprite.texture), center, new Vector2(width, flipY ? -height : height),
+            var trim = SpriteTrim(sprite);
+            var local = new Vector2(trim.x * width, (flipY ? -trim.y : trim.y) * height);
+            float c = Mathf.Cos(angle), s = Mathf.Sin(angle);
+            var drawCenter = center + new Vector2(local.x * c - local.y * s, local.x * s + local.y * c);
+            var h = height * trim.w;
+            AddRotated(GetTexturedGroup(layers[(int)layer], sprite.texture), drawCenter, new Vector2(width * trim.z, flipY ? -h : h),
                 angle, tint, new Vector4(ShapeSprite, 0f, flash, 0f), SpriteUv(sprite), float.IsNaN(sortY) ? center.y : sortY);
         }
 
@@ -172,11 +209,13 @@ namespace Survivor
             internal readonly Group Group;
             public readonly Vector4 Uv;
             public readonly float Aspect; // width / height
-            internal SpriteBrush(Group group, Vector4 uv, float aspect)
+            public readonly Vector4 Trim; // where the visible (uv) part sits in the full image, see SpriteTrim
+            internal SpriteBrush(Group group, Vector4 uv, float aspect, Vector4 trim)
             {
                 Group = group;
                 Uv = uv;
                 Aspect = aspect;
+                Trim = trim;
             }
             public bool IsValid => Group != null;
         }
@@ -185,16 +224,21 @@ namespace Survivor
         {
             if (sprite == null) return default;
             var rect = sprite.rect;
-            return new SpriteBrush(GetTexturedGroup(layers[(int)layer], sprite.texture), SpriteUv(sprite), rect.width / rect.height);
+            return new SpriteBrush(GetTexturedGroup(layers[(int)layer], sprite.texture), SpriteUv(sprite), rect.width / rect.height,
+                SpriteTrim(sprite));
         }
 
         // Brush for any part of a texture (uv set per draw call).
         public SpriteBrush Brush(RenderLayer layer, Texture texture) =>
-            texture == null ? default : new SpriteBrush(GetTexturedGroup(layers[(int)layer], texture), FullUv, 1f);
+            texture == null ? default : new SpriteBrush(GetTexturedGroup(layers[(int)layer], texture), FullUv, 1f, new Vector4(0f, 0f, 1f, 1f));
 
-        public void Draw(in SpriteBrush brush, Vector2 center, float height, Color tint, float flash = 0f, float sortY = float.NaN) =>
-            Add(brush.Group, center, new Vector2(height * brush.Aspect, height), tint, new Vector4(ShapeSprite, 0f, flash, 0f),
-                brush.Uv, float.IsNaN(sortY) ? center.y : sortY);
+        public void Draw(in SpriteBrush brush, Vector2 center, float height, Color tint, float flash = 0f, float sortY = float.NaN)
+        {
+            var width = height * brush.Aspect;
+            var t = brush.Trim;
+            Add(brush.Group, center + new Vector2(t.x * width, t.y * height), new Vector2(width * t.z, height * t.w), tint,
+                new Vector4(ShapeSprite, 0f, flash, 0f), brush.Uv, float.IsNaN(sortY) ? center.y : sortY);
+        }
 
         // Unrotated quad with its own uv (e.g. one digit of a damage number).
         public void Draw(in SpriteBrush brush, Vector4 uv, Vector2 center, Vector2 size, Color tint) =>
@@ -214,6 +258,18 @@ namespace Survivor
             if (!IsVisible(center, length * 0.5f)) return;
             AddRotated(layers[(int)layer].Shapes, center, new Vector2(length, width), angle, color,
                 new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv, center.y);
+        }
+
+        // Straight line from a to b (debug outlines).
+        public void Line(RenderLayer layer, Vector2 a, Vector2 b, float width, Color color)
+        {
+            var d = b - a;
+            var length = d.magnitude;
+            if (length < 0.0001f) return;
+            var center = (a + b) * 0.5f;
+            if (!IsVisible(center, length * 0.5f)) return;
+            AddRotated(layers[(int)layer].Shapes, center, new Vector2(length, width), Mathf.Atan2(d.y, d.x), color,
+                new Vector4(ShapeRect, 0f, 0f, 0f), FullUv, center.y);
         }
 
         // Draws a sub-rectangle of a texture (used by the damage-number digit font).

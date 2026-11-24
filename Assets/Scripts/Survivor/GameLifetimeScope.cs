@@ -37,6 +37,7 @@ namespace Survivor
             builder.Register<EnemyDeathSystem>(Lifetime.Singleton);
             builder.Register<EnemySystem>(Lifetime.Singleton);
             builder.Register<EnemySpawner>(Lifetime.Singleton);
+            builder.Register<BossArenaSystem>(Lifetime.Singleton);
             builder.Register<ProjectileSystem>(Lifetime.Singleton);
             builder.Register<GemSystem>(Lifetime.Singleton);
             builder.Register<PickupSystem>(Lifetime.Singleton);

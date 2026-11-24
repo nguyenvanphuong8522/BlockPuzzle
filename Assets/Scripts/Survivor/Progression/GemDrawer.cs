@@ -37,17 +37,19 @@ namespace Survivor
             var hasSprite = sprite != null;
             var aspect = 1f;
             var uv = new Vector4(0f, 0f, 1f, 1f);
+            var trim = new Vector4(0f, 0f, 1f, 1f);
             if (hasSprite)
             {
                 var rect = sprite.rect;
                 aspect = rect.width / rect.height;
                 uv = renderer.SpriteUv(sprite);
+                trim = renderer.SpriteTrim(sprite);
             }
 
             new DrawJob
             {
                 Pos = positions, Value = values, Count = count, View = renderer.ViewRect,
-                Sprite = hasSprite, Aspect = aspect, Uv = uv,
+                Sprite = hasSprite, Aspect = aspect, Uv = uv, Trim = trim,
                 Matrices = matrices.Reinterpret<float4x4>(), Colors = colors.Reinterpret<float4>(),
                 Shapes = shapes.Reinterpret<float4>(), Uvs = uvs.Reinterpret<float4>(), Written = written,
             }.Run();
@@ -65,6 +67,7 @@ namespace Survivor
             public bool Sprite;          // false = draw colored circles (no gem art)
             public float Aspect;
             public float4 Uv;
+            public float4 Trim; // visible part inside the full image (atlas trims borders)
 
             public NativeArray<float4x4> Matrices;
             public NativeArray<float4> Colors, Shapes, Uvs;
@@ -90,7 +93,9 @@ namespace Survivor
                     if (Sprite)
                     {
                         var height = radius * 2.6f;
-                        size = new float2(height * Aspect, height);
+                        var full = new float2(height * Aspect, height);
+                        p += Trim.xy * full;
+                        size = full * Trim.zw;
                     }
                     else
                     {

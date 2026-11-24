@@ -19,15 +19,39 @@ MonoBehaviour:
   Haste: 1
   Area: 1
   CameraViewWidth: 18
+  HpBarWidth: 0.95
+  HpBarHeight: 0.14
+  HpBarOutline: 0.03
+  HpBarOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  HpBarBackground: {r: 0.084905684, g: 0.084905684, b: 0.084905684, a: 0.85}
+  HpBarHighColor: {r: 0.23740657, g: 0.9150943, b: 0.23740657, a: 1}
+  HpBarMidBelow: 0.5
+  HpBarMidColor: {r: 1, g: 0.6, b: 0.15, a: 1}
+  HpBarLowBelow: 0.25
+  HpBarLowColor: {r: 0.8679245, g: 0.05322181, b: 0.05322181, a: 1}
+  HealFxCount: 6
+  HealFxDuration: 0.9
+  HealFxRise: 2.28
+  HealFxSize: 0.5
+  HealFxSpread: 0.5
+  HealFxTint: {r: 1, g: 1, b: 1, a: 1}
   CompanionDistance: 1.7
   CompanionCircleSquash: 0.85
   CompanionRegroupSpeed: 8
+  StartingCompanions:
+  - Kind: 1
+    Level: 1
   MarkerSize: 0.5
   MarkerHeight: 1.2
   MarkerTint: {r: 1, g: 1, b: 1, a: 1}
-  PelletSize: 0.34
+  OtterDashSpeed: 18
+  OtterReturnSpeed: 18
+  OtterMaxDashTime: 0.25
+  OtterSlashStayTime: 0
+  OtterSightRange: 5
+  PelletSize: 0.4
   PelletTrailColor: {r: 1, g: 0.15, b: 0.1, a: 0.8}
-  PelletTrailLength: 1.4
+  PelletTrailLength: 1.5
   PelletTrailWidth: 0.18
   FrogBounceRadius:
   - 5
@@ -35,14 +59,25 @@ MonoBehaviour:
   - 6
   - 6.4
   - 7
+  BossHp: 5000
+  BossHpGrowthPerAppearance: 0.6
+  BossArenaSize: 24
+  BossArenaWallDamage: 8
+  BossArenaWallPush: 0.2
+  BossArenaWallThickness: 0.18
+  BossArenaWallColor: {r: 1, g: 0.25, b: 0.2, a: 0}
+  BossArenaFenceHeight: 0.7
+  BossArenaFenceSegment: 1.8
+  BossArenaFenceTint: {r: 1, g: 1, b: 1, a: 1}
+  BossTrailGems: 30
   KnockbackStrength: 2.5
   KnockbackDecay: 7
   KnockbackMaxSpeed: 9
   KnockbackStunSpeed: 2
   NumberBaseHeight: 0.32
   EnemyNumberColor: {r: 1, g: 1, b: 1, a: 1}
-  EnemyNumberScale: 1.67
+  EnemyNumberScale: 2
   BossNumberColor: {r: 1, g: 0.85, b: 0.3, a: 1}
-  BossNumberScale: 1.6
+  BossNumberScale: 2
   HurtNumberColor: {r: 1, g: 0.024509802, b: 0, a: 1}
-  HurtNumberScale: 2
+  HurtNumberScale: 3

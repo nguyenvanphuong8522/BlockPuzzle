@@ -59,6 +59,10 @@ namespace Survivor
         [Tooltip("Frames 0-3 idle, 4 shot, 5 blink")]
         public SpriteAnim Frog = new SpriteAnim();
         public Sprite Pellet;
+        [Tooltip("Boss arena wall: one barbed-wire fence segment (post on the left), repeated along each side")]
+        public Sprite BarbedFence;
+        [Tooltip("Heal effect: plus sign that floats up around the hero")]
+        public Sprite HealPlus;
 
         [Header("Pickups")]
         public Sprite Gem;

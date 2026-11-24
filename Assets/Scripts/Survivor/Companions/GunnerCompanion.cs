@@ -37,6 +37,7 @@ namespace Survivor
         float flash;
         int flashFrame;
 
+        public override float SightRadius(CompanionContext ctx) => At(Range);
         public override string Name => "Xạ Thủ Nhí";
         public override string Description => "Cầm súng tiểu liên, bắn liên tục vào kẻ địch gần nhất (0,14 giây một viên).";
         public override Color Tint => new Color(0.45f, 0.65f, 1f);

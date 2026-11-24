@@ -19,8 +19,11 @@ namespace Survivor
         public IReadOnlyList<Companion> Companions => companions;
         public bool HasFreeSlot => companions.Count < MaxSlots;
 
-        public CompanionSystem(CompanionContext context, PlayerTuning tuning)
+        readonly DebugSettings debug;
+
+        public CompanionSystem(CompanionContext context, PlayerTuning tuning, DebugSettings debug)
         {
+            this.debug = debug;
             this.context = context;
             this.tuning = tuning;
         }
@@ -67,6 +70,27 @@ namespace Survivor
         public void Draw(InstancedRenderer renderer)
         {
             foreach (var c in companions) c.Draw(renderer, context);
+            if (debug.ShowCompanionRange) DrawSightRanges(renderer);
+            if (debug.ShowAttackArea)
+                foreach (var c in companions) c.DrawAttackArea(renderer, context);
+        }
+
+        // Debug: one ring per companion in its own color, centered on the companion itself,
+        // plus a small ring of the same color around it so you can tell which is which.
+        void DrawSightRanges(InstancedRenderer renderer)
+        {
+            foreach (var c in companions)
+            {
+                var center = c.SightCenter(context);
+                var r = c.SightRadius(context);
+                var line = c.Tint;
+                line.a = 0.9f;
+                var fill = c.Tint;
+                fill.a = 0.04f;
+                renderer.Circle(RenderLayer.Shadows, center, r, fill);
+                renderer.Ring(RenderLayer.Overlay, center, r, 0.05f, line);
+                renderer.Ring(RenderLayer.Overlay, c.Position, 0.55f, 0.06f, line);
+            }
         }
     }
 }

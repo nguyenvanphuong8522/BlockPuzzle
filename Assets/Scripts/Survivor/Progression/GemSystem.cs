@@ -58,6 +58,25 @@ namespace Survivor
             state[i] = Resting;
         }
 
+        // Boss reward: the experience as a wavy line of gems ("a trail") starting where the boss died and running away
+        // from the hero, so the hero walks along it collecting. Starts just outside the magnet range, so it is not
+        // sucked in at once. totalXp is split over the gems.
+        public void SpawnTrail(Vector2 from, Vector2 hero, int totalXp, int pieces, float spacing = 0.45f)
+        {
+            pieces = Mathf.Clamp(pieces, 1, Mathf.Max(1, totalXp));
+            var dir = from - hero;
+            dir = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.up;
+            var side = new Vector2(-dir.y, dir.x);
+            // First gem a bit beyond the magnet radius from the hero (or at the boss if it is further).
+            var start = hero + dir * Mathf.Max((from - hero).magnitude, player.Stats.MagnetRadius + 0.6f);
+            for (var k = 0; k < pieces; k++)
+            {
+                var wave = Mathf.Sin(k * 0.55f) * 0.9f;    // gentle S-shape
+                var xp = totalXp / pieces + (k < totalXp % pieces ? 1 : 0);
+                if (xp > 0) Spawn(start + dir * (k * spacing) + side * wave, xp);
+            }
+        }
+
         // Debug / tuning helper: a ring of gems just inside the magnet radius, so the pickup animation plays at once.
         public void SpawnTestRing(int amount)
         {

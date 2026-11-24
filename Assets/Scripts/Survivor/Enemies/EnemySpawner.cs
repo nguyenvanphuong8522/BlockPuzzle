@@ -11,13 +11,19 @@ namespace Survivor
         readonly Player player;
         readonly GameStats stats;
         readonly AudioService audio;
+        readonly PlayerTuning tuning;
         float accumulator;
         float nextHorde;
         int nextBoss;
         int bossesSpawned;
 
-        public EnemySpawner(GameConfig config, EnemySystem enemies, Player player, GameStats stats, AudioService audio)
+        // True during a boss fight: no normal enemies or hordes (boss times still count).
+        public bool Paused { get; set; }
+
+        public EnemySpawner(GameConfig config, EnemySystem enemies, Player player, GameStats stats, AudioService audio,
+            PlayerTuning tuning)
         {
+            this.tuning = tuning;
             this.config = config;
             this.enemies = enemies;
             this.player = player;
@@ -29,6 +35,12 @@ namespace Survivor
         public void Tick(float dt)
         {
             var t = stats.Elapsed;
+            if (Paused)
+            {
+                accumulator = 0f;
+                if (t >= nextHorde) nextHorde = t + config.HordeInterval; // no horde right after the fight
+                return;
+            }
             var rate = Mathf.Min(config.MaxSpawnPerSecond, config.BaseSpawnPerSecond + t * config.SpawnPerSecondGrowth);
             accumulator += rate * dt;
             while (accumulator >= 1f)
@@ -52,7 +64,9 @@ namespace Survivor
 
         public void SpawnBoss()
         {
-            var hpMultiplier = 1f + bossesSpawned * config.BossHpGrowthPerAppearance;
+            // Boss HP comes from PlayerTuning (Inspector): base HP, growing with each appearance.
+            var baseHp = config.Enemies[config.BossType].Hp;
+            var hpMultiplier = tuning.BossHp / baseHp * (1f + bossesSpawned * tuning.BossHpGrowthPerAppearance);
             bossesSpawned++;
             enemies.Spawn(config.BossType, RandomRingPoint(), hpMultiplier);
             audio.Play(Sfx.BossSpawn);

@@ -41,15 +41,49 @@ namespace Survivor
         readonly Player player;
         readonly List<UpgradeOption> candidates = new List<UpgradeOption>();
 
-        public UpgradeService(WeaponSystem weapons, CompanionSystem companions, Player player)
+        readonly PlayerTuning tuning;
+
+        public UpgradeService(WeaponSystem weapons, CompanionSystem companions, Player player, PlayerTuning tuning)
         {
             this.weapons = weapons;
             this.companions = companions;
             this.player = player;
+            this.tuning = tuning;
         }
 
         // The hero's gun.
         public void GiveStartingWeapon() => weapons.Add(new MagicBoltWeapon());
+
+        // Companions the hero starts every run with: the "Đệ tử khởi đầu" list in PlayerTuning.
+        // A kind listed twice is recruited once (the higher level wins).
+        public void GiveStartingCompanions()
+        {
+            var list = tuning.StartingCompanions;
+            if (list == null) return;
+            foreach (var entry in list)
+            {
+                var sample = Create(entry.Kind);
+                if (sample == null) continue;
+                var companion = companions.Find(sample.GetType());
+                if (companion == null)
+                {
+                    if (!companions.HasFreeSlot) break;
+                    companion = sample;
+                    companions.Add(companion);
+                }
+                while (companion.Level < entry.Level && !companion.IsMaxLevel) companion.LevelUp();
+            }
+        }
+
+        static Companion Create(CompanionKind kind) => kind switch
+        {
+            CompanionKind.Monkey => new MonkeyCompanion(),
+            CompanionKind.SwordOtter => new SwordOtterCompanion(),
+            CompanionKind.TurtleMage => new TurtleMageCompanion(),
+            CompanionKind.Gunner => new GunnerCompanion(),
+            CompanionKind.SlingFrog => new SlingFrogCompanion(),
+            _ => null
+        };
 
         // Debug: every weapon at max level.
         public void GiveAllWeaponsMaxed()

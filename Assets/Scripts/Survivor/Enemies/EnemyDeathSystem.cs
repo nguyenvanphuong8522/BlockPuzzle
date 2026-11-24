@@ -74,6 +74,10 @@ namespace Survivor
                 full = new Vector2(height * frame.rect.width / frame.rect.height, height);
                 center = at + new Vector2(0f, radius * 0.3f);
                 spriteUv = renderer.SpriteUv(frame);
+                // Only the visible part of the picture (the atlas trims transparent borders).
+                var trim = renderer.SpriteTrim(frame);
+                center += new Vector2(trim.x * full.x * (mirrored ? -1f : 1f), trim.y * full.y);
+                full = new Vector2(full.x * trim.z, full.y * trim.w);
                 tex = frame.texture;
             }
             else

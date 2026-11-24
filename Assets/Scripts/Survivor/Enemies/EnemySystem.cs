@@ -342,6 +342,18 @@ namespace Survivor
             }
         }
 
+        // Boss fight starts: every non-boss enemy shatters and is removed, without rewards or kill count.
+        public void ClearAllButBoss()
+        {
+            for (var i = Count - 1; i >= 0; i--)
+            {
+                if (isBoss[i] != 0) continue;
+                if (Hp[i] > 0f) deaths.Add(Position[i], Radius[i], type[i], Id[i], false);
+                RemoveAt(i); // swap-remove from the end, so the loop stays valid (BossIndex is kept up to date)
+            }
+            dead.Clear();
+        }
+
         // Debug: kills every enemy (they still drop their rewards).
         public void KillAll()
         {

@@ -43,6 +43,7 @@ namespace Survivor
         float shotPose;
         bool facingLeft;
 
+        public override float SightRadius(CompanionContext ctx) => SightRange;
         public override string Name => "Ếch Ná Thun";
         public override string Description => "Bắn đạn cao su nảy qua 2 kẻ địch gần nhau. Mục tiêu đứng một mình bị x2 sát thương.";
         public override Color Tint => new Color(0.5f, 0.9f, 0.4f);

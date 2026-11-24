@@ -161,6 +161,8 @@ public static class ArtSetup
         catalog.Smg = Single("weapon_smg");
         catalog.Frog = new SpriteAnim { Frames = Frames("companion_frog_"), Fps = 6f };
         catalog.Pellet = Single("projectile_pellet");
+        catalog.BarbedFence = Single("fx_barbed_fence");
+        catalog.HealPlus = Single("fx_heal_plus");
         catalog.MuzzleFlash = new SpriteAnim { Frames = Frames("fx_muzzle_"), Fps = 30f };
         catalog.MagicBolt = Single("weapon_cannonball");
         catalog.OrbitBlade = Single("weapon_anchor");

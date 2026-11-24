@@ -252,6 +252,8 @@ static class ArtGen
         Smg();
         for (var f = 0; f < 6; f++) Frog(f);
         Pellet();
+        BarbedFence();
+        HealPlus();
         Banana();
         for (var f = 0; f < 2; f++) MuzzleFlash(f);
         Anchor();
@@ -1148,6 +1150,59 @@ static class ArtGen
             c.Flush();
             c.Shine(12, 12, 4, 3, 200);
             c.Save(P("projectile_pellet"));
+        }
+    }
+
+    // Heal effect: a chunky green plus sign with a soft glow (the game tints and fades it).
+    static void HealPlus()
+    {
+        using (var c = new Canvas(64, 64, 3f))
+        {
+            c.Fill(Paint.Ellipse(32, 32, 28, 28), Color.FromArgb(60, 140, 255, 140));          // glow
+            var plus = new GraphicsPath();
+            plus.AddPath(Paint.RoundRect(24, 10, 16, 44, 5), false);
+            plus.AddPath(Paint.RoundRect(10, 24, 44, 16, 5), false);
+            plus.FillMode = FillMode.Winding;
+            c.Add(plus, Paint.Hex("4CD964"));
+            c.Flush();
+            c.Shine(28, 18, 4, 5, 170);
+            c.Save(P("fx_heal_plus"));
+        }
+    }
+
+    // Barbed-wire fence segment for the boss arena wall: a wooden post on the left, two sagging wires with barbs.
+    // Tiles left-to-right (the next segment's post closes the wires), drawn along each side of the arena.
+    static void BarbedFence()
+    {
+        using (var c = new Canvas(256, 96, 3f))
+        {
+            var wood = Paint.Hex("8A5A30");
+            var wire = Paint.Hex("5E6672");
+            var dark = Paint.Hex("3A3F48");
+            // Two wires with a slight sag, from this post to the next one (x = 256 is the next post).
+            float[] wireY = { 34, 62 };
+            foreach (var y in wireY)
+            {
+                c.Line(Paint.Ink, 6f, 0, y, 128, y + 6, 256, y);
+                c.Line(wire, 3.5f, 0, y, 128, y + 6, 256, y);
+                // Barbs: little twisted X knots along the wire
+                for (var bx = 40; bx < 256; bx += 54)
+                {
+                    var sag = 6f * (float)Math.Sin(bx / 256.0 * Math.PI);
+                    var by = y + sag;
+                    c.Line(Paint.Ink, 4.5f, bx - 7, by - 7, bx + 7, by + 7);
+                    c.Line(Paint.Ink, 4.5f, bx - 7, by + 7, bx + 7, by - 7);
+                    c.Line(dark, 2.5f, bx - 7, by - 7, bx + 7, by + 7);
+                    c.Line(dark, 2.5f, bx - 7, by + 7, bx + 7, by - 7);
+                    c.Fill(Paint.Ellipse(bx, by, 3, 3), wire);
+                }
+            }
+            // Wooden post (rough top), drawn over the wire ends
+            c.Add(Paint.Poly(14, 90, 14, 14, 20, 8, 28, 12, 32, 16, 32, 90), wood);
+            c.Flush();
+            c.Fill(Paint.RoundRect(17, 22, 3, 60, 1), Paint.Hex("A8743F"));   // grain highlight
+            c.Fill(Paint.Ellipse(23, 50, 3, 2), Paint.Hex("6B4424"));          // knot
+            c.Save(P("fx_barbed_fence"));
         }
     }
 

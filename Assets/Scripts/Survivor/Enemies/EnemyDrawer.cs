@@ -21,6 +21,7 @@ namespace Survivor
         readonly List<Texture> textures = new List<Texture>();
         NativeArray<float4> frameUv;
         NativeArray<float> frameAspect;
+        NativeArray<float4> frameTrim;
         NativeArray<int> frameTexture;
         NativeArray<int> typeFrameStart;
         NativeArray<int> typeFrameCount;
@@ -60,7 +61,7 @@ namespace Survivor
                 new DrawJob
                 {
                     Pos = position.Reinterpret<float2>(), Radius = radius, Flash = flash, Type = typeNative, Id = idNative,
-                    FrameUv = frameUv, FrameAspect = frameAspect, FrameTexture = frameTexture,
+                    FrameUv = frameUv, FrameAspect = frameAspect, FrameTrim = frameTrim, FrameTexture = frameTexture,
                     TypeFrameStart = typeFrameStart, TypeFrameCount = typeFrameCount, TypeFps = typeFps, TypeColor = typeColor,
                     Count = count, View = renderer.ViewRect, Time = Time.time, SpriteScale = sprites.SpriteScale,
                     PlayerX = playerX, Texture = pass,
@@ -87,6 +88,7 @@ namespace Survivor
             [ReadOnly] public NativeArray<int> Id;
             [ReadOnly] public NativeArray<float4> FrameUv;
             [ReadOnly] public NativeArray<float> FrameAspect;
+            [ReadOnly] public NativeArray<float4> FrameTrim; // visible part inside the full image (atlas trims borders)
             [ReadOnly] public NativeArray<int> FrameTexture;
             [ReadOnly] public NativeArray<int> TypeFrameStart;
             [ReadOnly] public NativeArray<int> TypeFrameCount;
@@ -147,7 +149,9 @@ namespace Survivor
                     var height = r * 2f * SpriteScale;
                     var width = height * FrameAspect[frame];
                     if (p.x > PlayerX) width = -width; // sprites face right: flip to face the player
-                    Matrices[n] = Quad(new float2(p.x, p.y + r * 0.3f), new float2(width, height));
+                    var trim = FrameTrim[frame];
+                    Matrices[n] = Quad(new float2(p.x + trim.x * width, p.y + r * 0.3f + trim.y * height),
+                        new float2(width * trim.z, height * trim.w));
                     Colors[n] = new float4(1f, 1f, 1f, 1f);
                     Shapes[n] = new float4(3f, 0f, flash, 0f);
                     Uvs[n] = FrameUv[frame];
@@ -173,6 +177,7 @@ namespace Survivor
             textures.Clear();
             var uvList = new List<float4>();
             var aspectList = new List<float>();
+            var trimList = new List<float4>();
             var texList = new List<int>();
             var typeCount = config.Enemies.Length;
             var start = new int[typeCount];
@@ -200,6 +205,8 @@ namespace Survivor
                     var uv = renderer.SpriteUv(sprite);
                     uvList.Add(new float4(uv.x, uv.y, uv.z, uv.w));
                     aspectList.Add(sprite.rect.width / sprite.rect.height);
+                    var trim = renderer.SpriteTrim(sprite);
+                    trimList.Add(new float4(trim.x, trim.y, trim.z, trim.w));
                     texList.Add(texIndex);
                     frameCount[t]++;
                 }
@@ -208,11 +215,13 @@ namespace Survivor
             DisposeTables();
             frameUv = new NativeArray<float4>(Math.Max(1, uvList.Count), Allocator.Persistent);
             frameAspect = new NativeArray<float>(Math.Max(1, uvList.Count), Allocator.Persistent);
+            frameTrim = new NativeArray<float4>(Math.Max(1, uvList.Count), Allocator.Persistent);
             frameTexture = new NativeArray<int>(Math.Max(1, uvList.Count), Allocator.Persistent);
             for (var i = 0; i < uvList.Count; i++)
             {
                 frameUv[i] = uvList[i];
                 frameAspect[i] = aspectList[i];
+                frameTrim[i] = trimList[i];
                 frameTexture[i] = texList[i];
             }
             typeFrameStart = new NativeArray<int>(start, Allocator.Persistent);
@@ -258,6 +267,7 @@ namespace Survivor
             if (!frameUv.IsCreated) return;
             frameUv.Dispose();
             frameAspect.Dispose();
+            frameTrim.Dispose();
             frameTexture.Dispose();
             typeFrameStart.Dispose();
             typeFrameCount.Dispose();

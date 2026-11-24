@@ -67,7 +67,61 @@ namespace Survivor
             Hp.Value = Mathf.Max(0f, Hp.Value - damage);
         }
 
-        public void Heal(float amount) => Hp.Value = Mathf.Min(Stats.MaxHp, Hp.Value + amount);
+        public void Heal(float amount)
+        {
+            Hp.Value = Mathf.Min(Stats.MaxHp, Hp.Value + amount);
+            PlayHealEffect();
+        }
+
+        // ---- Heal effect: plus signs floating up around the hero. Positions are stored RELATIVE to the hero
+        // (like child objects), so they keep following while the hero runs. Settings in PlayerTuning. ----
+        const int MaxHealFx = 64;
+        readonly Vector2[] healFxOffset = new Vector2[MaxHealFx];
+        readonly float[] healFxStart = new float[MaxHealFx];
+        readonly float[] healFxSpeed = new float[MaxHealFx];
+        readonly float[] healFxPhase = new float[MaxHealFx];
+        int healFxNext;
+
+        void PlayHealEffect()
+        {
+            var n = Mathf.Min(tuning.HealFxCount, MaxHealFx);
+            for (var k = 0; k < n; k++)
+            {
+                var i = healFxNext;
+                healFxNext = (healFxNext + 1) % MaxHealFx;
+                // Spread around the body, starting low; each one a little late so they rise as a stream.
+                healFxOffset[i] = new Vector2(UnityEngine.Random.Range(-1f, 1f) * tuning.HealFxSpread, UnityEngine.Random.Range(-0.6f, 0.2f));
+                healFxStart[i] = Time.time + k * 0.03f;
+                healFxSpeed[i] = tuning.HealFxRise * UnityEngine.Random.Range(0.75f, 1.25f);
+                healFxPhase[i] = UnityEngine.Random.Range(0f, 6.28f);
+            }
+        }
+
+        void DrawHealEffect(InstancedRenderer renderer)
+        {
+            var life = tuning.HealFxDuration;
+            var now = Time.time;
+            var brush = renderer.Brush(RenderLayer.Effects, sprites.HealPlus);
+            for (var i = 0; i < MaxHealFx; i++)
+            {
+                var age = now - healFxStart[i];
+                if (age < 0f || age > life || healFxStart[i] == 0f) continue;
+                var t = age / life;
+                var local = healFxOffset[i] + new Vector2(Mathf.Sin(healFxPhase[i] + age * 6f) * 0.08f, healFxSpeed[i] * age);
+                var at = Position + local; // follows the hero
+                var pop = t < 0.15f ? t / 0.15f : 1f;                   // grow in
+                var size = tuning.HealFxSize * pop * (1f - 0.3f * t);
+                var tint = tuning.HealFxTint;
+                tint.a *= t < 0.6f ? 1f : 1f - (t - 0.6f) / 0.4f;       // fade out
+                if (brush.IsValid) renderer.Draw(brush, at, size, tint);
+                else
+                {
+                    var green = new Color(0.3f, 0.85f, 0.4f, tint.a);
+                    renderer.Rect(RenderLayer.Effects, at, new Vector2(size, size * 0.3f), green);
+                    renderer.Rect(RenderLayer.Effects, at, new Vector2(size * 0.3f, size), green);
+                }
+            }
+        }
 
         public void IncreaseMaxHp(float amount)
         {
@@ -116,10 +170,25 @@ namespace Survivor
             if (debug.GodMode)
                 renderer.Ring(RenderLayer.Overlay, Position, Radius * 1.5f, 0.12f, new Color(1f, 0.85f, 0.3f, 0.7f));
 
-            renderer.Bar(RenderLayer.Overlay, Position + new Vector2(0f, -Radius - 0.25f), new Vector2(1f, 0.12f),
-                Hp.Value / Stats.MaxHp, new Color(0f, 0f, 0f, 0.7f), new Color(0.9f, 0.2f, 0.2f));
+            DrawHpBar(renderer);
+            DrawHealEffect(renderer);
 
             DrawMarker(renderer);
+        }
+
+        // HP bar under the feet: black outline, dark background, fill colored by how much HP is left
+        // (green / orange / red, thresholds and colors in PlayerTuning).
+        void DrawHpBar(InstancedRenderer renderer)
+        {
+            var fill = Mathf.Clamp01(Hp.Value / Stats.MaxHp);
+            var size = new Vector2(tuning.HpBarWidth, tuning.HpBarHeight);
+            var center = Position + new Vector2(0f, -Radius - 0.25f);
+            var o = tuning.HpBarOutline;
+            if (o > 0f) renderer.Rect(RenderLayer.Overlay, center, size + new Vector2(o * 2f, o * 2f), tuning.HpBarOutlineColor);
+            var color = fill <= tuning.HpBarLowBelow ? tuning.HpBarLowColor
+                : fill <= tuning.HpBarMidBelow ? tuning.HpBarMidColor
+                : tuning.HpBarHighColor;
+            renderer.Bar(RenderLayer.Overlay, center, size, fill, tuning.HpBarBackground, color);
         }
 
         // Blue upside-down triangle bobbing over the head: "this one is you".

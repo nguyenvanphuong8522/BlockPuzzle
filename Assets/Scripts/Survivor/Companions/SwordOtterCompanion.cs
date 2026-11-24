@@ -13,10 +13,6 @@ namespace Survivor
         static readonly int[] Slashes = { 1, 1, 1, 1, 2 };  // level 5 swings back the other way
 
         const float ArcDegrees = 120f;
-        const float SightRange = 7f;        // from the hero: it won't run off further than this
-        const float DashSpeed = 20f;
-        const float MaxDashTime = 0.45f;
-        const float ReturnSpeed = 13f;
         const float SlashTime = 0.22f;      // one swing: effect + slash pose
         const float SecondSlashDelay = 0.12f;
         const float Knockback = 4f;
@@ -36,6 +32,7 @@ namespace Survivor
         int slashesLeft;
         float slashAge = 99f;     // time since the last swing started (drives the effect)
         bool reverseSwing;
+        Vector2 slashOrigin, slashAim = Vector2.right; // where the last swing happened (its effect stays there)
         bool facingLeft;
 
         public override string Name => "Rái Cá Kiếm Sĩ";
@@ -50,6 +47,7 @@ namespace Survivor
         };
 
         public override bool StaysHome => state == State.Home;
+        public override float SightRadius(CompanionContext ctx) => ctx.Tuning.OtterSightRange;
 
         public override void Tick(float dt, CompanionContext ctx)
         {
@@ -59,7 +57,7 @@ namespace Survivor
                 case State.Home: TickHome(dt, ctx); break;
                 case State.Dash: TickDash(dt, ctx); break;
                 case State.Slash: TickSlash(dt, ctx); break;
-                case State.Return: TickReturn(dt); break;
+                case State.Return: TickReturn(dt, ctx); break;
             }
         }
 
@@ -68,15 +66,15 @@ namespace Survivor
             timer -= dt;
             if (timer > 0f) return;
 
-            // Nearest enemy to the hero, so it protects the hero first.
-            ctx.Enemies.FindNearest(ctx.Player.Position, SightRange, 1, found);
+            // Nearest enemy to the otter itself.
+            ctx.Enemies.FindNearest(Position, ctx.Tuning.OtterSightRange, 1, found);
             if (found.Count == 0) return;
 
             targetIndex = found[0];
             targetId = ctx.Enemies.Id[targetIndex];
             targetPos = ctx.Enemies.Position[targetIndex];
             state = State.Dash;
-            timer = MaxDashTime;
+            timer = ctx.Tuning.OtterMaxDashTime;
             ctx.Effects.Smoke(Position + new Vector2(0f, -Radius), 0.35f, 0.25f); // kick-off dust
         }
 
@@ -96,7 +94,7 @@ namespace Survivor
 
             // Stop a bit before the enemy so the arc covers it and the ones around it.
             var stopAt = At(SlashRadius) * 0.45f;
-            var step = DashSpeed * dt;
+            var step = ctx.Tuning.OtterDashSpeed * dt;
             if (distance - stopAt <= step || (timer -= dt) <= 0f)
             {
                 if (distance > stopAt) Position += aim * Mathf.Max(0f, distance - stopAt);
@@ -111,8 +109,12 @@ namespace Survivor
         void StartSwing(CompanionContext ctx)
         {
             state = State.Slash;
-            timer = slashesLeft > 1 ? SecondSlashDelay + SlashTime * 0.5f : SlashTime;
+            // Between two swings: a short gap. After the last one: it stays put for Otter Slash Stay Time
+            // (PlayerTuning; 0 = runs back at once, the slash effect finishes on its own where it was swung).
+            timer = slashesLeft > 1 ? SecondSlashDelay + SlashTime * 0.5f : ctx.Tuning.OtterSlashStayTime;
             slashAge = 0f;
+            slashOrigin = Position;
+            slashAim = aim;
             slashesLeft--;
 
             // Hit every enemy inside the 120-degree arc in front.
@@ -148,11 +150,11 @@ namespace Survivor
             state = State.Return;
         }
 
-        void TickReturn(float dt)
+        void TickReturn(float dt, CompanionContext ctx)
         {
             var toHome = Home - Position;
             var distance = toHome.magnitude;
-            var step = ReturnSpeed * dt;
+            var step = ctx.Tuning.OtterReturnSpeed * dt;
             if (distance <= step)
             {
                 Position = Home;
@@ -195,7 +197,7 @@ namespace Survivor
         {
             var frames = anim.Frames;
             if (state == State.Dash) return frames[DashFrame];
-            if (state == State.Slash) return frames[SlashFrame];
+            if (state == State.Slash && slashAge < SlashTime) return frames[SlashFrame]; // then idle while it waits
             var t = Time.time + Slot * 1.37f;
             if (state == State.Home && t % BlinkEvery < BlinkTime) return frames[BlinkFrame];
             return frames[(int)((Time.time + Slot * 0.3f) * IdleFps) % IdleFrames];
@@ -207,7 +209,7 @@ namespace Survivor
             if (slashAge >= SlashTime) return;
             var progress = slashAge / SlashTime;
             var radius = At(SlashRadius);
-            var angle = Mathf.Atan2(aim.y, aim.x);
+            var angle = Mathf.Atan2(slashAim.y, slashAim.x);
             var alpha = progress < 0.5f ? 1f : 1f - (progress - 0.5f) * 2f;
             var tint = new Color(Tint.r, Tint.g, Tint.b, alpha);
 
@@ -217,12 +219,52 @@ namespace Survivor
                 var frame = anim.Frames[progress < 0.2f ? 0 : progress < 0.55f ? 1 : 2];
                 // Sprite arc's outer edge is at 120/128 of its half-size.
                 var height = radius * 2f * 128f / 120f * (0.9f + 0.1f * progress);
-                renderer.SpriteRotated(RenderLayer.Effects, frame, Position, height, angle, tint, flipY: reverseSwing);
+                renderer.SpriteRotated(RenderLayer.Effects, frame, slashOrigin, height, angle, tint, flipY: reverseSwing);
             }
             else
             {
-                renderer.Ring(RenderLayer.Effects, Position, radius * (0.8f + 0.2f * progress), 0.12f, tint);
+                renderer.Ring(RenderLayer.Effects, slashOrigin, radius * (0.8f + 0.2f * progress), 0.12f, tint);
             }
+        }
+
+        // Debug (F3 "Hiện vùng chém rái cá"): the exact hit area used in StartSwing.
+        //   - faint yellow fan: where a swing would land right now (current position + aim)
+        //   - bright red fan: the last real swing, held for a moment so you can see it
+        //   - small circle: enemies touching this always get hit, even behind the otter
+        // The real test is a little wider for big enemies (their body radius widens the angle).
+        const float DebugHoldTime = 0.6f;
+        public override void DrawAttackArea(InstancedRenderer renderer, CompanionContext ctx)
+        {
+            DrawFan(renderer, Position, aim, new Color(1f, 0.9f, 0.2f, 0.45f));
+            if (slashAge < DebugHoldTime)
+            {
+                var a = 1f - slashAge / DebugHoldTime;
+                DrawFan(renderer, slashOrigin, slashAim, new Color(1f, 0.15f, 0.1f, 0.4f + 0.6f * a));
+            }
+        }
+
+        void DrawFan(InstancedRenderer renderer, Vector2 origin, Vector2 dir, Color color)
+        {
+            const int Segments = 18;
+            const float Width = 0.05f;
+            var radius = At(SlashRadius);
+            var half = ArcDegrees * 0.5f * Mathf.Deg2Rad;
+            var baseAngle = Mathf.Atan2(dir.y, dir.x);
+            Vector2 Point(float angle) => origin + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+
+            var start = Point(baseAngle - half);
+            var end = Point(baseAngle + half);
+            renderer.Line(RenderLayer.Overlay, origin, start, Width, color);
+            renderer.Line(RenderLayer.Overlay, origin, end, Width, color);
+            var prev = start;
+            for (var i = 1; i <= Segments; i++)
+            {
+                var p = Point(baseAngle - half + 2f * half * i / Segments);
+                renderer.Line(RenderLayer.Overlay, prev, p, Width, color);
+                prev = p;
+            }
+            renderer.Line(RenderLayer.Overlay, origin, origin + dir * radius, Width * 0.6f, color); // center line
+            renderer.Ring(RenderLayer.Overlay, origin, 0.35f, 0.15f, color);                         // always-hit core
         }
     }
 }

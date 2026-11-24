@@ -23,6 +23,7 @@ namespace Survivor
         float throwPose;
         bool facingLeft;
 
+        public override float SightRadius(CompanionContext ctx) => SightRange;
         public override string Name => "Khỉ Ném Chuối";
         public override string Description => "Ném chuối như boomerang: bay ra rồi quay về, gây sát thương cả đi lẫn về.";
         public override Color Tint => new Color(1f, 0.85f, 0.25f);

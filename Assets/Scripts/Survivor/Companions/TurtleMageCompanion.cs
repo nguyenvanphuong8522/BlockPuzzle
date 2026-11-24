@@ -46,6 +46,7 @@ namespace Survivor
         float castPose;
         bool facingLeft;
 
+        public override float SightRadius(CompanionContext ctx) => SightRange;
         public override string Name => "Rùa Pháp Sư";
         public override string Description => "Bắn cầu phép: trúng kẻ địch thì gây sát thương rồi nổ tung cả vùng xung quanh.";
         public override Color Tint => new Color(0.85f, 0.55f, 1f);
