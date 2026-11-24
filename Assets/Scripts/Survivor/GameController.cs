@@ -46,6 +46,7 @@ namespace Survivor
         const float MenuInputDelay = 0.35f;
         List<UpgradeOption> options;
         Camera camera;
+        public const int TargetFps = 60;
         float fpsTimer;
         int fpsFrames;
         float simulationMs;
@@ -94,7 +95,10 @@ namespace Survivor
 
         public void Start()
         {
-            Application.targetFrameRate = 60;
+            // Lock to 60 FPS everywhere. VSync must be off: while it is on, Unity ignores targetFrameRate and follows the
+            // monitor (75/120/144 Hz...), so the frame rate jumps above 60 and back down.
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = TargetFps;
             Time.timeScale = debug.GameSpeed;
             camera = Camera.main;
             camera.orthographic = true;

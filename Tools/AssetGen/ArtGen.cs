@@ -1117,18 +1117,23 @@ static class ArtGen
             c.Blush(44, hy + 4);
             c.Blush(88, hy + 4);
 
-            // Slingshot: Y-shaped wooden fork with a rubber band
-            float fx = shot ? 104 : 96, fy = shot ? 72 : 66 + bob;
-            c.Limb(wood, 5, fx, fy + 22, fx, fy + 8);
-            c.Limb(wood, 4, fx, fy + 8, fx - 7, fy - 4);
-            c.Limb(wood, 4, fx, fy + 8, fx + 7, fy - 4);
-            using (var band = new Pen(Paint.Hex("C8302A"), 2.5f))
+            // Slingshot: big Y-shaped wooden fork with a rubber band, held in front (s = size; 1 = the old tiny one).
+            const float s = 2.5f;
+            float hx = shot ? 104 : 98, hy2 = shot ? 96 : 100 + bob * 0.5f;    // hand on the handle
+            float jy = hy2 - 11 * s;                                           // where the fork splits
+            float ty = hy2 - 22 * s;                                           // top of the prongs
+            float half = 7 * s;                                                // prong spread
+            c.Limb(wood, 4 * s * 0.9f, hx, hy2 + 4, hx, jy);
+            c.Limb(wood, 3.2f * s * 0.9f, hx, jy, hx - half, ty);
+            c.Limb(wood, 3.2f * s * 0.9f, hx, jy, hx + half, ty);
+            using (var band = new Pen(Paint.Hex("C8302A"), 2.2f * s) { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round })
             {
-                if (shot) c.G.DrawLine(band, fx - 7, fy - 4, fx + 7, fy - 4);              // snapped straight
-                else c.G.DrawLines(band, new[] { new PointF(fx - 7, fy - 4), new PointF(fx - 18, fy + 2), new PointF(fx + 7, fy - 4) }); // pulled back
+                if (shot) c.G.DrawLine(band, hx - half, ty, hx + half, ty);   // snapped straight after the shot
+                else c.G.DrawLines(band, new[] { new PointF(hx - half, ty), new PointF(hx - 15, jy + 6), new PointF(hx + half, ty) }); // pulled back to the chest
             }
-            // Hand holding the fork
-            c.Add(Paint.Ellipse(fx, fy + 16, 6, 6), skin);
+            if (!shot) c.Fill(Paint.Ellipse(hx - 15, jy + 6, 5, 5), Paint.Hex("FF6A3A")); // pellet in the pouch
+            // Hand holding the handle
+            c.Add(Paint.Ellipse(hx, hy2, 8, 8), skin);
             c.Flush();
             c.Save(P("companion_frog_" + f));
         }
