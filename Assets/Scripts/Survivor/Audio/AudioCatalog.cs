@@ -6,7 +6,7 @@ namespace Survivor
     public enum Sfx
     {
         Shoot, Hit, EnemyDie, BossDie, Hurt, Lightning, Wave,
-        Gem, Heal, Magnet, LevelUp, Chest, Click, BossSpawn, Victory, GameOver, Throw, Slash, Cast, Explode
+        Gem, Heal, Magnet, LevelUp, Chest, Click, BossSpawn, Victory, GameOver, Throw, Slash, Cast, Explode, Smg, Sling, Boing
     }
 
     // Sound files used by the game. Filled by "Survivor/Setup Art & Audio" from Assets/Audio by file name

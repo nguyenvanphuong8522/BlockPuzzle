@@ -12,10 +12,15 @@ namespace Survivor
         public readonly AudioService Audio;
         public readonly SpriteCatalog Sprites;
         public readonly CameraShake Shake;
+        public readonly ProjectileSystem Projectiles;
+        public readonly PlayerTuning Tuning; // live-tunable values (Assets/Resources/PlayerTuning.asset)
 
         public CompanionContext(Player player, EnemySystem enemies, BoomerangSystem boomerangs, EffectSystem effects,
-            AudioService audio, SpriteCatalog sprites, CameraShake shake)
+            AudioService audio, SpriteCatalog sprites, CameraShake shake, ProjectileSystem projectiles,
+            PlayerTuning tuning)
         {
+            Tuning = tuning;
+            Projectiles = projectiles;
             Shake = shake;
             Player = player;
             Enemies = enemies;

@@ -10,7 +10,9 @@ namespace Survivor
     //   iOS             - Handheld.Vibrate (the OS decides strength and length)
     //   WebGL on phones - navigator.vibrate (duration; Chrome on Android, not iOS Safari)
     // Settings are saved in PlayerPrefs and tuned from the debug panel.
-    public sealed class HapticsService
+    // Rumble is always switched off when the game stops (leaving Play mode, changing scene, quitting): a gamepad
+    // keeps the last motor speed it was given, even after the app closes.
+    public sealed class HapticsService : System.IDisposable
     {
         const string EnabledKey = "haptics.enabled";
         const string StrengthKey = "haptics.strength";
@@ -20,6 +22,22 @@ namespace Survivor
         float strength = PlayerPrefs.GetFloat(StrengthKey, 0.6f);
         int durationMs = PlayerPrefs.GetInt(DurationKey, 120);
         float gamepadStopAt = -1f;
+
+        public HapticsService() => Application.quitting += StopAll;
+
+        // VContainer calls this when the game scope is destroyed (Play mode exit, scene change).
+        public void Dispose()
+        {
+            Application.quitting -= StopAll;
+            StopAll();
+        }
+
+        // Every gamepad, not only the current one (the player may have switched pads mid-rumble).
+        void StopAll()
+        {
+            gamepadStopAt = -1f;
+            InputSystem.ResetHaptics();
+        }
 
         public bool Enabled
         {
@@ -86,7 +104,7 @@ namespace Survivor
         public void Stop()
         {
             gamepadStopAt = -1f;
-            Gamepad.current?.SetMotorSpeeds(0f, 0f);
+            foreach (var pad in Gamepad.all) pad.SetMotorSpeeds(0f, 0f);
         }
 
         public void Save() => PlayerPrefs.Save();

@@ -53,7 +53,13 @@ static class SfxGen
         Save("sfx_slash", Mix(Highpass(Swoosh(0.16f)), Tone(0.18f, 2400, 1900, Triangle, 0.001f, 6f, 0.12f)));
         // Magic orb cast: rising shimmer. Explosion: soft magic boom with a sparkly tail.
         Save("sfx_cast", Vibrato(Tone(0.22f, 600, 1400, Triangle, 0.005f, 2.5f, 0.3f), 22f));
+        // (keep this order: sounds below were added later)
         Save("sfx_explode", Mix(Tone(0.4f, 140, 40, Sine, 0.002f, 2.5f, 0.6f), Lowpass(Tone(0.35f, 0, 0, Noise, 0.002f, 3.5f, 0.45f), 0.25f), Sparkle(0.4f)));
+        // Little machine gun: short, light "tk" pop (it fires 7 times a second, so it must stay soft).
+        Save("sfx_smg", Mix(Lowpass(Tone(0.03f, 0, 0, Noise, 0.0005f, 6f, 0.6f), 0.6f), Tone(0.06f, 420, 120, Square, 0.001f, 5f, 0.25f)));
+        // Slingshot: rubber "thwip". Bounce: short springy "boing".
+        Save("sfx_sling", Mix(Tone(0.09f, 900, 300, Triangle, 0.001f, 4f, 0.35f), Lowpass(Tone(0.05f, 0, 0, Noise, 0.0005f, 6f, 0.25f), 0.5f)));
+        Save("sfx_boing", Vibrato(Tone(0.18f, 320, 620, Sine, 0.002f, 3f, 0.35f), 28f));
     }
 
     // ---------- Building blocks ----------

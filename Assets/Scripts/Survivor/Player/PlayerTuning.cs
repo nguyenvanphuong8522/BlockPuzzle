@@ -35,6 +35,29 @@ namespace Survivor
         [Tooltip("Tint for the triangle. White = the original blue art.")]
         public Color MarkerTint = Color.white;
 
+        [Header("Đạn Ếch Ná Thun")]
+        [Tooltip("Size of the rubber pellet (world units).")]
+        [Min(0.05f)] public float PelletSize = 0.34f;
+        [Tooltip("Color of the trail behind the pellet.")]
+        public Color PelletTrailColor = new Color(1f, 0.15f, 0.1f, 0.8f);
+        [Tooltip("Trail length (world units). 0 = no trail.")]
+        [Min(0f)] public float PelletTrailLength = 0.8f;
+        [Tooltip("Trail thickness (world units).")]
+        [Min(0f)] public float PelletTrailWidth = 0.2f;
+        [Tooltip("Bounce radius per level (element 0 = level 1 ... element 4 = level 5): after hitting an enemy, the pellet " +
+                 "jumps to the nearest enemy within this distance. Nobody that close around the first target = double damage.")]
+        public float[] FrogBounceRadius = { 2.5f, 2.7f, 3.0f, 3.2f, 3.5f };
+
+        [Header("Đẩy lùi quái (knockback)")]
+        [Tooltip("Only when the hit does NOT kill. Multiplies every weapon's push (0 = no knockback).")]
+        [Min(0f)] public float KnockbackStrength = 2.5f;
+        [Tooltip("How fast the push dies out. Lower = enemies slide back further.")]
+        [Min(0.5f)] public float KnockbackDecay = 7f;
+        [Tooltip("Cap on the push speed, so fast-firing weapons can't launch enemies across the screen.")]
+        [Min(0f)] public float KnockbackMaxSpeed = 9f;
+        [Tooltip("While pushed faster than this, the enemy stops walking toward the hero (0 = it never stops).")]
+        [Min(0f)] public float KnockbackStunSpeed = 2f;
+
         [Header("Số sát thương")]
         [Tooltip("Height of one digit at scale 1 (world units). Every scale below multiplies this.")]
         [Min(0.05f)] public float NumberBaseHeight = 0.32f;

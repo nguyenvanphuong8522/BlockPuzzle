@@ -155,6 +155,16 @@ namespace Survivor
                 angle, tint, new Vector4(ShapeSprite, 0f, flash, 0f), SpriteUv(sprite), float.IsNaN(sortY) ? center.y : sortY);
         }
 
+        // Any part of a texture (uv = x, y, width, height in 0..1) as a rotated quad: e.g. one piece of a shattered sprite.
+        // A negative size.y flips it vertically.
+        public void TextureRotated(RenderLayer layer, Texture texture, Vector4 uv, Vector2 center, Vector2 size, float angle,
+            Color tint, float flash = 0f)
+        {
+            if (!IsVisible(center, Mathf.Max(Mathf.Abs(size.x), Mathf.Abs(size.y)) * 0.5f)) return;
+            AddRotated(GetTexturedGroup(layers[(int)layer], texture), center, size, angle, tint,
+                new Vector4(ShapeSprite, 0f, flash, 0f), uv, center.y);
+        }
+
         // Stretched, rotated soft ellipse: bullet tracers, motion streaks.
         public void Streak(RenderLayer layer, Vector2 center, float length, float width, float angle, Color color)
         {

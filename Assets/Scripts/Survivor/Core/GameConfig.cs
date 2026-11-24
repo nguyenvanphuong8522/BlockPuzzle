@@ -30,8 +30,6 @@ namespace Survivor
         public readonly float BossChargeSpeedMultiplier = 4f;
 
         // Drops from normal enemies (chance per kill). Bosses always drop a chest.
-        public readonly float HealDropChance = 0.004f;
-        public readonly float MagnetDropChance = 0.0015f;
         public readonly float HealAmount = 30f;
         public readonly int MaxGems = 1500;
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Survivor
 {
-    // Experience gems dropped by enemies. Listens to EnemyKilledEvent through MessagePipe.
+    // Experience gems on the floor. RewardDropSystem decides when enemies drop them (EnemyDropSettings).
     // Pickup animation (tuned in GemPickupSettings): Resting -> BackOff (jump away) -> Fly (into the player) -> collected.
     public sealed class GemSystem : IDisposable
     {
@@ -19,7 +19,6 @@ namespace Survivor
         readonly SpriteCatalog sprites;
         readonly AudioService audio;
         readonly GemPickupSettings pickup;
-        readonly IDisposable subscription;
 
         int count;
         Vector2[] position = new Vector2[256];
@@ -34,7 +33,7 @@ namespace Survivor
         public int Count => count;
 
         public GemSystem(GameConfig config, Player player, PlayerProgress progress, SpriteCatalog sprites,
-            AudioService audio, GemPickupSettings pickup, ISubscriber<EnemyKilledEvent> killed)
+            AudioService audio, GemPickupSettings pickup)
         {
             this.config = config;
             this.player = player;
@@ -42,7 +41,6 @@ namespace Survivor
             this.sprites = sprites;
             this.audio = audio;
             this.pickup = pickup;
-            subscription = killed.Subscribe(e => Spawn(e.Position, e.Xp));
         }
 
         public void Spawn(Vector2 at, int xp)
@@ -176,6 +174,6 @@ namespace Survivor
             Array.Resize(ref away, size);
         }
 
-        public void Dispose() => subscription.Dispose();
+        public void Dispose() { }
     }
 }

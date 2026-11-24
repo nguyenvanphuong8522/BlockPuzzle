@@ -23,6 +23,8 @@ namespace Survivor
             () => new MonkeyCompanion(),
             () => new SwordOtterCompanion(),
             () => new TurtleMageCompanion(),
+            () => new GunnerCompanion(),
+            () => new SlingFrogCompanion(),
         };
 
         // Still used by debug tools; the player's own gun is the only weapon in normal play.

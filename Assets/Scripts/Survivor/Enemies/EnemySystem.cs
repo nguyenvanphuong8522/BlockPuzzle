@@ -55,9 +55,11 @@ namespace Survivor
         readonly GameConfig config;
         readonly Player player;
         readonly IPublisher<EnemyKilledEvent> killedPublisher;
+        readonly EnemyDeathSystem deaths;
         readonly DamageNumberSystem damageNumbers;
         readonly EnemyDrawer drawer;
         readonly AudioService audio;
+        readonly PlayerTuning tuning; // knockback strength / slide / stun are tuned there
         readonly SpatialGrid grid = new SpatialGrid(1f);
         readonly List<int> candidates = new List<int>(128);
         readonly List<int> dead = new List<int>(128);
@@ -70,8 +72,10 @@ namespace Survivor
         public string BossName => BossIndex >= 0 ? config.Enemies[type[BossIndex]].Name : "";
 
         public EnemySystem(GameConfig config, Player player, IPublisher<EnemyKilledEvent> killedPublisher,
-            DamageNumberSystem damageNumbers, EnemyDrawer drawer, AudioService audio)
+            DamageNumberSystem damageNumbers, EnemyDrawer drawer, AudioService audio, EnemyDeathSystem deaths, PlayerTuning tuning)
         {
+            this.tuning = tuning;
+            this.deaths = deaths;
             this.config = config;
             this.player = player;
             this.killedPublisher = killedPublisher;
@@ -120,6 +124,7 @@ namespace Survivor
 
         public void Tick(float dt)
         {
+            deaths.Tick(dt);
             frame++;
             var ringRadius = SpawnRingRadius();
             var visibleRadius = ringRadius - 1.5f; // half diagonal of the screen
@@ -139,8 +144,9 @@ namespace Survivor
                 KnockOut = knockbackNext.Reinterpret<float2>(),
                 Player = player.Position,
                 Dt = dt,
-                DecayNear = Mathf.Exp(-8f * dt),
-                DecayFar = Mathf.Exp(-16f * dt),
+                DecayNear = Mathf.Exp(-tuning.KnockbackDecay * dt),
+                DecayFar = Mathf.Exp(-tuning.KnockbackDecay * 2f * dt),
+                InverseStunSpeed = tuning.KnockbackStunSpeed > 0.01f ? 1f / tuning.KnockbackStunSpeed : 0f,
                 RingRadius = ringRadius,
                 DespawnSq = config.DespawnDistance * config.DespawnDistance,
                 FarSq = visibleRadius * visibleRadius,
@@ -212,6 +218,7 @@ namespace Survivor
 
             public float2 Player;
             public float Dt, DecayNear, DecayFar, RingRadius, DespawnSq, FarSq, InverseCellSize;
+            public float InverseStunSpeed; // while being pushed fast, the enemy stops walking toward the hero
             public int Parity;
 
             public void Execute(int i)
@@ -249,6 +256,7 @@ namespace Survivor
 
                 var dist = math.sqrt(distSq);
                 var velocity = dist > 0.001f ? toPlayer * (MoveSpeed[i] / dist) : float2.zero;
+                velocity *= math.saturate(1f - math.length(kb) * InverseStunSpeed); // knocked back: no chasing
                 var push = far ? float2.zero : Separation(i, p);
 
                 PosOut[i] = p + (velocity + kb) * step + push * 0.5f;
@@ -318,10 +326,19 @@ namespace Survivor
             Hp[i] -= amount;
             flash[i] = 0.08f;
             var boss = isBoss[i] != 0;
-            if (!boss) knockback[i] += knockDirection * knockForce; // bosses ignore knockback
             damageNumbers.Spawn(Position[i], amount, boss);
             audio.Play(Sfx.Hit, 0.35f, 0.15f, 0.06f);
-            if (Hp[i] <= 0f) dead.Add(i);
+            if (Hp[i] <= 0f)
+            {
+                dead.Add(i); // killing blow: no knockback, it shatters where it stands
+                return;
+            }
+            // Survived the hit: pushed back (bosses ignore it). Capped so fast weapons can't launch it across the map.
+            if (!boss && knockForce > 0f)
+            {
+                var kb = (Vector2)knockback[i] + knockDirection * (knockForce * tuning.KnockbackStrength);
+                knockback[i] = Vector2.ClampMagnitude(kb, tuning.KnockbackMaxSpeed);
+            }
         }
 
         // Debug: kills every enemy (they still drop their rewards).
@@ -343,7 +360,8 @@ namespace Survivor
             for (var k = dead.Count - 1; k >= 0; k--) // highest index first keeps the swap-remove correct
             {
                 var i = dead[k];
-                killedPublisher.Publish(new EnemyKilledEvent(Position[i], xp[i], config.Enemies[type[i]].IsBoss));
+                killedPublisher.Publish(new EnemyKilledEvent(Position[i], xp[i], config.Enemies[type[i]].IsBoss, type[i]));
+                deaths.Add(Position[i], Radius[i], type[i], Id[i], isBoss[i] != 0); // death animation
                 if (i == BossIndex) BossIndex = -1;
                 RemoveAt(i);
             }
@@ -438,6 +456,7 @@ namespace Survivor
         public void Draw(InstancedRenderer renderer)
         {
             drawer.Draw(renderer, Position, Radius, flash, type, Id, Count, player.Position.x);
+            deaths.Draw(renderer);
 
             // Boss: red warning ring while preparing / during a charge.
             var b = BossIndex;

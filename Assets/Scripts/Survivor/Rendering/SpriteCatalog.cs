@@ -53,6 +53,12 @@ namespace Survivor
         public SpriteAnim MagicOrb = new SpriteAnim();
         [Tooltip("Magic explosion: flash, burst, puffs, fading ring")]
         public SpriteAnim Blast = new SpriteAnim();
+        [Tooltip("Frames 0-3 idle, 4 blink (the gun is drawn separately)")]
+        public SpriteAnim Gunner = new SpriteAnim();
+        public Sprite Smg;
+        [Tooltip("Frames 0-3 idle, 4 shot, 5 blink")]
+        public SpriteAnim Frog = new SpriteAnim();
+        public Sprite Pellet;
 
         [Header("Pickups")]
         public Sprite Gem;

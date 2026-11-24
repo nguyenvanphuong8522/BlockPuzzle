@@ -21,8 +21,27 @@ MonoBehaviour:
   CompanionDistance: 1.7
   CompanionCircleSquash: 0.85
   CompanionRegroupSpeed: 8
-  MarkerSize: 1.26
-  MarkerHeight: 1.02
+  MarkerSize: 0.5
+  MarkerHeight: 1.2
   MarkerTint: {r: 1, g: 1, b: 1, a: 1}
-  HurtNumberColor: {r: 1, g: 0.22, b: 0.2, a: 1}
+  PelletSize: 0.34
+  PelletTrailColor: {r: 1, g: 0.15, b: 0.1, a: 0.8}
+  PelletTrailLength: 1.4
+  PelletTrailWidth: 0.18
+  FrogBounceRadius:
+  - 5
+  - 5.4
+  - 6
+  - 6.4
+  - 7
+  KnockbackStrength: 2.5
+  KnockbackDecay: 7
+  KnockbackMaxSpeed: 9
+  KnockbackStunSpeed: 2
+  NumberBaseHeight: 0.32
+  EnemyNumberColor: {r: 1, g: 1, b: 1, a: 1}
+  EnemyNumberScale: 1.67
+  BossNumberColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+  BossNumberScale: 1.6
+  HurtNumberColor: {r: 1, g: 0.024509802, b: 0, a: 1}
   HurtNumberScale: 2

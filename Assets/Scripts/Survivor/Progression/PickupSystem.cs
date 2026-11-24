@@ -6,7 +6,8 @@ namespace Survivor
 {
     public enum PickupKind { Heal, Magnet, Chest }
 
-    // Rare drops: heal (restores HP), magnet (pulls every gem), chest (from bosses, gives a free upgrade).
+    // Pickups on the floor: heal (restores HP), magnet (pulls every gem), chest (free upgrade).
+    // RewardDropSystem decides what enemies drop (EnemyDropSettings).
     // Unlike gems they are not pulled by the magnet: the player has to walk over them.
     public sealed class PickupSystem : IDisposable
     {
@@ -19,7 +20,6 @@ namespace Survivor
         readonly EffectSystem effects;
         readonly SpriteCatalog sprites;
         readonly AudioService audio;
-        readonly IDisposable subscription;
 
         int count;
         PickupKind[] kind = new PickupKind[32];
@@ -29,7 +29,7 @@ namespace Survivor
         public int Count => count;
 
         public PickupSystem(GameConfig config, Player player, GemSystem gems, PlayerProgress progress,
-            EffectSystem effects, SpriteCatalog sprites, AudioService audio, ISubscriber<EnemyKilledEvent> killed)
+            EffectSystem effects, SpriteCatalog sprites, AudioService audio)
         {
             this.config = config;
             this.player = player;
@@ -38,19 +38,6 @@ namespace Survivor
             this.effects = effects;
             this.sprites = sprites;
             this.audio = audio;
-            subscription = killed.Subscribe(OnEnemyKilled);
-        }
-
-        void OnEnemyKilled(EnemyKilledEvent e)
-        {
-            if (e.IsBoss)
-            {
-                Spawn(PickupKind.Chest, e.Position);
-                return;
-            }
-            var roll = UnityEngine.Random.value;
-            if (roll < config.MagnetDropChance) Spawn(PickupKind.Magnet, e.Position);
-            else if (roll < config.MagnetDropChance + config.HealDropChance) Spawn(PickupKind.Heal, e.Position);
         }
 
         public void Spawn(PickupKind k, Vector2 at)
@@ -142,6 +129,6 @@ namespace Survivor
             }
         }
 
-        public void Dispose() => subscription.Dispose();
+        public void Dispose() { }
     }
 }

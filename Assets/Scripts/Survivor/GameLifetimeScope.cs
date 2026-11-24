@@ -21,6 +21,7 @@ namespace Survivor
             builder.RegisterInstance(SpriteCatalog.LoadOrEmpty());
             builder.RegisterInstance(AudioCatalog.LoadOrEmpty());
             builder.RegisterInstance(GemPickupSettings.LoadOrDefault());
+            builder.RegisterInstance(EnemyDropSettings.LoadOrDefault());
             builder.RegisterInstance(PlayerTuning.LoadOrDefault());
             builder.RegisterInstance(GunSettings.LoadOrDefault());
             builder.Register<AudioService>(Lifetime.Singleton);
@@ -33,11 +34,13 @@ namespace Survivor
             builder.Register<CameraShake>(Lifetime.Singleton);
 
             builder.Register<EnemyDrawer>(Lifetime.Singleton);
+            builder.Register<EnemyDeathSystem>(Lifetime.Singleton);
             builder.Register<EnemySystem>(Lifetime.Singleton);
             builder.Register<EnemySpawner>(Lifetime.Singleton);
             builder.Register<ProjectileSystem>(Lifetime.Singleton);
             builder.Register<GemSystem>(Lifetime.Singleton);
             builder.Register<PickupSystem>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<RewardDropSystem>().AsSelf(); // entry point = created at start, nobody needs to ask for it
             builder.Register<EffectSystem>(Lifetime.Singleton);
             builder.Register<DamageNumberSystem>(Lifetime.Singleton);
             builder.Register<DecorationSystem>(Lifetime.Singleton);

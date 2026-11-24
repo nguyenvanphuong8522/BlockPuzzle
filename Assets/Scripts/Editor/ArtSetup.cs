@@ -50,6 +50,9 @@ public static class ArtSetup
         LoadOrCreate<GemPickupSettings>(GemPickupSettingsPath); // created once with defaults, never overwritten
         LoadOrCreate<PlayerTuning>(PlayerTuningPath);
         LoadOrCreate<GunSettings>(GunSettingsPath);
+        var drops = LoadOrCreate<Survivor.EnemyDropSettings>("Assets/Resources/EnemyDropSettings.asset"); // keeps edited values
+        drops.Sync();
+        EditorUtility.SetDirty(drops);
         AssetDatabase.SaveAssets();
         Debug.Log("Survivor: art & audio setup done.");
     }
@@ -154,6 +157,10 @@ public static class ArtSetup
         catalog.Turtle = new SpriteAnim { Frames = Frames("companion_turtle_"), Fps = 6f };
         catalog.MagicOrb = new SpriteAnim { Frames = Frames("projectile_orb_"), Fps = 10f };
         catalog.Blast = new SpriteAnim { Frames = Frames("fx_blast_"), Fps = 12f };
+        catalog.Gunner = new SpriteAnim { Frames = Frames("companion_gunner_"), Fps = 6f };
+        catalog.Smg = Single("weapon_smg");
+        catalog.Frog = new SpriteAnim { Frames = Frames("companion_frog_"), Fps = 6f };
+        catalog.Pellet = Single("projectile_pellet");
         catalog.MuzzleFlash = new SpriteAnim { Frames = Frames("fx_muzzle_"), Fps = 30f };
         catalog.MagicBolt = Single("weapon_cannonball");
         catalog.OrbitBlade = Single("weapon_anchor");

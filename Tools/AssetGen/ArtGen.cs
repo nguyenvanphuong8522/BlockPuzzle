@@ -248,6 +248,10 @@ static class ArtGen
         for (var f = 0; f < 4; f++) Blast(f);
         HeroMarker();
         DigitAtlas();
+        for (var f = 0; f < 5; f++) Gunner(f);
+        Smg();
+        for (var f = 0; f < 6; f++) Frog(f);
+        Pellet();
         Banana();
         for (var f = 0; f < 2; f++) MuzzleFlash(f);
         Anchor();
@@ -972,6 +976,173 @@ static class ArtGen
                     break;
             }
             c.Save(P("fx_blast_" + f));
+        }
+    }
+
+    // ---------- Companion: little gunner (faces right; the gun is a separate sprite that aims) ----------
+    // 0-3 = idle loop (breathing), 4 = blink.
+    static void Gunner(int f)
+    {
+        using (var c = new Canvas(128, 128, 3f))
+        {
+            var skin = Paint.Hex("F6C9A0");
+            var camo = Paint.Hex("5A86C8");
+            var camoDark = Paint.Hex("3E5F9A");
+            var camoLight = Paint.Hex("9DBFEA");
+            var boots = Paint.Hex("4A3A32");
+            float[] breathe = { 0f, 1.2f, 2.4f, 1.2f };
+            var bob = f <= 3 ? breathe[f] : 0f;
+            var blink = f == 4;
+
+            // Backpack, legs, boots
+            c.Add(Paint.RoundRect(34, 74 + bob, 16, 24, 5), Paint.Hex("7A6A4A"));
+            c.Add(Paint.Ellipse(54, 114, 10, 6), boots);
+            c.Add(Paint.Ellipse(76, 114, 10, 6), boots);
+            c.Add(Paint.RoundRect(49, 98, 10, 14, 3), camoDark);
+            c.Add(Paint.RoundRect(69, 98, 10, 14, 3), camoDark);
+            c.Flush();
+            // Body: camo shirt with belt
+            c.Add(Paint.RoundRect(44, 72 + bob, 40, 30 - bob * 0.5f, 10), camo);
+            c.Flush();
+            c.Fill(Paint.Ellipse(54, 82 + bob, 5, 4), camoDark);
+            c.Fill(Paint.Ellipse(72, 90 + bob, 6, 4), camoDark);
+            c.Fill(Paint.Ellipse(62, 94 + bob, 4, 3), camoLight);
+            c.Fill(Paint.RoundRect(44, 96 + bob * 0.5f, 40, 5, 2), Paint.Hex("4A3A32"));
+
+            // Head
+            var hy = 50 + bob;
+            c.Add(Paint.Ellipse(64, hy, 28, 25), skin);
+            c.Flush();
+            // Camo helmet: dome + brim, with patches and a chin strap
+            var helmet = new GraphicsPath();
+            helmet.AddArc(34, hy - 34, 60, 50, 180, 180);
+            helmet.CloseFigure();
+            c.Add(helmet, camo);
+            c.Add(Paint.RoundRect(32, hy - 12, 66, 8, 4), camoDark);
+            c.Flush();
+            c.Fill(Paint.Ellipse(50, hy - 22, 7, 5), camoDark);
+            c.Fill(Paint.Ellipse(72, hy - 26, 6, 4), camoLight);
+            c.Fill(Paint.Ellipse(82, hy - 17, 5, 4), camoDark);
+            c.Fill(Paint.Ellipse(62, hy - 16, 4, 3), camoLight);
+            c.Line(Paint.Ink, 2f, 38, hy - 4, 42, hy + 14);
+
+            // Face, looking right
+            if (blink)
+            {
+                c.Smile(60, hy + 4, 11, 4);
+                c.Smile(77, hy + 4, 11, 4);
+            }
+            else
+            {
+                c.Eye(60, hy + 5, 5.5f, 7.5f, 0.7f, 0.1f);
+                c.Eye(77, hy + 5, 5.5f, 7.5f, 0.7f, 0.1f);
+            }
+            c.Blush(52, hy + 15);
+            c.Blush(86, hy + 15);
+            c.Smile(70, hy + 15, 10, 4);
+
+            // Hands in front, where the gun is held
+            c.Add(Paint.Ellipse(80, 86 + bob, 6, 6), skin);
+            c.Add(Paint.Ellipse(90, 84 + bob, 6, 6), skin);
+            c.Flush();
+            c.Save(P("companion_gunner_" + f));
+        }
+    }
+
+    // Small machine gun pointing right; the grip sits a bit left of center.
+    static void Smg()
+    {
+        using (var c = new Canvas(128, 64, 3f))
+        {
+            var metal = Paint.Hex("4C5566");
+            var dark = Paint.Hex("2F3540");
+            c.Add(Paint.RoundRect(10, 22, 22, 10, 3), dark);          // folded stock
+            c.Add(Paint.RoundRect(44, 34, 11, 22, 3), dark);          // magazine
+            c.Add(Paint.RoundRect(30, 36, 10, 16, 3), dark);          // grip
+            c.Add(Paint.RoundRect(28, 18, 62, 20, 6), metal);         // body
+            c.Add(Paint.RoundRect(88, 23, 30, 9, 3), dark);           // barrel
+            c.Flush();
+            c.Fill(Paint.RoundRect(110, 21, 8, 13, 2), Paint.Hex("1F242C")); // muzzle
+            c.Fill(Paint.RoundRect(52, 14, 14, 5, 2), dark);                  // sight
+            c.Shine(56, 24, 18, 3, 90);
+            c.Save(P("weapon_smg"));
+        }
+    }
+
+    // ---------- Companion: frog with a slingshot (faces right) ----------
+    // 0-3 = idle loop (breathing, slingshot held up), 4 = shot (arm forward, band snapped), 5 = blink.
+    static void Frog(int f)
+    {
+        using (var c = new Canvas(128, 128, 3f))
+        {
+            var skin = Paint.Hex("6FCF5B");
+            var belly = Paint.Hex("E9F5B8");
+            var wood = Paint.Hex("9A6234");
+            float[] breathe = { 0f, 1.2f, 2.4f, 1.2f };
+            var bob = f <= 3 ? breathe[f] : 0f;
+            var shot = f == 4;
+            var blink = f == 5;
+
+            // Back leg + feet
+            c.Add(Paint.Ellipse(42, 108, 14, 9), skin);
+            c.Add(Paint.Ellipse(50, 116, 11, 5), skin);
+            c.Add(Paint.Ellipse(78, 116, 11, 5), skin);
+            // Round body
+            c.Add(Paint.Ellipse(62, 92 + bob * 0.5f, 26, 22 - bob * 0.3f), skin);
+            c.Flush();
+            c.Fill(Paint.Ellipse(66, 96 + bob * 0.5f, 16, 14), belly);
+            // Little red scarf
+            c.Fill(Paint.RoundRect(42, 70 + bob, 42, 7, 3), Paint.Hex("E8443A"));
+            c.Fill(Paint.Poly(46, 72 + bob, 34, 80 + bob, 40, 84 + bob), Paint.Hex("E8443A"));
+
+            // Head: wide with two eye bumps on top
+            var hy = 54 + bob;
+            c.Add(Paint.Ellipse(64, hy, 30, 20), skin);
+            c.Add(Paint.Ellipse(52, hy - 16, 11, 11), skin);
+            c.Add(Paint.Ellipse(78, hy - 16, 11, 11), skin);
+            c.Flush();
+            // Aviator goggles pushed up on the forehead strap
+            c.Fill(Paint.RoundRect(36, hy - 8, 56, 5, 2), Paint.Hex("5A3A22"));
+            if (blink)
+            {
+                c.Smile(52, hy - 17, 11, 4);
+                c.Smile(78, hy - 17, 11, 4);
+            }
+            else
+            {
+                c.Eye(52, hy - 16, 6, 7, shot ? 0.9f : 0.5f, 0f);
+                c.Eye(78, hy - 16, 6, 7, shot ? 0.9f : 0.5f, 0f);
+            }
+            c.Smile(68, hy + 6, 13, 5);   // small cheerful smile
+            c.Blush(44, hy + 4);
+            c.Blush(88, hy + 4);
+
+            // Slingshot: Y-shaped wooden fork with a rubber band
+            float fx = shot ? 104 : 96, fy = shot ? 72 : 66 + bob;
+            c.Limb(wood, 5, fx, fy + 22, fx, fy + 8);
+            c.Limb(wood, 4, fx, fy + 8, fx - 7, fy - 4);
+            c.Limb(wood, 4, fx, fy + 8, fx + 7, fy - 4);
+            using (var band = new Pen(Paint.Hex("C8302A"), 2.5f))
+            {
+                if (shot) c.G.DrawLine(band, fx - 7, fy - 4, fx + 7, fy - 4);              // snapped straight
+                else c.G.DrawLines(band, new[] { new PointF(fx - 7, fy - 4), new PointF(fx - 18, fy + 2), new PointF(fx + 7, fy - 4) }); // pulled back
+            }
+            // Hand holding the fork
+            c.Add(Paint.Ellipse(fx, fy + 16, 6, 6), skin);
+            c.Flush();
+            c.Save(P("companion_frog_" + f));
+        }
+    }
+
+    // Rubber pellet: small glossy orange-red ball.
+    static void Pellet()
+    {
+        using (var c = new Canvas(32, 32, 2.5f))
+        {
+            c.Add(Paint.Ellipse(16, 16, 11, 11), Paint.Hex("FF6A3A"));
+            c.Flush();
+            c.Shine(12, 12, 4, 3, 200);
+            c.Save(P("projectile_pellet"));
         }
     }
 
