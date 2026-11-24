@@ -18,6 +18,11 @@ namespace Survivor
         [Tooltip("Size multiplier for area weapons")]
         [Min(0.1f)] public float Area = 1f;
 
+        [Header("Camera")]
+        [Tooltip("How much of the world is visible across the screen (world units). Bigger = camera further out, " +
+                 "you see more. The height follows the screen shape. Enemies keep spawning just outside the view.")]
+        [Min(4f)] public float CameraViewWidth = GameConfig.DefaultViewWidth;
+
         [Header("Đệ tử (companions)")]
         [Tooltip("Distance from the hero to each companion. They share a circle: 1 = above the head, 2 = above + below, " +
                  "3 = every 120 degrees, and so on.")]

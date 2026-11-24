@@ -151,17 +151,10 @@ namespace Survivor
             away[i] = away[last];
         }
 
-        public void Draw(InstancedRenderer renderer)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                var v = value[i];
-                var color = v >= 5 ? new Color(1f, 0.35f, 0.35f) : v >= 2 ? new Color(0.4f, 1f, 0.5f) : new Color(0.4f, 0.75f, 1f);
-                var size = v >= 5 ? 0.2f : 0.14f;
-                if (sprites.Gem != null) renderer.Sprite(RenderLayer.Gems, sprites.Gem, position[i], size * 2.6f, color);
-                else renderer.Circle(RenderLayer.Gems, position[i], size, color);
-            }
-        }
+        // Drawn by a Burst job (GemDrawer): culling + instance data for every gem in one pass.
+        readonly GemDrawer drawer = new GemDrawer(256);
+
+        public void Draw(InstancedRenderer renderer) => drawer.Draw(renderer, sprites.Gem, position, value, count);
 
         void Grow()
         {
@@ -174,6 +167,6 @@ namespace Survivor
             Array.Resize(ref away, size);
         }
 
-        public void Dispose() { }
+        public void Dispose() => drawer.Dispose();
     }
 }

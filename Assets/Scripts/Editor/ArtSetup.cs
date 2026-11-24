@@ -181,7 +181,7 @@ public static class ArtSetup
     static void FillAudioCatalog()
     {
         var catalog = LoadOrCreate<AudioCatalog>(AudioCatalogPath);
-        var old = (catalog.Sounds ?? new AudioCatalog.Entry[0]).Where(e => e != null).ToDictionary(e => e.Id, e => e.Volume);
+        var old = (catalog.Sounds ?? new AudioCatalog.Entry[0]).Where(e => e != null).ToDictionary(e => e.Id, e => e);
 
         var entries = new List<AudioCatalog.Entry>();
         foreach (Sfx id in Enum.GetValues(typeof(Sfx)))
@@ -192,7 +192,10 @@ public static class ArtSetup
             entries.Add(new AudioCatalog.Entry
             {
                 Id = id, Clip = clip,
-                Volume = old.TryGetValue(id, out var v) ? v : DefaultVolume(id) // keep volumes you tuned
+                // Keep values you tuned; new sounds get defaults.
+                Volume = old.TryGetValue(id, out var o) ? o.Volume : DefaultVolume(id),
+                MaxVoices = o != null && o.MaxVoices > 0 ? o.MaxVoices : AudioService.DefaultMaxVoices(id),
+                MinInterval = o != null ? o.MinInterval : 0f,
             });
         }
         catalog.Sounds = entries.ToArray();

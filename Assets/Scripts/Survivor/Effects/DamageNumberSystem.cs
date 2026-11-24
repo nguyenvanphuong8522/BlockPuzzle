@@ -64,7 +64,9 @@ namespace Survivor
         public void Draw(InstancedRenderer renderer)
         {
             Span<int> digits = stackalloc int[10];
-            var texture = DigitFont.Texture;
+            // Looked up once per frame, not once per digit (texture size is a call into the engine).
+            var brush = renderer.Brush(RenderLayer.Text, DigitFont.Texture);
+            var aspect = DigitFont.Aspect;
             for (var i = 0; i < count; i++)
             {
                 var n = 0;
@@ -78,7 +80,7 @@ namespace Survivor
                 var t = age[i] / Lifetime;
                 var scale = kind[i] == KindHurt ? tuning.HurtNumberScale : kind[i] == KindBig ? tuning.BossNumberScale : tuning.EnemyNumberScale;
                 var height = tuning.NumberBaseHeight * scale * (t < 0.15f ? 1f + (0.15f - t) * 3f : 1f); // small pop-in
-                var width = height * DigitFont.Aspect * 0.8f; // letters overlap their outline a little
+                var width = height * aspect * 0.8f; // letters overlap their outline a little
                 var color = kind[i] == KindHurt ? tuning.HurtNumberColor : kind[i] == KindBig ? tuning.BossNumberColor : tuning.EnemyNumberColor;
                 color.a = t < 0.7f ? 1f : 1f - (t - 0.7f) / 0.3f;
 
@@ -86,8 +88,8 @@ namespace Survivor
                 for (var k = 0; k < n; k++)
                 {
                     var digit = digits[n - 1 - k];
-                    renderer.TextureRect(RenderLayer.Text, texture, DigitFont.Uv(digit),
-                        new Vector2(startX + k * width, position[i].y), new Vector2(height * DigitFont.Aspect, height), color);
+                    renderer.Draw(brush, DigitFont.Uv(digit),
+                        new Vector2(startX + k * width, position[i].y), new Vector2(height * aspect, height), color);
                 }
             }
         }

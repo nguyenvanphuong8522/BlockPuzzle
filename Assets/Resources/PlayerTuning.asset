@@ -18,6 +18,7 @@ MonoBehaviour:
   Might: 1
   Haste: 1
   Area: 1
+  CameraViewWidth: 18
   CompanionDistance: 1.7
   CompanionCircleSquash: 0.85
   CompanionRegroupSpeed: 8

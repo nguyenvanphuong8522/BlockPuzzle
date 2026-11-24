@@ -148,7 +148,8 @@ namespace Survivor
                 DecayFar = Mathf.Exp(-tuning.KnockbackDecay * 2f * dt),
                 InverseStunSpeed = tuning.KnockbackStunSpeed > 0.01f ? 1f / tuning.KnockbackStunSpeed : 0f,
                 RingRadius = ringRadius,
-                DespawnSq = config.DespawnDistance * config.DespawnDistance,
+                // Never closer than the spawn ring + a margin, so a wide camera can't make enemies despawn as they spawn.
+                DespawnSq = Mathf.Pow(Mathf.Max(config.DespawnDistance, ringRadius + 8f), 2f),
                 FarSq = visibleRadius * visibleRadius,
                 InverseCellSize = grid.InverseCellSize,
                 Parity = frame & 1,

@@ -160,6 +160,9 @@ namespace Survivor
 
         public void Draw(InstancedRenderer target)
         {
+            // All enemy sprites normally share one atlas texture: reuse its brush instead of a lookup per piece.
+            Texture brushTexture = null;
+            var brush = default(InstancedRenderer.SpriteBrush);
             for (var i = 0; i < count; i++)
             {
                 var t = age[i] / life[i];
@@ -168,12 +171,17 @@ namespace Survivor
                 var flash = age[i] < FlashTime ? 1f : 0f;
                 var s = size[i] * (t < 0.6f ? 1f : 1f - (t - 0.6f) * 1.2f);   // shrink a little at the end
 
-                if (texture[i] != null)
+                var tex = texture[i];
+                if (!ReferenceEquals(tex, null)) // plain reference check: Unity's "!= null" asks the engine every time
                 {
+                    if (!ReferenceEquals(tex, brushTexture))
+                    {
+                        brushTexture = tex;
+                        brush = target.Brush(RenderLayer.Effects, tex);
+                    }
                     // Mirroring a piece = rotate half a turn and flip vertically.
                     var a = mirror[i] ? Mathf.PI + angle[i] : angle[i];
-                    target.TextureRotated(RenderLayer.Effects, texture[i], uv[i], position[i], new Vector2(s.x, mirror[i] ? -s.y : s.y),
-                        a, c, flash);
+                    target.DrawRotated(brush, uv[i], position[i], new Vector2(s.x, mirror[i] ? -s.y : s.y), a, c, flash);
                 }
                 else
                 {

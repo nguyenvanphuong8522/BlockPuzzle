@@ -7,8 +7,16 @@ namespace Survivor
     {
         public readonly float SurviveSeconds = 600f;
         // Portrait game: the camera keeps this much world WIDTH visible on every screen shape
-        // (taller phones simply see more above and below).
-        public readonly float ViewWidth = 13f;
+        // (taller phones simply see more above and below). Tuned live in PlayerTuning (Camera View Width).
+        public const float DefaultViewWidth = 13f;
+        public float ViewWidth => tuning != null ? Mathf.Max(4f, tuning.CameraViewWidth) : DefaultViewWidth;
+
+        readonly PlayerTuning tuning;
+
+        public GameConfig() { } // editor tools: default camera width
+
+        [VContainer.Inject]
+        public GameConfig(PlayerTuning tuning) => this.tuning = tuning;
 
         // Orthographic size (half the visible height) for a screen aspect (width / height).
         public float CameraSizeFor(float aspect) => ViewWidth * 0.5f / Mathf.Max(0.1f, aspect);

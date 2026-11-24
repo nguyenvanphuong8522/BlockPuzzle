@@ -16,71 +16,117 @@ MonoBehaviour:
   - Id: 0
     Clip: {fileID: 8300000, guid: 45fda72ff9b0ace44b4ccd50ed286841, type: 3}
     Volume: 0.5
+    MaxVoices: 2
+    MinInterval: 0
   - Id: 1
     Clip: {fileID: 8300000, guid: 455ce152ce3f1bc47b4d239909a82486, type: 3}
     Volume: 0.45
+    MaxVoices: 3
+    MinInterval: 0
   - Id: 2
     Clip: {fileID: 8300000, guid: d18a487a1660d7f40bd7bf45793aa697, type: 3}
     Volume: 0.55
+    MaxVoices: 3
+    MinInterval: 0
   - Id: 3
     Clip: {fileID: 8300000, guid: a409d99a13c6e5340beb5ff73b647b07, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 4
     Clip: {fileID: 8300000, guid: 7d9dd403260547046af9b3f67cea0622, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 5
     Clip: {fileID: 8300000, guid: 1f0d62665a2f23d42949ac15ebc95c59, type: 3}
     Volume: 0.8
+    MaxVoices: 2
+    MinInterval: 0
   - Id: 6
     Clip: {fileID: 8300000, guid: f9650b1d8a1c32b4c9325dc59696292f, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 7
     Clip: {fileID: 8300000, guid: 39b8b3759ca8b1d4797ff79bf15f494f, type: 3}
     Volume: 0.8
+    MaxVoices: 4
+    MinInterval: 0
   - Id: 8
     Clip: {fileID: 8300000, guid: 06f860b06abcf084aaa532c6171826ef, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 9
     Clip: {fileID: 8300000, guid: dc665ba055077f94886a638f4777be66, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 10
     Clip: {fileID: 8300000, guid: 2c52acd352307be488363b29f7b6918b, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 11
     Clip: {fileID: 8300000, guid: 9810da3c5609a134db5f6cdb51d48561, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 12
     Clip: {fileID: 8300000, guid: f0c344f1a29366e4f8ee2b0c4d884091, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 13
     Clip: {fileID: 8300000, guid: 0849fab04a501774b82c8a3e21ee29f6, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 14
     Clip: {fileID: 8300000, guid: 80ffd92e86310b64199a21b9d72b5022, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 15
     Clip: {fileID: 8300000, guid: 288a8760ffeae9048a1c3cf729800a5a, type: 3}
     Volume: 0.8
+    MaxVoices: 1
+    MinInterval: 0
   - Id: 16
     Clip: {fileID: 8300000, guid: 9e118b5b7f3a8b940a2613cde09fcd19, type: 3}
     Volume: 0.8
+    MaxVoices: 2
+    MinInterval: 0
   - Id: 17
     Clip: {fileID: 8300000, guid: 8fb37ed4a2b1f6349871b442e8a29c15, type: 3}
     Volume: 0.8
+    MaxVoices: 2
+    MinInterval: 0
   - Id: 18
     Clip: {fileID: 8300000, guid: eae5be36fd64ffb4899cf4266bf6bb5a, type: 3}
     Volume: 0.8
+    MaxVoices: 2
+    MinInterval: 0
   - Id: 19
     Clip: {fileID: 8300000, guid: dc63ac53b874fd34eac8985081d296e0, type: 3}
     Volume: 0.8
+    MaxVoices: 3
+    MinInterval: 0
   - Id: 20
     Clip: {fileID: 8300000, guid: f0a5342466be6934ca54490733d1eec8, type: 3}
     Volume: 0.8
+    MaxVoices: 2
+    MinInterval: 0
   - Id: 21
     Clip: {fileID: 8300000, guid: fd0d8f8a98a66b449966d296c67d53f6, type: 3}
     Volume: 0.8
+    MaxVoices: 2
+    MinInterval: 0
   - Id: 22
     Clip: {fileID: 8300000, guid: 151a4be7844155742880040132be8966, type: 3}
     Volume: 0.8
+    MaxVoices: 2
+    MinInterval: 0
   Music: {fileID: 8300000, guid: 08896f00bbd60b44987a611b35efeba6, type: 3}
   MusicVolume: 0.35

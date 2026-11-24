@@ -308,10 +308,15 @@ namespace Survivor
             fpsTimer += Time.unscaledDeltaTime;
             if (fpsTimer < 0.5f) return;
             var fps = fpsFrames / fpsTimer;
-            hud.SetDebug(debug.ShowStats
-                ? $"FPS {fps:0}  ·  Quái {enemies.Count}  ·  Logic {simulationMs:0.0}ms  ·  Vẽ {renderMs:0.0}ms  ·  Draw call {renderer.LastFrameDrawCalls}" +
-                  $"\nTầm hút {player.Stats.MagnetRadius:0.00}"
-                : "");
+            // Release builds: only FPS (time and kills have their own HUD labels).
+            // Editor and Development builds: the full stats line, toggled in the debug panel.
+            if (!Debug.isDebugBuild)
+                hud.SetDebug($"FPS {fps:0}");
+            else
+                hud.SetDebug(debug.ShowStats
+                    ? $"FPS {fps:0}  ·  Quái {enemies.Count}  ·  Logic {simulationMs:0.0}ms  ·  Vẽ {renderMs:0.0}ms  ·  Draw call {renderer.LastFrameDrawCalls}" +
+                      $"\nTầm hút {player.Stats.MagnetRadius:0.00}"
+                    : "");
             fpsFrames = 0;
             fpsTimer = 0f;
         }

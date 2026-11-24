@@ -20,6 +20,10 @@ namespace Survivor
             public Sfx Id;
             public AudioClip Clip;
             [Range(0f, 1f)] public float Volume = 0.7f;
+            [Tooltip("How many copies of this sound may play at the same time. When full, the oldest copy is cut. 0 = default.")]
+            [Range(0, 8)] public int MaxVoices = 0;
+            [Tooltip("Shortest time between two starts of this sound (seconds). Repeats closer than this are skipped.")]
+            [Range(0f, 0.5f)] public float MinInterval = 0f;
         }
 
         public Entry[] Sounds = new Entry[0];

@@ -26,7 +26,7 @@ namespace Survivor
         static readonly int UvId = Shader.PropertyToID("_UV");
         static readonly Vector4 FullUv = new Vector4(0f, 0f, 1f, 1f);
 
-        sealed class Batch
+        internal sealed class Batch
         {
             public readonly Matrix4x4[] Matrices = new Matrix4x4[BatchSize];
             public readonly Vector4[] Colors = new Vector4[BatchSize];
@@ -36,7 +36,7 @@ namespace Survivor
         }
 
         // Everything drawn with one material (= one texture) in one layer.
-        sealed class Group
+        internal sealed class Group
         {
             public Material Material;
             public List<Batch> Batches = new List<Batch>();
@@ -163,6 +163,49 @@ namespace Survivor
             if (!IsVisible(center, Mathf.Max(Mathf.Abs(size.x), Mathf.Abs(size.y)) * 0.5f)) return;
             AddRotated(GetTexturedGroup(layers[(int)layer], texture), center, size, angle, tint,
                 new Vector4(ShapeSprite, 0f, flash, 0f), uv, center.y);
+        }
+
+        // Fast path for drawing many copies of one sprite (gems, death pieces...): texture group, uv and aspect are
+        // looked up once here instead of once per copy. Get a brush, then call Draw/DrawRotated in the loop.
+        public readonly struct SpriteBrush
+        {
+            internal readonly Group Group;
+            public readonly Vector4 Uv;
+            public readonly float Aspect; // width / height
+            internal SpriteBrush(Group group, Vector4 uv, float aspect)
+            {
+                Group = group;
+                Uv = uv;
+                Aspect = aspect;
+            }
+            public bool IsValid => Group != null;
+        }
+
+        public SpriteBrush Brush(RenderLayer layer, Sprite sprite)
+        {
+            if (sprite == null) return default;
+            var rect = sprite.rect;
+            return new SpriteBrush(GetTexturedGroup(layers[(int)layer], sprite.texture), SpriteUv(sprite), rect.width / rect.height);
+        }
+
+        // Brush for any part of a texture (uv set per draw call).
+        public SpriteBrush Brush(RenderLayer layer, Texture texture) =>
+            texture == null ? default : new SpriteBrush(GetTexturedGroup(layers[(int)layer], texture), FullUv, 1f);
+
+        public void Draw(in SpriteBrush brush, Vector2 center, float height, Color tint, float flash = 0f, float sortY = float.NaN) =>
+            Add(brush.Group, center, new Vector2(height * brush.Aspect, height), tint, new Vector4(ShapeSprite, 0f, flash, 0f),
+                brush.Uv, float.IsNaN(sortY) ? center.y : sortY);
+
+        // Unrotated quad with its own uv (e.g. one digit of a damage number).
+        public void Draw(in SpriteBrush brush, Vector4 uv, Vector2 center, Vector2 size, Color tint) =>
+            Add(brush.Group, center, size, tint, new Vector4(ShapeSprite, 0f, 0f, 0f), uv, center.y);
+
+        // Rotated quad with its own uv (e.g. one piece of a shattered sprite). Negative size.y flips it vertically.
+        public void DrawRotated(in SpriteBrush brush, Vector4 uv, Vector2 center, Vector2 size, float angle, Color tint,
+            float flash = 0f)
+        {
+            if (!IsVisible(center, Mathf.Max(Mathf.Abs(size.x), Mathf.Abs(size.y)) * 0.5f)) return;
+            AddRotated(brush.Group, center, size, angle, tint, new Vector4(ShapeSprite, 0f, flash, 0f), uv, center.y);
         }
 
         // Stretched, rotated soft ellipse: bullet tracers, motion streaks.
