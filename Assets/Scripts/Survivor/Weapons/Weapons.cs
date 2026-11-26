@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace Survivor
 {
-    // Starting weapon: the pirate pistol the player holds. Aims at the nearest enemy and fires from the
+    // Starting weapon: the pirate pistol the player holds. Points where the hero walks (or at the nearest enemy,
+    // GunSettings.AimMode) and fires from the
     // muzzle with spread, recoil, muzzle flash, smoke and a little screen shake (all tuned in GunSettings).
     // Higher levels fire several bullets as a quick burst, one after another.
     public sealed class MagicBoltWeapon : Weapon
@@ -21,7 +22,7 @@ namespace Survivor
         float burstTimer;
 
         public override string Name => "Súng Hải Tặc";
-        public override string Description => "Súng kíp bắn vào kẻ địch gần nhất.";
+        public override string Description => "Súng kíp bắn theo hướng hero di chuyển.";
         public override Color Tint => new Color(0.5f, 0.8f, 1f);
         public override string NextLevelDescription => Level switch
         {
@@ -33,10 +34,20 @@ namespace Survivor
 
         public override void Tick(float dt, WeaponContext ctx)
         {
-            // Aim every frame at the nearest enemy (or where the player walks), so the gun visibly tracks targets.
-            ctx.Enemies.FindNearest(ctx.Player.Position, Range, 1, targets);
-            var hasTarget = targets.Count > 0;
-            var aim = hasTarget ? ctx.Enemies.Position[targets[0]] - ctx.Player.Position : ctx.Player.Facing;
+            // Aim mode (GunSettings): follow the walking direction, or track the nearest enemy every frame.
+            bool hasTarget;
+            Vector2 aim;
+            if (ctx.GunSettings.AimMode == GunAimMode.MoveDirection)
+            {
+                hasTarget = true;               // fires straight ahead whenever ready
+                aim = ctx.Player.Facing;        // last walking direction (kept while standing still)
+            }
+            else
+            {
+                ctx.Enemies.FindNearest(ctx.Player.Position, Range, 1, targets);
+                hasTarget = targets.Count > 0;
+                aim = hasTarget ? ctx.Enemies.Position[targets[0]] - ctx.Player.Position : ctx.Player.Facing;
+            }
             ctx.Gun.Tick(dt, aim);
 
             if (burstLeft > 0)

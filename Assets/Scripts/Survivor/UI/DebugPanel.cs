@@ -13,6 +13,7 @@ namespace Survivor
         readonly Player player;
         readonly EnemySystem enemies;
         readonly EnemySpawner spawner;
+        readonly SwarmSystem swarm;
         readonly PlayerProgress progress;
         readonly GameStats stats;
         readonly UpgradeService upgrades;
@@ -32,12 +33,14 @@ namespace Survivor
         public event Action<bool> Toggled;
 
         public DebugPanel(DebugSettings settings, Player player, EnemySystem enemies, EnemySpawner spawner,
-            PlayerProgress progress, GameStats stats, UpgradeService upgrades, PickupSystem pickups, AudioService audio, GemSystem gems, PlayerTuning tuning, HapticsService haptics)
+            PlayerProgress progress, GameStats stats, UpgradeService upgrades, PickupSystem pickups, AudioService audio, GemSystem gems, PlayerTuning tuning, HapticsService haptics,
+            SwarmSystem swarm)
         {
             this.settings = settings;
             this.player = player;
             this.enemies = enemies;
             this.spawner = spawner;
+            this.swarm = swarm;
             this.progress = progress;
             this.stats = stats;
             this.upgrades = upgrades;
@@ -73,7 +76,7 @@ namespace Survivor
             rt.anchorMin = rt.anchorMax = new Vector2(0f, 0f);
             rt.pivot = new Vector2(0f, 0f);
             rt.anchoredPosition = new Vector2(16, 70);
-            rt.sizeDelta = new Vector2(840, 810);
+            rt.sizeDelta = new Vector2(840, 870);
             panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f);
 
             // Left column: settings
@@ -86,7 +89,7 @@ namespace Survivor
             ToggleRow(rt, "Tắt tiếng", () => audio.Muted, v => audio.Muted = v, ref y);
             ToggleRow(rt, "Hiện tầm hút", () => settings.ShowPickupRange, v => settings.ShowPickupRange = v, ref y);
             ToggleRow(rt, "Hiện tầm nhìn đệ tử", () => settings.ShowCompanionRange, v => settings.ShowCompanionRange = v, ref y);
-            ToggleRow(rt, "Hiện vùng chém rái cá", () => settings.ShowAttackArea, v => settings.ShowAttackArea = v, ref y);
+            ToggleRow(rt, "Hiện vùng chém (rái cá, lợn)", () => settings.ShowAttackArea, v => settings.ShowAttackArea = v, ref y);
             StepperRow(rt, () => $"Tầm hút gốc: {tuning.MagnetRadius:0.00}",
                 step => tuning.MagnetRadius = Mathf.Max(0.25f, tuning.MagnetRadius + step * 0.25f), ref y);
             SpeedRow(rt, ref y);
@@ -107,6 +110,7 @@ namespace Survivor
             ActionRow(rt, "Full vũ khí cấp tối đa", upgrades.GiveAllWeaponsMaxed, ref y);
             ActionRow(rt, "Thả 1000 quái", () => spawner.SpawnBurst(1000), ref y);
             ActionRow(rt, "Gọi boss", spawner.SpawnBoss, ref y);
+            ActionRow(rt, "Gọi đàn quái bay", swarm.TriggerNow, ref y);
             ActionRow(rt, "Thử anim hút ngọc (F4)", () => gems.SpawnTestRing(20), ref y);
             ActionRow(rt, "Thả rương", () => pickups.Spawn(PickupKind.Chest, player.Position + new Vector2(1.5f, 0f)), ref y);
             ActionRow(rt, "Giết hết quái", enemies.KillAll, ref y);

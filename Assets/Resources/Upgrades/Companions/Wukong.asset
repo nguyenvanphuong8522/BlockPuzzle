@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31573ef325139fa4a9d67268c8d55516, type: 3}
+  m_Name: Wukong
+  m_EditorClassIdentifier: Survivor::Survivor.WukongData
+  Enabled: 1
+  DisplayName: "T\u1EC1 Thi\xEAn \u0110\u1EA1i Th\xE1nh"
+  Description: "H\u1EE2P TH\u1EC2 Kh\u1EC9 N\xE9m Chu\u1ED1i + R\xE1i C\xE1 Ki\u1EBFm
+    S\u0129: n\xE9m g\u1EADy nh\u01B0 \xFD kh\u1ED5ng l\u1ED3 xoay tr\xF2n 360\xB0,
+    bay ra qu\xE9t s\u1EA1ch r\u1ED3i bay v\u1EC1 tay."
+  LevelDescriptions:
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, g\u1EADy d\xE0i h\u01A1n."
+  - "N\xE9m 2 c\xE2y g\u1EADy m\u1ED7i l\u1EA7n."
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, g\u1EADy bay xa h\u01A1n."
+  - "N\xE9m 3 c\xE2y g\u1EADy, g\u1EADy d\xE0i nh\u1EA5t."
+  Tint: {r: 1, g: 0.78, b: 0.25, a: 1}
+  Icon: {fileID: 0}
+  SortOrder: 6
+  MaxLevel: 1
+  FusionOf:
+  - {fileID: 11400000, guid: a409da66352a09d41954a6528f0b3fed, type: 2}
+  - {fileID: 11400000, guid: 2328f00e16b10bc47bedbcafc4d82351, type: 2}
+  ConsumeIngredients: 1
+  Damage:
+  - 45
+  - 55
+  - 68
+  - 82
+  - 100
+  Staffs: 0100000001000000020000000200000003000000
+  Cooldown:
+  - 1.4
+  - 1.3
+  - 1.2
+  - 1.1
+  - 1
+  Range:
+  - 6
+  - 6.5
+  - 7
+  - 7.5
+  - 8
+  StaffLength:
+  - 2.4
+  - 2.6
+  - 2.8
+  - 3
+  - 3.4
+  HitRadiusScale: 0.9
+  SpinSpeed: 1080
+  ThrowSpeed: 13
+  ReturnSpeed: 15
+  SpinGhosts: 2
+  Knockback: 4
+  SpreadDegrees: 25
+  WaitForReturn: 1
+  CloneSkill: 1
+  CloneInterval: 15
+  CloneFirstDelay: 3
+  CloneCastTime: 1
+  CloneCount: 12
+  CloneMaxAlive: 16
+  CloneSummonGap: 0.18
+  CloneGapJitter: 0.6
+  CloneLandDistance: {x: 1.4, y: 3.2}
+  CloneAngleJitter: 30
+  CloneFlyTime: 0.38
+  CloneFlyHeight: 0.9
+  CloneFlyStartScale: 0.45
+  CloneFlyTrail: 2
+  CloneSmokeSize: 1.29
+  CloneLaunchSmokeScale: 0.55
+  CloneLandSmokeScale: 0.5
+  CloneSmokeTime: 0.65
+  CloneSmokePuffs: 5
+  CloneSmokeColor: {r: 1, g: 1, b: 1, a: 1}
+  CloneAppearTime: 0.3
+  ClonePoofPitch: 2.22
+  BarWidth: 0.8
+  BarHeight: 0.09
+  BarOffsetY: -0.12
+  BarOutline: 0.02
+  BarColor: {r: 1, g: 0.55, b: 0.2, a: 1}
+  BarBackground: {r: 0.15, g: 0.15, b: 0.15, a: 0.85}
+  BarReadyColor: {r: 1, g: 0.95, b: 0.6, a: 1}
+  CloneHp: 100
+  CloneAttackHpCost: 20
+  CloneDamage:
+  - 18
+  - 22
+  - 27
+  - 33
+  - 40
+  CloneAttackInterval: 0.6
+  CloneAttackRange: 0.9
+  CloneAttackRadius: 1.2
+  CloneStaffLength: 1.6
+  CloneSpinTime: 0.3
+  CloneKnockback: 3
+  CloneMoveSpeed: 5.5
+  CloneSightRange: 7
+  CloneWanderRadius: 3
+  CloneWanderInterval: 1.6
+  CloneWanderSpeedScale: 0.6
+  CloneLifetime: 20
+  CloneScale: 1
+  CloneTint: {r: 1, g: 1, b: 1, a: 1}
+  CloneHpBar: 1
+  CloneHpBarColor: {r: 1, g: 0.8, b: 0.25, a: 1}
+  CloneHpBarBackground: {r: 0, g: 0, b: 0, a: 0.6}
+  ShowPlumes: 1
+  PlumeLength: 0.8
+  PlumeThickness: 1.4
+  FrontPlumeAngle: 72
+  BackPlumeAngle: 112
+  PlumeBase: {x: 0.156, y: 0.242}
+  PlumeSwayDegrees: 9
+  PlumeSwaySpeed: 3
+  PlumeThrowSwing: 14
+  PlumeTint: {r: 1, g: 1, b: 1, a: 1}
+  SightRange: 9
+  BodyScale: 1.15

@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7417f10ae6bdc8242b0749956c403e43, type: 3}
+  m_Name: Gunner
+  m_EditorClassIdentifier: Survivor::Survivor.GunnerData
+  Enabled: 1
+  DisplayName: "X\u1EA1 Th\u1EE7 Nh\xED"
+  Description: "C\u1EA7m s\xFAng ti\u1EC3u li\xEAn, b\u1EAFn li\xEAn t\u1EE5c v\xE0o
+    k\u1EBB \u0111\u1ECBch g\u1EA7n nh\u1EA5t (0,14 gi\xE2y m\u1ED9t vi\xEAn)."
+  LevelDescriptions:
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, b\u1EAFn xa h\u01A1n."
+  - "\u0110\u1EA1n xuy\xEAn qua 1 k\u1EBB \u0111\u1ECBch."
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, b\u1EAFn ch\u1EE5m h\u01A1n."
+  - "\u0110\u1EA1n xuy\xEAn qua 2 k\u1EBB \u0111\u1ECBch, s\xE1t th\u01B0\u01A1ng
+    cao nh\u1EA5t."
+  Tint: {r: 0.45, g: 0.65, b: 1, a: 1}
+  Icon: {fileID: 0}
+  SortOrder: 3
+  Damage:
+  - 3
+  - 4
+  - 5
+  - 7
+  - 9
+  Range:
+  - 6
+  - 6.5
+  - 7
+  - 7.5
+  - 8
+  Pierce: 0000000000000000010000000100000002000000
+  SpreadDegrees:
+  - 8
+  - 7
+  - 6
+  - 5
+  - 4
+  FireInterval: 0.14
+  BulletSpeed: 16
+  TracerColor: {r: 1, g: 0.9, b: 0.5, a: 0.85}

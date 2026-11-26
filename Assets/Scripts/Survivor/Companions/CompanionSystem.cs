@@ -47,6 +47,36 @@ namespace Survivor
             context.Effects.Ring(companion.Position, 0.9f, companion.Tint, 0.35f); // "summon" pop
         }
 
+        // Fusion: `replacement` takes the place (slot) of `old`, which leaves.
+        public void Replace(Companion old, Companion replacement)
+        {
+            var i = companions.IndexOf(old);
+            if (i < 0)
+            {
+                Add(replacement);
+                return;
+            }
+            context.Boomerangs.RemoveOwnedBy(old);
+            replacement.Slot = i;
+            companions[i] = replacement;
+            replacement.Home = context.Player.Position + offsets[i];
+            replacement.Position = replacement.Home;
+            context.Effects.Ring(replacement.Position, 1.3f, replacement.Tint, 0.45f);
+            context.Effects.Burst(replacement.Position, 1.0f, replacement.Tint, 0.35f);
+        }
+
+        // A companion leaves (used up by a fusion); the rest close the gap.
+        public void Remove(Companion companion)
+        {
+            var i = companions.IndexOf(companion);
+            if (i < 0) return;
+            context.Boomerangs.RemoveOwnedBy(companion);
+            context.Effects.Ring(companion.Position, 0.9f, companion.Tint, 0.35f);
+            companions.RemoveAt(i);
+            offsets.RemoveAt(i);
+            for (var k = 0; k < companions.Count; k++) companions[k].Slot = k;
+        }
+
         // Evenly spaced on the circle, starting straight above the hero.
         Vector2 TargetOffset(int slot)
         {

@@ -2,12 +2,21 @@ using UnityEngine;
 
 namespace Survivor
 {
+    public enum GunAimMode
+    {
+        [InspectorName("Theo hướng di chuyển")] MoveDirection,
+        [InspectorName("Tự ngắm kẻ địch gần nhất")] NearestEnemy,
+    }
+
     // Feel of the player's gun (the starting weapon). Edit Assets/Resources/GunSettings.asset in the
     // Inspector while playing: every value applies immediately.
     [CreateAssetMenu(menuName = "Survivor/Gun Settings", fileName = "GunSettings")]
     public sealed class GunSettings : ScriptableObject
     {
         [Header("Cầm súng")]
+        [Tooltip("Theo hướng di chuyển = the gun points where the hero walks (standing still keeps the last direction) and fires " +
+                 "whenever it is ready. Tự ngắm = it turns to the nearest enemy and only fires when one is in range.")]
+        public GunAimMode AimMode = GunAimMode.MoveDirection;
         [Tooltip("Gun sprite height in world units.")]
         [Min(0.05f)] public float GunSize = 0.55f;
         [Tooltip("Distance from the player's center to the gun.")]

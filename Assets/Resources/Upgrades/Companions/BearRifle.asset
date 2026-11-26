@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08f86cf137b340b4bb3cdbfbd5047f79, type: 3}
+  m_Name: BearRifle
+  m_EditorClassIdentifier: Survivor::Survivor.BearRifleData
+  Enabled: 1
+  DisplayName: "G\u1EA5u S\xFAng S\u0103n"
+  Description: "S\xFAng tr\u01B0\u1EDDng to, s\xE1t th\u01B0\u01A1ng l\u1EDBn, \u0111\u1EA1n
+    xuy\xEAn: b\u1EAFn 8 ph\xE1t (0,34 gi\xE2y m\u1ED9t ph\xE1t) r\u1ED3i n\u1EA1p
+    \u0111\u1EA1n 2 gi\xE2y."
+  LevelDescriptions:
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, b\u1EAFn xa h\u01A1n."
+  - "\u0110\u1EA1n xuy\xEAn qua th\xEAm 1 k\u1EBB \u0111\u1ECBch."
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, b\u1EAFn xa h\u01A1n."
+  - "\u0110\u1EA1n xuy\xEAn 3 k\u1EBB \u0111\u1ECBch, s\xE1t th\u01B0\u01A1ng cao
+    nh\u1EA5t."
+  Tint: {r: 1, g: 0.6, b: 0.25, a: 1}
+  Icon: {fileID: 0}
+  SortOrder: 7
+  MaxLevel: 5
+  FusionOf: []
+  ConsumeIngredients: 1
+  Damage:
+  - 26
+  - 33
+  - 42
+  - 54
+  - 70
+  Range:
+  - 7
+  - 7.5
+  - 8
+  - 8.5
+  - 9
+  Pierce: 0100000001000000020000000200000003000000
+  MagazineSize: 8
+  ShotInterval: 0.34
+  ReloadTime: 2
+  IdleReloadDelay: 1.5
+  BulletSpeed: 22
+  BulletRadius: 0.15
+  SpreadDegrees: 2
+  Knockback: 4.5
+  TracerColor: {r: 1, g: 0.75, b: 0.35, a: 0.95}
+  GunSize: 0.34
+  Recoil: 0.12
+  FlashSize: 0.42
+  BarWidth: 0.8
+  BarHeight: 0.09
+  BarOffsetY: -0.12
+  BarOutline: 0.02
+  AmmoColor: {r: 1, g: 0.8, b: 0.3, a: 1}
+  ReloadColor: {r: 0.5, g: 0.85, b: 1, a: 1}
+  BarBackground: {r: 0.15, g: 0.15, b: 0.15, a: 0.85}

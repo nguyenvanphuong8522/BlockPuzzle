@@ -22,6 +22,9 @@ namespace Survivor
         readonly PickupSystem pickups;
         readonly EffectSystem effects;
         readonly DamageNumberSystem damageNumbers;
+        readonly FloatingTextSystem floatingText;
+        readonly BossSkillSystem bossSkills;
+        readonly SwarmSystem swarm;
         readonly WeaponSystem weapons;
         readonly CompanionSystem companions;
         readonly BoomerangSystem boomerangs;
@@ -65,9 +68,12 @@ namespace Survivor
             BoomerangSystem boomerangs, UpgradeService upgrades,
             PlayerProgress progress, GameStats stats, HudView hud, DebugPanel debugPanel, PopupController popups, DebugSettings debug,
             InstancedRenderer renderer, AudioService audio, DecorationSystem decorations, SpriteCatalog sprites, CameraShake shake, HapticsService haptics,
-            BossArenaSystem arena)
+            BossArenaSystem arena, FloatingTextSystem floatingText, BossSkillSystem bossSkills, SwarmSystem swarm)
         {
             this.arena = arena;
+            this.floatingText = floatingText;
+            this.bossSkills = bossSkills;
+            this.swarm = swarm;
             this.config = config;
             this.input = input;
             this.player = player;
@@ -150,11 +156,13 @@ namespace Survivor
             var start = Time.realtimeSinceStartup;
             // Cap the step after a hitch (scaled, so the x2 / x4 debug speed still works).
             var dt = Mathf.Min(Time.deltaTime, Mathf.Max(1f, Time.timeScale) / 20f);
-            stats.Elapsed += dt;
+            if (enemies.BossIndex < 0) stats.Elapsed += dt; // the clock stops during a boss fight
 
             player.Tick(input.Move, dt);
             spawner.Tick(dt);
+            swarm.Tick(dt);          // swarm event: warning, then a flock flying across the hero
             enemies.Tick(dt);
+            bossSkills.Tick(dt);     // boss dash / bullet burst (before the arena, so the wall stops a dash)
             arena.Tick(dt);          // boss arena: wall, keeps hero and boss inside
             weapons.Tick(dt);
             companions.Tick(dt);
@@ -165,6 +173,7 @@ namespace Survivor
             pickups.Tick(dt);
             effects.Tick(dt);
             damageNumbers.Tick(dt);
+            floatingText.Tick(dt);
             simulationMs = (Time.realtimeSinceStartup - start) * 1000f;
 
             hud.SetTime(stats.Elapsed);
@@ -190,6 +199,7 @@ namespace Survivor
             pickups.Draw(renderer);
             enemies.Draw(renderer);
             arena.Draw(renderer);
+            bossSkills.Draw(renderer);
             projectiles.Draw(renderer);
             weapons.Draw(renderer);
             companions.Draw(renderer);
@@ -198,9 +208,14 @@ namespace Survivor
             effects.Draw(renderer);
             damageNumbers.Draw(renderer);
             renderer.Flush();
+            floatingText.Draw(camera);
             renderMs = (Time.realtimeSinceStartup - start) * 1000f;
 
             hud.SetBoss(enemies.BossName, enemies.BossIndex >= 0 ? enemies.BossHpRatio : -1f);
+            // Countdown to the next boss under the XP bar (+ warning banner), hidden during the fight.
+            var nextBoss = spawner.NextBossTime;
+            hud.SetBossCountdown(enemies.BossIndex >= 0 || nextBoss < 0f ? -1f : nextBoss - stats.Elapsed);
+            hud.SetSwarmWarning(swarm.WarningActive, swarm.WarningDirection, swarm.WarningProgress);
             UpdateDebugText();
         }
 
@@ -209,12 +224,17 @@ namespace Survivor
         {
             state = State.Choosing;
             choosingForChest = forChest;
-            options = upgrades.Roll(3);
+            // Level-ups alternate between companions and items (every Nth one, PlayerTuning "Lên cấp: đệ tử / đồ").
+            var levelUpNumber = progress.LevelUpsChosen + 1;
+            var items = !forChest && upgrades.IsItemLevelUp(levelUpNumber);
+            options = forChest ? upgrades.Roll(3) : upgrades.RollLevelUp(levelUpNumber, 3);
             if (!forChest) audio.Play(Sfx.LevelUp, 1f, 0f);
             hud.ReleaseJoystick();
             popups.Show<LevelUpPopup>(new LevelUpData
             {
-                Title = forChest ? "RƯƠNG BÁU!" : "LÊN CẤP!", Options = options, OnPick = ChooseUpgrade
+                Title = forChest ? "RƯƠNG BÁU!" : items ? "CHỌN ĐỒ!" : "CHỌN ĐỆ TỬ!",
+                Kind = forChest ? ChoiceKind.Chest : items ? ChoiceKind.Item : ChoiceKind.Companion,
+                Options = options, OnPick = ChooseUpgrade
             });
             selectedCard = 0;
             menuOpenedAt = Time.unscaledTime;
@@ -286,7 +306,11 @@ namespace Survivor
             options[index].Apply();
             audio.Play(Sfx.Click, 1f, 0f, 0f);
             if (choosingForChest) progress.PendingChests--;
-            else progress.PendingLevelUps--;
+            else
+            {
+                progress.PendingLevelUps--;
+                progress.LevelUpsChosen++;
+            }
             popups.Dismiss<LevelUpPopup>();
             state = State.Playing; // anything else pending reopens the panel next frame
         }

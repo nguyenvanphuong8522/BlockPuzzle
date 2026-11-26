@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd0b64e710a617242b1319c9ad4058c6, type: 3}
+  m_Name: Cowboy
+  m_EditorClassIdentifier: Survivor::Survivor.CowboyData
+  Enabled: 1
+  DisplayName: "Cao B\u1ED3i S\xFAng M\xE1y"
+  Description: "H\u1EE2P TH\u1EC2 G\u1EA5u S\xFAng S\u0103n + X\u1EA1 Th\u1EE7 Nh\xED:
+    s\xFAng m\xE1y 6 n\xF2ng kh\u1ED5ng l\u1ED3, quay n\xF2ng r\u1ED3i x\u1EA3 \u0111\u1EA1n
+    li\xEAn t\u1EE5c, s\xE1t th\u01B0\u01A1ng l\u1EDBn."
+  LevelDescriptions: []
+  Tint: {r: 0.95, g: 0.7, b: 0.35, a: 1}
+  Icon: {fileID: 0}
+  SortOrder: 8
+  MaxLevel: 1
+  FusionOf:
+  - {fileID: 11400000, guid: a2cb306c9f77aca4f9e146e02ca81c07, type: 2}
+  - {fileID: 11400000, guid: c4c7f8673cbf70745997a60c091cf938, type: 2}
+  ConsumeIngredients: 1
+  Damage: 18
+  FireInterval: 0.05
+  Range: 9
+  Pierce: 2
+  SpreadDegrees: 6
+  SpinUpTime: 0.45
+  SpinDownTime: 1.2
+  BarrelSpinFps: 36
+  AimTurnSpeed: 540
+  BulletSpeed: 22
+  BulletRadius: 0.12
+  Knockback: 2.5
+  TracerColor: {r: 1, g: 0.85, b: 0.4, a: 0.9}
+  GunSize: 0.62
+  Recoil: 0.05
+  FlashSize: 0.5
+  BodyScale: 1.15
+  SoundPitch: 0.75

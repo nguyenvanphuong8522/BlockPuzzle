@@ -21,6 +21,7 @@ namespace Survivor
         float[] damage = new float[128];
         float[] life = new float[128];
         float[] radius = new float[128];
+        float[] knock = new float[128];
         int[] pierce = new int[128];
         Color[] color = new Color[128];
         int[] hitIds = new int[128 * HitSlots];
@@ -35,7 +36,7 @@ namespace Survivor
         }
 
         public void Spawn(Vector2 from, Vector2 direction, float speed, float damageAmount, float lifetime,
-            float hitRadius, int pierceCount, Color tint)
+            float hitRadius, int pierceCount, Color tint, float knockback = 2f)
         {
             if (count == position.Length) Grow();
             var i = count++;
@@ -44,6 +45,7 @@ namespace Survivor
             damage[i] = damageAmount;
             life[i] = lifetime;
             radius[i] = hitRadius;
+            knock[i] = knockback;
             pierce[i] = pierceCount;
             color[i] = tint;
             for (var s = 0; s < HitSlots; s++) hitIds[i * HitSlots + s] = 0;
@@ -65,7 +67,7 @@ namespace Survivor
                 foreach (var e in hits)
                 {
                     if (AlreadyHit(i, enemies.Id[e])) continue;
-                    enemies.Damage(e, damage[i], velocity[i].normalized, 2f);
+                    enemies.Damage(e, damage[i], velocity[i].normalized, knock[i]);
                     RememberHit(i, enemies.Id[e]);
                     if (--pierce[i] < 0) break;
                 }
@@ -95,6 +97,7 @@ namespace Survivor
             damage[i] = damage[last];
             life[i] = life[last];
             radius[i] = radius[last];
+            knock[i] = knock[last];
             pierce[i] = pierce[last];
             color[i] = color[last];
             for (var s = 0; s < HitSlots; s++) hitIds[i * HitSlots + s] = hitIds[last * HitSlots + s];
@@ -126,6 +129,7 @@ namespace Survivor
             Array.Resize(ref damage, size);
             Array.Resize(ref life, size);
             Array.Resize(ref radius, size);
+            Array.Resize(ref knock, size);
             Array.Resize(ref pierce, size);
             Array.Resize(ref color, size);
             Array.Resize(ref hitIds, size * HitSlots);

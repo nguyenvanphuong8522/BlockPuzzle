@@ -46,6 +46,28 @@ namespace Survivor
         public Sprite Banana;
         [Tooltip("Frames 0-3 idle, 4 dash, 5 slash, 6 blink")]
         public SpriteAnim Otter = new SpriteAnim();
+        public SpriteAnim Pig = new SpriteAnim();
+        [Tooltip("Monkey king: 0-3 idle, 4 throw, 5 blink, 6 waiting for the staff")]
+        public SpriteAnim Wukong = new SpriteAnim();
+        [Tooltip("Pheasant plume on the monkey king's crown (base at the left edge), swayed by the game")]
+        public Sprite Plume;
+        public Sprite Staff;
+        [Tooltip("Level stars on the upgrade cards (white, tinted by the UI)")]
+        public Sprite Star;
+        [Tooltip("Bear hunter: 0-3 idle, 4 blink, 5 reloading (the rifle is drawn separately)")]
+        public SpriteAnim Bear = new SpriteAnim();
+        public Sprite Rifle;
+        [Tooltip("Cowboy: 0-3 idle, 4 blink (the gatling is drawn separately)")]
+        public SpriteAnim Cowboy = new SpriteAnim();
+        [Tooltip("Six-barrel gatling, frames cycled to spin the barrels")]
+        public SpriteAnim Gatling = new SpriteAnim();
+        [Tooltip("Monk: 0 chanting, 1 mouth closed, 2 striking the wooden fish")]
+        public SpriteAnim Monk = new SpriteAnim();
+        [Tooltip("Drunkard: 0-3 drunken wobble, 4 throw, 5 hiccup")]
+        public SpriteAnim Drunk = new SpriteAnim();
+        public Sprite FireBottle;
+        [Tooltip("Flame (base at the bottom), frames cycled to flicker")]
+        public SpriteAnim Fire = new SpriteAnim();
         [Tooltip("120-degree slash arc pointing right: swing start, full arc, fading")]
         public SpriteAnim Slash = new SpriteAnim();
         [Tooltip("Frames 0-3 idle, 4 cast, 5 blink")]
@@ -63,6 +85,8 @@ namespace Survivor
         public Sprite BarbedFence;
         [Tooltip("Heal effect: plus sign that floats up around the hero")]
         public Sprite HealPlus;
+        // Level-up card icons (items) and the round backdrop behind every card icon.
+        public Sprite ItemShoes, ItemMagnet, ItemHeart, ItemSword, ItemRegen, ItemArmor, IconRing;
 
         [Header("Pickups")]
         public Sprite Gem;

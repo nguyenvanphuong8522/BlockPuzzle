@@ -47,6 +47,9 @@ namespace Survivor
         {
             hurtTimer -= dt;
             HurtFlash -= dt;
+            // Regeneration (Bình Hồi Phục item): quiet heal, no plus-sign effect.
+            if (Stats.HpRegen > 0f && !IsDead && Hp.Value < Stats.MaxHp)
+                Hp.Value = Mathf.Min(Stats.MaxHp, Hp.Value + Stats.HpRegen * dt);
             IsMoving = move.sqrMagnitude >= 0.0001f;
             if (!IsMoving) return;
             if (move.sqrMagnitude > 1f) move.Normalize();
@@ -58,6 +61,9 @@ namespace Survivor
         public void TryHurt(float damage)
         {
             if (hurtTimer > 0f || IsDead) return;
+            // Armor (Giáp item): takes less damage, never below 1 so a hit always counts.
+            var reduction = Mathf.Clamp(Stats.DamageReduction, 0f, Stats.DamageReductionCap);
+            damage = Mathf.Max(1f, damage * (1f - reduction));
             hurtTimer = hurtCooldown;
             HurtFlash = 0.12f;
             audio.Play(Sfx.Hurt, 0.6f, 0.08f, 0.2f);

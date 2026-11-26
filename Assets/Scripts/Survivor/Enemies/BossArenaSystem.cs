@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Survivor
 {
     // Boss fight arena. When a boss appears:
-    //   - a square wall closes in around the hero (size etc. in PlayerTuning, "Đấu boss")
+    //   - a rectangular wall closes in around the hero (width / height etc. in PlayerTuning, "Đấu boss")
     //   - the boss is brought inside, every other enemy shatters and vanishes (no rewards), normal spawning stops
     //   - the hero and the boss can't leave; touching the wall hurts the hero and pushes them back in
     // When the boss dies the wall disappears and spawning resumes (its experience drops as a trail, see GemSystem.SpawnTrail).
@@ -23,11 +23,12 @@ namespace Survivor
         Vector2 center;
         float age;
         float fadeOut = -1f;              // >= 0 while the wall fades away after the boss died
-        float wallSizeAtEnd;
+        Vector2 wallSizeAtEnd;
 
         public bool Active { get; private set; }
         public Vector2 Center => center;
-        public float HalfSize => tuning.BossArenaSize * 0.5f;
+        public Vector2 Size => new Vector2(tuning.BossArenaWidth, tuning.BossArenaHeight);
+        public Vector2 Half => Size * 0.5f;
 
         public BossArenaSystem(EnemySystem enemies, EnemySpawner spawner, Player player, PlayerTuning tuning,
             EffectSystem effects, CameraShake shake, SpriteCatalog sprites)
@@ -76,7 +77,7 @@ namespace Survivor
 
             // Bring the boss inside, in the upper part of the arena.
             var b = enemies.BossIndex;
-            var inside = HalfSize - enemies.Radius[b] - 0.5f;
+            var inside = Half.y - enemies.Radius[b] - 0.5f;
             enemies.Position[b] = center + new Vector2(0f, Mathf.Max(0f, inside * 0.7f));
             effects.Ring(enemies.Position[b], enemies.Radius[b] * 2.5f, new Color(1f, 0.3f, 0.2f), 0.5f);
             shake.Add(0.4f);
@@ -87,33 +88,36 @@ namespace Survivor
             Active = false;
             spawner.Paused = false;
             fadeOut = 0f;
-            wallSizeAtEnd = tuning.BossArenaSize;
+            wallSizeAtEnd = Size;
         }
 
         void KeepBossInside()
         {
             var b = enemies.BossIndex;
-            var limit = Mathf.Max(0f, HalfSize - enemies.Radius[b]);
+            var half = Half;
+            var r = enemies.Radius[b];
+            var lx = Mathf.Max(0f, half.x - r);
+            var ly = Mathf.Max(0f, half.y - r);
             var p = enemies.Position[b];
-            p.x = Mathf.Clamp(p.x, center.x - limit, center.x + limit);
-            p.y = Mathf.Clamp(p.y, center.y - limit, center.y + limit);
+            p.x = Mathf.Clamp(p.x, center.x - lx, center.x + lx);
+            p.y = Mathf.Clamp(p.y, center.y - ly, center.y + ly);
             enemies.Position[b] = p;
         }
 
         // The hero's center can't pass the wall line. Touching the line (body overlapping it) hurts and pushes inward.
         void KeepHeroInside()
         {
-            var half = HalfSize;
+            var half = Half;
             var r = player.Radius;
             var p = player.Position;
-            p.x = Mathf.Clamp(p.x, center.x - half, center.x + half);
-            p.y = Mathf.Clamp(p.y, center.y - half, center.y + half);
+            p.x = Mathf.Clamp(p.x, center.x - half.x, center.x + half.x);
+            p.y = Mathf.Clamp(p.y, center.y - half.y, center.y + half.y);
 
             var push = Vector2.zero;
-            if (p.x - r < center.x - half) push.x += 1f;
-            if (p.x + r > center.x + half) push.x -= 1f;
-            if (p.y - r < center.y - half) push.y += 1f;
-            if (p.y + r > center.y + half) push.y -= 1f;
+            if (p.x - r < center.x - half.x) push.x += 1f;
+            if (p.x + r > center.x + half.x) push.x -= 1f;
+            if (p.y - r < center.y - half.y) push.y += 1f;
+            if (p.y + r > center.y + half.y) push.y -= 1f;
             if (push != Vector2.zero)
             {
                 player.TryHurt(tuning.BossArenaWallDamage); // has its own short invulnerability, so it ticks, not drains
@@ -125,11 +129,12 @@ namespace Survivor
 
         public void Draw(InstancedRenderer renderer)
         {
-            float size, alpha;
+            Vector2 size;
+            float alpha;
             if (Active)
             {
                 var k = Mathf.Clamp01(age / CloseInTime);
-                size = tuning.BossArenaSize * Mathf.Lerp(1.4f, 1f, 1f - (1f - k) * (1f - k)); // ease-out close-in
+                size = Size * Mathf.Lerp(1.4f, 1f, 1f - (1f - k) * (1f - k)); // ease-out close-in
                 alpha = k;
             }
             else if (fadeOut >= 0f && fadeOut < FadeOutTime)
@@ -148,45 +153,52 @@ namespace Survivor
             var fence = sprites.BarbedFence;
             var lineLayer = fence != null ? RenderLayer.Shadows : RenderLayer.Overlay;
             // Four sides (the top/bottom ones run past the corners so they close neatly).
-            renderer.Rect(lineLayer, center + new Vector2(0f, h), new Vector2(size + t, t), color);
-            renderer.Rect(lineLayer, center - new Vector2(0f, h), new Vector2(size + t, t), color);
-            renderer.Rect(lineLayer, center + new Vector2(h, 0f), new Vector2(t, size - t), color);
-            renderer.Rect(lineLayer, center - new Vector2(h, 0f), new Vector2(t, size - t), color);
+            renderer.Rect(lineLayer, center + new Vector2(0f, h.y), new Vector2(size.x + t, t), color);
+            renderer.Rect(lineLayer, center - new Vector2(0f, h.y), new Vector2(size.x + t, t), color);
+            renderer.Rect(lineLayer, center + new Vector2(h.x, 0f), new Vector2(t, size.y - t), color);
+            renderer.Rect(lineLayer, center - new Vector2(h.x, 0f), new Vector2(t, size.y - t), color);
             // Faint tint of the floor inside, so the arena reads as a zone.
             var fill = color;
             fill.a *= 0.08f;
-            renderer.Rect(RenderLayer.Shadows, center, new Vector2(size, size), fill);
+            renderer.Rect(RenderLayer.Shadows, center, size, fill);
 
             if (fence != null) DrawFence(renderer, fence, size, alpha);
         }
 
         // Barbed-wire fence along the four sides: whole segments per side, plus a post closing each corner.
         // Top and bottom are seen from the front; left and right are the same art turned 90 degrees.
-        void DrawFence(InstancedRenderer renderer, Sprite fence, float size, float alpha)
+        void DrawFence(InstancedRenderer renderer, Sprite fence, Vector2 size, float alpha)
         {
             var brush = renderer.Brush(RenderLayer.Effects, fence);
             var height = tuning.BossArenaFenceHeight;
-            var n = Mathf.Max(1, Mathf.RoundToInt(size / tuning.BossArenaFenceSegment));
-            var seg = size / n;
             var tint = tuning.BossArenaFenceTint;
             tint.a *= alpha;
             var h = size * 0.5f;
-            // Just the post (left 36 of 256 px of the art), for the far end of each side.
             var uv = brush.Uv;
-            var postUv = new Vector4(uv.x, uv.y, uv.z * 36f / 256f, uv.w);
-            var postWidth = seg * 36f / 256f;
+            var postUv = new Vector4(uv.x, uv.y, uv.z * 36f / 256f, uv.w); // just the post (left 36 of 256 px of the art)
             var lift = height * 0.4f; // the posts stand on the wall line
 
-            for (var k = 0; k < n; k++)
+            // Top and bottom: split the width into whole segments.
+            var nx = Mathf.Max(1, Mathf.RoundToInt(size.x / tuning.BossArenaFenceSegment));
+            var segX = size.x / nx;
+            for (var k = 0; k < nx; k++)
             {
-                var along = -h + seg * (k + 0.5f);
-                renderer.DrawRotated(brush, uv, center + new Vector2(along, h + lift), new Vector2(seg, height), 0f, tint);   // top
-                renderer.DrawRotated(brush, uv, center + new Vector2(along, -h + lift), new Vector2(seg, height), 0f, tint);  // bottom
-                renderer.DrawRotated(brush, uv, center + new Vector2(-h, along), new Vector2(seg, height), Mathf.PI * 0.5f, tint); // left
-                renderer.DrawRotated(brush, uv, center + new Vector2(h, along), new Vector2(seg, height), Mathf.PI * 0.5f, tint);  // right
+                var along = -h.x + segX * (k + 0.5f);
+                renderer.DrawRotated(brush, uv, center + new Vector2(along, h.y + lift), new Vector2(segX, height), 0f, tint);
+                renderer.DrawRotated(brush, uv, center + new Vector2(along, -h.y + lift), new Vector2(segX, height), 0f, tint);
             }
-            renderer.DrawRotated(brush, postUv, center + new Vector2(h + postWidth * 0.5f, h + lift), new Vector2(postWidth, height), 0f, tint);
-            renderer.DrawRotated(brush, postUv, center + new Vector2(h + postWidth * 0.5f, -h + lift), new Vector2(postWidth, height), 0f, tint);
+            // Left and right: split the height into whole segments.
+            var ny = Mathf.Max(1, Mathf.RoundToInt(size.y / tuning.BossArenaFenceSegment));
+            var segY = size.y / ny;
+            for (var k = 0; k < ny; k++)
+            {
+                var along = -h.y + segY * (k + 0.5f);
+                renderer.DrawRotated(brush, uv, center + new Vector2(-h.x, along), new Vector2(segY, height), Mathf.PI * 0.5f, tint);
+                renderer.DrawRotated(brush, uv, center + new Vector2(h.x, along), new Vector2(segY, height), Mathf.PI * 0.5f, tint);
+            }
+            var postWidth = segX * 36f / 256f;
+            renderer.DrawRotated(brush, postUv, center + new Vector2(h.x + postWidth * 0.5f, h.y + lift), new Vector2(postWidth, height), 0f, tint);
+            renderer.DrawRotated(brush, postUv, center + new Vector2(h.x + postWidth * 0.5f, -h.y + lift), new Vector2(postWidth, height), 0f, tint);
         }
     }
 }

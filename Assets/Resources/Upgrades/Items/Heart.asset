@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 789d7746b3ea4af45974cfb462925778, type: 3}
+  m_Name: Heart
+  m_EditorClassIdentifier: Survivor::Survivor.ItemData
+  Enabled: 1
+  DisplayName: "Tr\xE1i Tim"
+  Description: "T\u0103ng {0} m\xE1u t\u1ED1i \u0111a v\xE0 h\u1ED3i ngay {0} m\xE1u."
+  Icon: {fileID: 21300000, guid: de91a6789fc3a1b438afc20ffa7f739c, type: 3}
+  Tint: {r: 1, g: 0.42, b: 0.55, a: 1}
+  SortOrder: 2
+  Stat: 2
+  AmountPerPick: 20
+  MaxPicks: 5
+  Cap: 0.3

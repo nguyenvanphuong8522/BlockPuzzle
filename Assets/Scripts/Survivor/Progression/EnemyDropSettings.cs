@@ -40,6 +40,16 @@ namespace Survivor
 
         public Entry[] Enemies = new Entry[0];
 
+        [Header("Kích thước đồ rơi trên đất")]
+        [Tooltip("Height of the drumstick (heal) on the ground, world units. Was 0.6.")]
+        [Min(0.1f)] public float HealSize = 0.95f;
+        [Tooltip("Height of the magnet on the ground, world units. Was 0.6.")]
+        [Min(0.1f)] public float MagnetSize = 0.9f;
+        [Tooltip("Height of the chest on the ground, world units.")]
+        [Min(0.1f)] public float ChestSize = 0.9f;
+        [Tooltip("How far a drop is picked up from (added to the hero's radius).")]
+        [Min(0f)] public float PickupRadius = 0.45f;
+
         public Reward[] RewardsFor(int type) =>
             type >= 0 && type < Enemies.Length && Enemies[type] != null ? Enemies[type].Rewards : Array.Empty<Reward>();
 

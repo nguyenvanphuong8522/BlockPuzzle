@@ -20,6 +20,9 @@ namespace Survivor
         // True during a boss fight: no normal enemies or hordes (boss times still count).
         public bool Paused { get; set; }
 
+        // Elapsed time at which the next boss appears, -1 = no boss left.
+        public float NextBossTime => nextBoss < config.BossTimes.Length ? config.BossTimes[nextBoss] : -1f;
+
         public EnemySpawner(GameConfig config, EnemySystem enemies, Player player, GameStats stats, AudioService audio,
             PlayerTuning tuning)
         {

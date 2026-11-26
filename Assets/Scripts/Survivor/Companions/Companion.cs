@@ -14,12 +14,14 @@ namespace Survivor
         public readonly CameraShake Shake;
         public readonly ProjectileSystem Projectiles;
         public readonly PlayerTuning Tuning; // live-tunable values (Assets/Resources/PlayerTuning.asset)
+        public readonly FloatingTextSystem FloatingText; // texts over the hero's head
 
         public CompanionContext(Player player, EnemySystem enemies, BoomerangSystem boomerangs, EffectSystem effects,
             AudioService audio, SpriteCatalog sprites, CameraShake shake, ProjectileSystem projectiles,
-            PlayerTuning tuning)
+            PlayerTuning tuning, FloatingTextSystem floatingText)
         {
             Tuning = tuning;
+            FloatingText = floatingText;
             Projectiles = projectiles;
             Shake = shake;
             Player = player;
@@ -38,7 +40,7 @@ namespace Survivor
         public const int MaxLevel = 5;
 
         public int Level { get; private set; } = 1;
-        public bool IsMaxLevel => Level >= MaxLevel;
+        public bool IsMaxLevel => Level >= Mathf.Clamp(Data.MaxLevel, 1, MaxLevel); // per companion, set in its asset
         public int Slot { get; internal set; }
         public Vector2 Position { get; protected internal set; }
 
@@ -48,12 +50,17 @@ namespace Survivor
         // True = glued to Home (default). A companion that runs off to attack returns false while it is away.
         public virtual bool StaysHome => true;
 
-        public abstract string Name { get; }
-        public abstract string Description { get; }
-        public abstract Color Tint { get; }
+        // Card text, color and every number come from this asset (Assets/Resources/Upgrades/Companions).
+        public CompanionData Data { get; }
+
+        protected Companion(CompanionData data) => Data = data;
+
+        public string Name => Data.DisplayName;
+        public string Description => Data.Description;
+        public Color Tint => Data.Tint;
 
         // Text on the upgrade card for the next level.
-        public abstract string NextLevelDescription { get; }
+        public string NextLevelDescription => Data.LevelText(Level + 1);
 
         public void LevelUp()
         {

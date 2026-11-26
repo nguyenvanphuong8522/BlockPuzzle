@@ -9,14 +9,18 @@ namespace Survivor
     //   - Nobody near A: A takes double damage and the pellet stops (a lone target gets punished).
     public sealed class SlingFrogCompanion : Companion
     {
-        static readonly float[] Damage = { 10f, 13f, 17f, 22f, 28f };
-        static readonly float[] Cooldown = { 1.3f, 1.2f, 1.1f, 1.0f, 0.85f };
+        // Numbers and card text: Assets/Resources/Upgrades/Companions/SlingFrog.asset
+        readonly SlingFrogData data;
+        public SlingFrogCompanion(SlingFrogData data) : base(data) => this.data = data;
+        float[] Damage => data.Damage;
+        float[] Cooldown => data.Cooldown;
 
-        public const int MaxBounces = 2;      // A -> B -> C
-        public const float LoneMultiplier = 2f;
-        const float ShotSpeed = 13f;
-        const float BounceSpeed = 11f;
-        const float SightRange = 8.5f;
+        const int MaxBouncesLimit = 6;           // most bounces the asset may ask for (sizes the hit list)
+        int MaxBounces => Mathf.Clamp(data.MaxBounces, 0, MaxBouncesLimit); // A -> B -> C
+        float LoneMultiplier => data.LoneMultiplier;
+        float ShotSpeed => data.ShotSpeed;
+        float BounceSpeed => data.BounceSpeed;
+        float SightRange => data.SightRange;
         const float MaxFlightTime = 1.2f;     // a pellet that lost its target pops after this
         const float ShotPoseTime = 0.25f;
 
@@ -30,7 +34,7 @@ namespace Survivor
             public Vector2 Direction;               // last flight direction (for the trail)
             public int TargetIndex, TargetId;
             public int Bounce;                      // 0 = flying to A, 1 = to B, 2 = to C
-            public readonly int[] HitIds = new int[MaxBounces + 1];
+            public readonly int[] HitIds = new int[MaxBouncesLimit + 1];
             public int HitCount;
             public float Flight;
             public float Squash;                    // little squash right after a bounce
@@ -44,16 +48,6 @@ namespace Survivor
         bool facingLeft;
 
         public override float SightRadius(CompanionContext ctx) => SightRange;
-        public override string Name => "Ếch Ná Thun";
-        public override string Description => "Bắn đạn cao su nảy qua 2 kẻ địch gần nhau. Mục tiêu đứng một mình bị x2 sát thương.";
-        public override Color Tint => new Color(0.5f, 0.9f, 0.4f);
-        public override string NextLevelDescription => (Level + 1) switch
-        {
-            2 => "Sát thương cao hơn, bắn nhanh hơn.",
-            3 => "Tầm nảy xa hơn.",
-            4 => "Sát thương cao hơn, bắn nhanh hơn.",
-            _ => "Sát thương cao nhất, tầm nảy xa nhất."
-        };
 
         Vector2 SlingTip => Position + new Vector2(facingLeft ? -0.3f : 0.3f, 0.15f);
 
@@ -172,10 +166,10 @@ namespace Survivor
             return true;
         }
 
-        // Bounce radius for the current level, from PlayerTuning (editable in the Inspector).
+        // Bounce radius for the current level (SlingFrog.asset).
         float BounceRadiusFor(CompanionContext ctx)
         {
-            var table = ctx.Tuning.FrogBounceRadius;
+            var table = data.BounceRadius;
             return table != null && table.Length > 0 ? At(table) : 2.5f;
         }
 
@@ -201,7 +195,7 @@ namespace Survivor
             else
                 renderer.Circle(RenderLayer.World, Position, Radius, new Color(0.45f, 0.8f, 0.35f), 0f, feet);
 
-            var tuning = ctx.Tuning;
+            var tuning = data; // pellet size / trail live in SlingFrog.asset
             foreach (var p in pellets)
             {
                 // Red trail behind the pellet, so it is easy to follow.

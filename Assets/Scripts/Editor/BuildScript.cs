@@ -63,13 +63,64 @@ public static class BuildScript
         Build(BuildTarget.WebGL, "Build/WebGL", BuildOptions.None);
     }
 
+    // In the Editor (menu), switching platform is not instant: Unity recompiles the scripts after this call
+    // returns, and building Addressables during that fails ("Unable to build with the current configuration").
+    // So: switch, remember the build, and run it once the Editor has reloaded on the new platform.
+    const string PendingKey = "BuildScript.Pending";
+
+    [InitializeOnLoadMethod]
+    static void ResumePendingBuild()
+    {
+        var pending = SessionState.GetString(PendingKey, "");
+        if (string.IsNullOrEmpty(pending)) return;
+        var parts = pending.Split('|');
+        if (parts.Length != 3 || !Enum.TryParse(parts[0], out BuildTarget target) || !int.TryParse(parts[2], out var opts)) return;
+        // Wait until the Editor is idle (done compiling / importing) on the new platform.
+        var notBefore = EditorApplication.timeSinceStartup + 3.0;  // let the recompile start first
+        var giveUpAt = EditorApplication.timeSinceStartup + 120.0;
+        EditorApplication.CallbackFunction run = null;
+        run = () =>
+        {
+            if (EditorApplication.timeSinceStartup < notBefore || EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+            if (EditorUserBuildSettings.activeBuildTarget != target)
+            {
+                if (EditorApplication.timeSinceStartup < giveUpAt) return;
+                EditorApplication.update -= run;
+                SessionState.EraseString(PendingKey);
+                Debug.LogError($"Build cancelled: the platform did not switch to {target}.");
+                return;
+            }
+            EditorApplication.update -= run;
+            if (SessionState.GetString(PendingKey, "") != pending) return; // already started elsewhere
+            SessionState.EraseString(PendingKey);
+            Build(target, parts[1], (BuildOptions)opts);
+        };
+        EditorApplication.update += run;
+    }
+
     static void Build(BuildTarget target, string output, BuildOptions buildOptions)
     {
         ApplyPortraitSettings();
 
         // Popups are Addressables: their content must be built for this platform before the player.
         if (EditorUserBuildSettings.activeBuildTarget != target)
+        {
+            if (!Application.isBatchMode)
+            {
+                SessionState.SetString(PendingKey, $"{target}|{output}|{(int)buildOptions}");
+                Debug.Log($"Switching platform to {target}; the build starts by itself when the Editor is ready.");
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildPipeline.GetBuildTargetGroup(target), target);
+                ResumePendingBuild(); // in case no script reload happens; after a reload [InitializeOnLoadMethod] picks it up
+                return;
+            }
             EditorUserBuildSettings.SwitchActiveBuildTarget(BuildPipeline.GetBuildTargetGroup(target), target);
+        }
+        // The platform highlighted in the Build Profiles window must match too: Addressables checks the build
+        // settings of the *selected* platform (e.g. Android = IL2CPP) and refuses to build when it differs.
+        var group = BuildPipeline.GetBuildTargetGroup(target);
+        EditorUserBuildSettings.selectedBuildTargetGroup = group;
+        if (group == BuildTargetGroup.Standalone) EditorUserBuildSettings.selectedStandaloneTarget = target;
+
         AddressableAssetSettings.BuildPlayerContent(out var addressablesResult);
         if (!string.IsNullOrEmpty(addressablesResult.Error))
         {
@@ -91,7 +142,57 @@ public static class BuildScript
 
         if (Application.isBatchMode && report.summary.result != BuildResult.Succeeded)
             EditorApplication.Exit(1);
-        if (!Application.isBatchMode && report.summary.result == BuildResult.Succeeded)
-            EditorUtility.RevealInFinder(output);
+        if (report.summary.result != BuildResult.Succeeded) return;
+
+        // Windows release: also pack exactly what players need into one zip, ready to send.
+        var zip = target == BuildTarget.StandaloneWindows64 && (buildOptions & BuildOptions.Development) == 0
+            ? ZipWindowsBuild(output) : null;
+        if (!Application.isBatchMode) EditorUtility.RevealInFinder(zip ?? output);
+    }
+
+    // Zips the game next to the build folder: Build/<ProductName>_Windows.zip, with everything inside one folder.
+    // Left out: Unity's "do not ship" debug folders and leftovers from older builds under another name
+    // (other .exe files and their _Data folders).
+    static string ZipWindowsBuild(string exePath)
+    {
+        try
+        {
+            var dir = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(exePath));
+            var exeName = System.IO.Path.GetFileNameWithoutExtension(exePath);
+            var folderName = exeName.Replace(" ", "");
+            var zipPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(dir), folderName + "_Windows.zip");
+            if (System.IO.File.Exists(zipPath)) System.IO.File.Delete(zipPath);
+
+            bool Ship(string relative)
+            {
+                var top = relative.Split('/', '\\')[0];
+                if (top.Contains("DoNotShip") || top.Contains("DontShip")) return false;
+                if (top.EndsWith("_Data")) return top == exeName + "_Data";
+                if (top.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    return top == exeName + ".exe" || top.StartsWith("UnityCrashHandler");
+                return true;
+            }
+
+            var count = 0;
+            using (var archive = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
+            {
+                foreach (var file in System.IO.Directory.GetFiles(dir, "*", System.IO.SearchOption.AllDirectories))
+                {
+                    var relative = file.Substring(dir.Length + 1);
+                    if (!Ship(relative)) continue;
+                    System.IO.Compression.ZipFileExtensions.CreateEntryFromFile(archive, file,
+                        folderName + "/" + relative.Replace('\\', '/'), System.IO.Compression.CompressionLevel.Optimal);
+                    count++;
+                }
+            }
+            var mb = new System.IO.FileInfo(zipPath).Length / (1024f * 1024f);
+            Debug.Log($"Zipped {count} files for sharing: {zipPath} ({mb:0.0} MB)");
+            return zipPath;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Could not zip the Windows build: " + e.Message);
+            return null;
+        }
     }
 }

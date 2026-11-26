@@ -6,13 +6,16 @@ namespace Survivor
     // Companion #1: a monkey that throws bananas like boomerangs at the nearest enemy.
     public sealed class MonkeyCompanion : Companion
     {
-        static readonly float[] Damage = { 12, 16, 20, 26, 34 };
-        static readonly int[] Bananas = { 1, 1, 2, 2, 3 };
-        static readonly float[] Cooldown = { 2.0f, 1.8f, 1.6f, 1.4f, 1.2f };
-        static readonly float[] Range = { 5f, 5.5f, 6f, 6.5f, 7f };
-        const float ThrowSpeed = 14f;
-        const float SpreadDegrees = 18f;      // angle between bananas when it throws several
-        const float SightRange = 9f;
+        // Numbers and card text: Assets/Resources/Upgrades/Companions/Monkey.asset
+        readonly MonkeyData data;
+        public MonkeyCompanion(MonkeyData data) : base(data) => this.data = data;
+        float[] Damage => data.Damage;
+        int[] Bananas => data.Bananas;
+        float[] Cooldown => data.Cooldown;
+        float[] Range => data.Range;
+        float ThrowSpeed => data.ThrowSpeed;
+        float SpreadDegrees => data.SpreadDegrees;
+        float SightRange => data.SightRange;
         const float ThrowPoseTime = 0.25f;    // arm stays up this long after a throw
         const float Radius = 0.4f;            // drawn ~1.05 units tall; the hero is ~1.35
         const int IdleFrames = 4, ThrowFrame = 4, BlinkFrame = 5;
@@ -24,16 +27,6 @@ namespace Survivor
         bool facingLeft;
 
         public override float SightRadius(CompanionContext ctx) => SightRange;
-        public override string Name => "Khỉ Ném Chuối";
-        public override string Description => "Ném chuối như boomerang: bay ra rồi quay về, gây sát thương cả đi lẫn về.";
-        public override Color Tint => new Color(1f, 0.85f, 0.25f);
-        public override string NextLevelDescription => (Level + 1) switch
-        {
-            2 => "Sát thương +33%, ném nhanh hơn.",
-            3 => "Ném 2 quả chuối mỗi lần.",
-            4 => "Sát thương cao hơn, chuối bay xa hơn.",
-            _ => "Ném 3 quả chuối mỗi lần."
-        };
 
         public override void Tick(float dt, CompanionContext ctx)
         {

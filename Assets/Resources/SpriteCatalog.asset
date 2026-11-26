@@ -87,6 +87,80 @@ MonoBehaviour:
     - {fileID: 21300000, guid: fdefa83bbd20ba24f8d9a67570deb69f, type: 3}
     - {fileID: 21300000, guid: 6a13d6be4546d674d919c80ec2be45d4, type: 3}
     Fps: 6
+  Pig:
+    Frames:
+    - {fileID: 21300000, guid: 2c2e55902a53cb843934c569f69e146d, type: 3}
+    - {fileID: 21300000, guid: 980a3cba100de5b418dd7fc07db300c8, type: 3}
+    - {fileID: 21300000, guid: 40bff9631ddba47439d0b492999f4449, type: 3}
+    - {fileID: 21300000, guid: a35f09820a1a9034f87735555ac6779f, type: 3}
+    - {fileID: 21300000, guid: 5717c8d9440f1ba469df79bd423ff4a9, type: 3}
+    - {fileID: 21300000, guid: 251d1ec2545451d4bb674066706b8959, type: 3}
+    - {fileID: 21300000, guid: 4897ff2f65cd0484cae50b09aacadf6e, type: 3}
+    - {fileID: 21300000, guid: 27b3890866bf54d42b754212d3cc50a8, type: 3}
+    - {fileID: 21300000, guid: 1982ed0cd3a66c9498ca891f929cda77, type: 3}
+    Fps: 6
+  Wukong:
+    Frames:
+    - {fileID: 21300000, guid: 7148258d700929144831e2442fbf75a1, type: 3}
+    - {fileID: 21300000, guid: 9d4f2f307f86bea45909943e48e2f4c0, type: 3}
+    - {fileID: 21300000, guid: a2c594196397b4e47941a3a7180ee785, type: 3}
+    - {fileID: 21300000, guid: 9d5de5df855f6f044a59b4c8f31d3d0a, type: 3}
+    - {fileID: 21300000, guid: a4d09b6f280ca7d4884b74dfb3e5fd2a, type: 3}
+    - {fileID: 21300000, guid: 40d9bf97c3158144ea4894162fe37096, type: 3}
+    - {fileID: 21300000, guid: 96c3a197ae317ae4f8af1472740007cc, type: 3}
+    - {fileID: 21300000, guid: 933c72f307f6b3a4eb1e28092c6131d1, type: 3}
+    - {fileID: 21300000, guid: 8eaceb3010801a3469d88764bed49871, type: 3}
+    Fps: 6
+  Plume: {fileID: 21300000, guid: 06291bbda00e03347997eb1cf7f61e9e, type: 3}
+  Staff: {fileID: 21300000, guid: ede84abf823e8934a9510cabecfffd48, type: 3}
+  Star: {fileID: 21300000, guid: 0230c5c77d37e0e49b91a95837316864, type: 3}
+  Bear:
+    Frames:
+    - {fileID: 21300000, guid: 0a5bfe651bcb3104b98c6e9b789fc2eb, type: 3}
+    - {fileID: 21300000, guid: 471ca4f5f48d531438c419fa0e57cb80, type: 3}
+    - {fileID: 21300000, guid: 0f68dd334f03b7340ad2f428ecdff5ca, type: 3}
+    - {fileID: 21300000, guid: ceeb94c8bd9ea0d48a3f2c330a069a92, type: 3}
+    - {fileID: 21300000, guid: 671aad567003d9644a05dc54a6058868, type: 3}
+    - {fileID: 21300000, guid: 2d62efd1f23aa954ca6048162b1520cb, type: 3}
+    Fps: 6
+  Rifle: {fileID: 21300000, guid: 9f1421912b3954d43a2e7c093751a426, type: 3}
+  Cowboy:
+    Frames:
+    - {fileID: 21300000, guid: b2cf0f39d1f409c428582f28340da458, type: 3}
+    - {fileID: 21300000, guid: d929819a196cc604ab7d473677b2b633, type: 3}
+    - {fileID: 21300000, guid: b41d38e0fcb4c0e43a55d0ad4f2e25b0, type: 3}
+    - {fileID: 21300000, guid: e288aa38bd224554dabd802c70b70e8f, type: 3}
+    - {fileID: 21300000, guid: a92d38b197a031a4aa480f03c28e7bff, type: 3}
+    Fps: 6
+  Gatling:
+    Frames:
+    - {fileID: 21300000, guid: 21930f8b9625ade458cc74d6674da856, type: 3}
+    - {fileID: 21300000, guid: 460e36f92d2fdb444b049598fac4d3f2, type: 3}
+    - {fileID: 21300000, guid: 8add3f6792d42f043bd9a3afb0dce8a6, type: 3}
+    Fps: 30
+  Monk:
+    Frames:
+    - {fileID: 21300000, guid: ea35a23b76d550a4fa4de3901d80fadd, type: 3}
+    - {fileID: 21300000, guid: 6268ab2554c4239488e7d90888f4979f, type: 3}
+    - {fileID: 21300000, guid: 57e1af79e0d0f30469704736b0db9529, type: 3}
+    Fps: 3
+  Drunk:
+    Frames:
+    - {fileID: 21300000, guid: 0fc89534b48a0bc4198246fe350cd0f1, type: 3}
+    - {fileID: 21300000, guid: 94d3b284d96ce7f4eb024630d184e9e0, type: 3}
+    - {fileID: 21300000, guid: 60530c599c7c3f54693f00156d4935af, type: 3}
+    - {fileID: 21300000, guid: 40578afb0b74dd84f991e65f4c131393, type: 3}
+    - {fileID: 21300000, guid: b5ab1197131b2794590f5923008ed688, type: 3}
+    - {fileID: 21300000, guid: 497704939b0ee084a8cadfdc2503d022, type: 3}
+    Fps: 4
+  FireBottle: {fileID: 21300000, guid: bbc3cdbbb38a2c1458a2487d155ab7c3, type: 3}
+  Fire:
+    Frames:
+    - {fileID: 21300000, guid: 503ecd822528d8e4abb654a8b27fbc6e, type: 3}
+    - {fileID: 21300000, guid: eff89de17478e4b4898ac8b749ee8cdf, type: 3}
+    - {fileID: 21300000, guid: fbb9e0fa8211c24438bd96d84a6df53c, type: 3}
+    - {fileID: 21300000, guid: f7162a30ea013724d820df27ab575c12, type: 3}
+    Fps: 12
   Slash:
     Frames:
     - {fileID: 21300000, guid: 8a7be4d2a861134429071a08ec0db7fa, type: 3}
@@ -135,6 +209,13 @@ MonoBehaviour:
   Pellet: {fileID: 21300000, guid: 208612e541033bd4d8c228c1e31402ac, type: 3}
   BarbedFence: {fileID: 21300000, guid: 32ac351bec9b2aa4381d522c177ae224, type: 3}
   HealPlus: {fileID: 21300000, guid: e5670ae1d0432bf408a9c459effb66b8, type: 3}
+  ItemShoes: {fileID: 21300000, guid: 4990ea611ea74e64a8943b4670726200, type: 3}
+  ItemMagnet: {fileID: 21300000, guid: c38a69aa6ece504469983ff2485a0fb7, type: 3}
+  ItemHeart: {fileID: 21300000, guid: de91a6789fc3a1b438afc20ffa7f739c, type: 3}
+  ItemSword: {fileID: 21300000, guid: 37438d3585d7f9147977d8c11cedcb83, type: 3}
+  ItemRegen: {fileID: 21300000, guid: 9d0cc64553e6eab45a11af8fa15a4209, type: 3}
+  ItemArmor: {fileID: 21300000, guid: 7e5d3b16e6c3b3641899a77c55182076, type: 3}
+  IconRing: {fileID: 21300000, guid: ad360f30581e2cb479a50b41217fccbd, type: 3}
   Gem: {fileID: 21300000, guid: ee693a57515ab6b44acc71029b0c1289, type: 3}
   Chest: {fileID: 21300000, guid: 5a536c4b08d1e7843bb7f44c095cf971, type: 3}
   Heal: {fileID: 21300000, guid: 610b53cad8491f54aadad54065920b16, type: 3}

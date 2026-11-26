@@ -32,10 +32,7 @@ namespace Survivor
 
         // Bosses appear at these times (seconds). Each one is stronger than the last.
         public readonly float[] BossTimes = { 180f, 360f, 540f };
-        // Boss HP and its growth per appearance are in PlayerTuning ("Đấu boss").
-        public readonly float BossChargeInterval = 4f;
-        public readonly float BossChargeDuration = 0.7f;
-        public readonly float BossChargeSpeedMultiplier = 4f;
+        // Boss HP, its growth per appearance and its skills (dash, bullet burst) are in PlayerTuning ("Đấu boss").
 
         // Drops from normal enemies (chance per kill). Bosses always drop a chest.
         public readonly float HealAmount = 30f;

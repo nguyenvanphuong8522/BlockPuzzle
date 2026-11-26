@@ -14,6 +14,9 @@ namespace Survivor
         public float BonusMight;
         public float HasteMultiplier = 1f;
         public float BonusArea;
+        public float HpRegen;                  // HP healed per second (items)
+        public float DamageReduction;          // 0.2 = takes 20% less damage (armor items)
+        public float DamageReductionCap;       // the reduction never goes above this (highest cap of the armor items picked)
 
         public float MaxHp => baseStats.MaxHp + BonusMaxHp;
         public float MoveSpeed => baseStats.MoveSpeed * MoveSpeedMultiplier;

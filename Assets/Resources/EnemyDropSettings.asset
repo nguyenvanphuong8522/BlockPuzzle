@@ -87,3 +87,7 @@ MonoBehaviour:
     - Type: 0
       ChancePercent: 100
       Amount: 60
+  HealSize: 0.95
+  MagnetSize: 0.9
+  ChestSize: 0.9
+  PickupRadius: 0.45

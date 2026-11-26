@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f13d7cde8da06b4382eca68fde66d4a, type: 3}
+  m_Name: PigMace
+  m_EditorClassIdentifier: Survivor::Survivor.PigMaceData
+  Enabled: 1
+  DisplayName: "L\u1EE3n C\u1EA7m Tr\xF9y"
+  Description: "Lao t\u1EDBi n\u1EC7n tr\xF9y v\xE0o v\xF9ng h\xECnh qu\u1EA1t 120\xB0.
+    M\u1ED7i 18 gi\xE2y t\u1EB7ng hero ng\u1EABu nhi\xEAn +ATK ho\u1EB7c +M\xE1u
+    t\u1ED1i \u0111a."
+  LevelDescriptions:
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, qu\xE0 buff l\u1EDBn h\u01A1n."
+  - "V\xF9ng n\u1EC7n r\u1ED9ng h\u01A1n, qu\xE0 buff l\u1EDBn h\u01A1n."
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, h\u1ED3i chi\xEAu ng\u1EAFn h\u01A1n."
+  - "N\u1EC7n 2 nh\xE1t li\xEAn ti\u1EBFp, qu\xE0 buff l\u1EDBn nh\u1EA5t."
+  Tint: {r: 1, g: 0.62, b: 0.72, a: 1}
+  Icon: {fileID: 0}
+  SortOrder: 5
+  Damage:
+  - 30
+  - 38
+  - 48
+  - 60
+  - 78
+  Cooldown:
+  - 2.6
+  - 2.4
+  - 2.2
+  - 1.9
+  - 1.6
+  ArcRadius:
+  - 1.6
+  - 1.7
+  - 2
+  - 2.1
+  - 2.3
+  Swings: 0100000001000000010000000100000002000000
+  DashSpeed: 16
+  ReturnSpeed: 11
+  MaxDashTime: 0.55
+  StayTime: 0.22
+  DoubleSwingGap: 0.25
+  SightRange: 7
+  Knockback: 6
+  SwingColor: {r: 1, g: 1, b: 1, a: 1}
+  BuffInterval: 18
+  BuffCastTime: 0.8
+  AtkChancePercent: 50
+  AtkBonus:
+  - 0.04
+  - 0.05
+  - 0.06
+  - 0.07
+  - 0.08
+  MaxHpBonus:
+  - 8
+  - 10
+  - 12
+  - 14
+  - 16
+  AtkColor: {r: 1, g: 0.45, b: 0.2, a: 1}
+  HpColor: {r: 0.35, g: 0.95, b: 0.45, a: 1}
+  AtkText: +{0}% ATK
+  HpText: "+{0} M\xE1u t\u1ED1i \u0111a"
+  BarWidth: 0.75
+  BarHeight: 0.09
+  BarOffsetY: -0.12
+  BarOutline: 0.02
+  BarColor: {r: 1, g: 0.8, b: 0.25, a: 1}
+  BarBackground: {r: 0.15, g: 0.15, b: 0.15, a: 0.85}

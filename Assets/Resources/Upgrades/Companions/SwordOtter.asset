@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 694d879983de4f641882e62e34838bce, type: 3}
+  m_Name: SwordOtter
+  m_EditorClassIdentifier: Survivor::Survivor.SwordOtterData
+  Enabled: 1
+  DisplayName: "R\xE1i C\xE1 Ki\u1EBFm S\u0129"
+  Description: "Lao t\u1EDBi k\u1EBB \u0111\u1ECBch g\u1EA7n nh\u1EA5t v\xE0 ch\xE9m
+    m\u1ED9t v\xF9ng h\xECnh qu\u1EA1t 120\xB0 ph\xEDa tr\u01B0\u1EDBc."
+  LevelDescriptions:
+  - "S\xE1t th\u01B0\u01A1ng +25%, ch\xE9m nhanh h\u01A1n."
+  - "V\xF9ng ch\xE9m r\u1ED9ng h\u01A1n."
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, h\u1ED3i chi\xEAu ng\u1EAFn h\u01A1n."
+  - "Ch\xE9m 2 nh\xE1t li\xEAn ti\u1EBFp (qua l\u1EA1i)."
+  Tint: {r: 0.55, g: 0.85, b: 1, a: 1}
+  Icon: {fileID: 0}
+  SortOrder: 1
+  Damage:
+  - 22
+  - 28
+  - 36
+  - 46
+  - 60
+  Cooldown:
+  - 2.2
+  - 2
+  - 1.8
+  - 1.5
+  - 1.3
+  ArcRadius:
+  - 1.7
+  - 1.8
+  - 2.2
+  - 2.3
+  - 2.5
+  Swings: 0100000001000000010000000100000002000000
+  DashSpeed: 18
+  ReturnSpeed: 18
+  MaxDashTime: 0.25
+  StayTime: 0.05
+  DoubleSwingGap: 0.25
+  SightRange: 5
+  Knockback: 4
+  SwingColor: {r: 0.55, g: 0.85, b: 1, a: 1}

@@ -8,18 +8,21 @@ namespace Survivor
     // flies for a while and explodes on its own.
     public sealed class TurtleMageCompanion : Companion
     {
-        static readonly float[] OrbDamage = { 18, 22, 28, 34, 42 };
-        static readonly float[] BlastDamage = { 10, 13, 17, 22, 28 };
-        static readonly float[] BlastRadius = { 1.0f, 1.3f, 1.6f, 1.9f, 2.3f };
-        static readonly float[] Cooldown = { 2.0f, 1.9f, 1.7f, 1.5f, 1.3f };
-        static readonly int[] Orbs = { 1, 1, 1, 2, 2 };
+        // Numbers and card text: Assets/Resources/Upgrades/Companions/TurtleMage.asset
+        readonly TurtleMageData data;
+        public TurtleMageCompanion(TurtleMageData data) : base(data) => this.data = data;
+        float[] OrbDamage => data.OrbDamage;
+        float[] BlastDamage => data.BlastDamage;
+        float[] BlastRadius => data.BlastRadius;
+        float[] Cooldown => data.Cooldown;
+        int[] Orbs => data.Orbs;
 
-        const float OrbSpeed = 7.5f;
-        const float OrbLifetime = 1.1f;     // missed orbs explode after this
+        float OrbSpeed => data.OrbSpeed;
+        float OrbLifetime => data.OrbLifetime;
         const float OrbRadius = 0.22f;
         const float OrbSize = 0.55f;
-        const float SpreadDegrees = 14f;
-        const float SightRange = 9f;
+        float SpreadDegrees => data.SpreadDegrees;
+        float SightRange => data.SightRange;
         const float CastPoseTime = 0.3f;
         const float BlastTime = 0.4f;
 
@@ -47,16 +50,6 @@ namespace Survivor
         bool facingLeft;
 
         public override float SightRadius(CompanionContext ctx) => SightRange;
-        public override string Name => "Rùa Pháp Sư";
-        public override string Description => "Bắn cầu phép: trúng kẻ địch thì gây sát thương rồi nổ tung cả vùng xung quanh.";
-        public override Color Tint => new Color(0.85f, 0.55f, 1f);
-        public override string NextLevelDescription => (Level + 1) switch
-        {
-            2 => "Sát thương cao hơn, vùng nổ to hơn.",
-            3 => "Vùng nổ to hơn, bắn nhanh hơn.",
-            4 => "Bắn 2 quả cầu mỗi lần.",
-            _ => "Vùng nổ cực lớn, sát thương cao nhất."
-        };
 
         // Where the orb leaves: the gem on top of the staff.
         Vector2 StaffTip => Position + new Vector2(facingLeft ? -0.36f : 0.36f, 0.3f);

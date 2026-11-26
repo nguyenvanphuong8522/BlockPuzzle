@@ -45,7 +45,8 @@ namespace Survivor
         }
 
         public void Draw(InstancedRenderer renderer, NativeArray<Vector2> position, NativeArray<float> radius,
-            NativeArray<float> flash, int[] type, int[] id, int count, float playerX)
+            NativeArray<float> flash, NativeArray<float> squash, float squashTime, float squashAmount,
+            int[] type, int[] id, int count, float playerX, NativeArray<Vector2> fly)
         {
             if (count == 0) return;
             if (matrices.Length < count) Allocate(Mathf.NextPowerOfTwo(count));
@@ -61,10 +62,11 @@ namespace Survivor
                 new DrawJob
                 {
                     Pos = position.Reinterpret<float2>(), Radius = radius, Flash = flash, Type = typeNative, Id = idNative,
+                    Squash = squash, InverseSquashTime = squashTime > 0.001f ? 1f / squashTime : 0f, SquashAmount = squashAmount,
                     FrameUv = frameUv, FrameAspect = frameAspect, FrameTrim = frameTrim, FrameTexture = frameTexture,
                     TypeFrameStart = typeFrameStart, TypeFrameCount = typeFrameCount, TypeFps = typeFps, TypeColor = typeColor,
                     Count = count, View = renderer.ViewRect, Time = Time.time, SpriteScale = sprites.SpriteScale,
-                    PlayerX = playerX, Texture = pass,
+                    PlayerX = playerX, Texture = pass, Fly = fly.Reinterpret<float2>(),
                     Matrices = matrices.Reinterpret<float4x4>(), Colors = colors.Reinterpret<float4>(),
                     Shapes = shapes.Reinterpret<float4>(), Uvs = uvs.Reinterpret<float4>(), Keys = keys,
                     ShadowMatrices = shadowMatrices.Reinterpret<float4x4>(), ShadowColors = shadowColors.Reinterpret<float4>(),
@@ -84,6 +86,9 @@ namespace Survivor
             [ReadOnly] public NativeArray<float2> Pos;
             [ReadOnly] public NativeArray<float> Radius;
             [ReadOnly] public NativeArray<float> Flash;
+            [ReadOnly] public NativeArray<float> Squash;     // hit squash timer, counts down from the squash time
+            [ReadOnly] public NativeArray<float2> Fly;       // flyers face where they fly, others face the hero
+            public float InverseSquashTime, SquashAmount;
             [ReadOnly] public NativeArray<int> Type;
             [ReadOnly] public NativeArray<int> Id;
             [ReadOnly] public NativeArray<float4> FrameUv;
@@ -121,6 +126,10 @@ namespace Survivor
                     var t = Type[i];
                     var frames = TypeFrameCount[t];
                     var flash = Flash[i] > 0f ? 1f : 0f;
+                    // Hit squash: wider and shorter for a moment (rises and falls back), feet stay on the ground.
+                    var sq = Squash[i] > 0f ? SquashAmount * math.sin(math.PI * math.saturate(Squash[i] * InverseSquashTime)) : 0f;
+                    var sx = 1f + sq * 0.8f;
+                    var sy = 1f - sq;
 
                     if (Texture < 0)
                     {
@@ -131,7 +140,7 @@ namespace Survivor
                         s++;
 
                         if (frames > 0) continue;
-                        Matrices[n] = Quad(p, new float2(r * 2f, r * 2f)); // no sprite for this type: colored circle
+                        Matrices[n] = Quad(new float2(p.x, p.y - r * (1f - sy)), new float2(r * 2f * sx, r * 2f * sy)); // no sprite: colored circle
                         Colors[n] = TypeColor[t];
                         Shapes[n] = new float4(0f, 0f, flash, 0f);
                         Uvs[n] = fullUv;
@@ -146,11 +155,14 @@ namespace Survivor
                     var frame = TypeFrameStart[t] + f;
                     if (FrameTexture[frame] != Texture) continue;
 
-                    var height = r * 2f * SpriteScale;
-                    var width = height * FrameAspect[frame];
-                    if (p.x > PlayerX) width = -width; // sprites face right: flip to face the player
+                    var fullHeight = r * 2f * SpriteScale;
+                    var height = fullHeight * sy;
+                    var width = fullHeight * FrameAspect[frame] * sx;
+                    var fx = Fly[i].x;
+                    if (fx != 0f ? fx < 0f : p.x > PlayerX) width = -width; // sprites face right: face the player (flyers: their flight)
                     var trim = FrameTrim[frame];
-                    Matrices[n] = Quad(new float2(p.x + trim.x * width, p.y + r * 0.3f + trim.y * height),
+                    var centerY = p.y + r * 0.3f - (fullHeight - height) * 0.5f; // keep the bottom edge where it was
+                    Matrices[n] = Quad(new float2(p.x + trim.x * width, centerY + trim.y * height),
                         new float2(width * trim.z, height * trim.w));
                     Colors[n] = new float4(1f, 1f, 1f, 1f);
                     Shapes[n] = new float4(3f, 0f, flash, 0f);

@@ -38,12 +38,15 @@ namespace Survivor
             builder.Register<EnemySystem>(Lifetime.Singleton);
             builder.Register<EnemySpawner>(Lifetime.Singleton);
             builder.Register<BossArenaSystem>(Lifetime.Singleton);
+            builder.Register<BossSkillSystem>(Lifetime.Singleton);
+            builder.Register<SwarmSystem>(Lifetime.Singleton);
             builder.Register<ProjectileSystem>(Lifetime.Singleton);
             builder.Register<GemSystem>(Lifetime.Singleton);
             builder.Register<PickupSystem>(Lifetime.Singleton);
             builder.RegisterEntryPoint<RewardDropSystem>().AsSelf(); // entry point = created at start, nobody needs to ask for it
             builder.Register<EffectSystem>(Lifetime.Singleton);
             builder.Register<DamageNumberSystem>(Lifetime.Singleton);
+            builder.Register<FloatingTextSystem>(Lifetime.Singleton);
             builder.Register<DecorationSystem>(Lifetime.Singleton);
 
             builder.Register<WeaponContext>(Lifetime.Singleton);

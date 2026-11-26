@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42caf21ed5fd28644ada7e0e602da301, type: 3}
+  m_Name: TurtleMage
+  m_EditorClassIdentifier: Survivor::Survivor.TurtleMageData
+  Enabled: 1
+  DisplayName: "R\xF9a Ph\xE1p S\u01B0"
+  Description: "B\u1EAFn c\u1EA7u ph\xE9p: tr\xFAng k\u1EBB \u0111\u1ECBch th\xEC
+    g\xE2y s\xE1t th\u01B0\u01A1ng r\u1ED3i n\u1ED5 tung c\u1EA3 v\xF9ng xung quanh."
+  LevelDescriptions:
+  - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, v\xF9ng n\u1ED5 to h\u01A1n."
+  - "V\xF9ng n\u1ED5 to h\u01A1n, b\u1EAFn nhanh h\u01A1n."
+  - "B\u1EAFn 2 qu\u1EA3 c\u1EA7u m\u1ED7i l\u1EA7n."
+  - "V\xF9ng n\u1ED5 c\u1EF1c l\u1EDBn, s\xE1t th\u01B0\u01A1ng cao nh\u1EA5t."
+  Tint: {r: 0.85, g: 0.55, b: 1, a: 1}
+  Icon: {fileID: 0}
+  SortOrder: 2
+  OrbDamage:
+  - 18
+  - 22
+  - 28
+  - 34
+  - 42
+  BlastDamage:
+  - 10
+  - 13
+  - 17
+  - 22
+  - 28
+  BlastRadius:
+  - 1
+  - 1.3
+  - 1.6
+  - 1.9
+  - 2.3
+  Cooldown:
+  - 2
+  - 1.9
+  - 1.7
+  - 1.5
+  - 1.3
+  Orbs: 0100000001000000010000000200000002000000
+  OrbSpeed: 7.5
+  OrbLifetime: 1.1
+  SpreadDegrees: 14
+  SightRange: 9

@@ -39,18 +39,20 @@ namespace Survivor
         NativeArray<Vector2> knockbackNext;
         NativeArray<float> moveSpeed; // base speed x current multiplier (bosses charge)
         NativeArray<float> flash;     // hit flash timer
+        NativeArray<float> squash;    // hit squash timer (only when the hit did not kill)
         NativeArray<float> damage;
         NativeArray<byte> isBoss;
         NativeArray<float> contactDamage; // [0] = strongest enemy touching the player this frame
         NativeArray<int> bossFound;       // [0] = index of a living boss, or -1
+        NativeArray<Vector2> fly;         // flyer (swarm): fixed velocity; zero = normal enemy chasing the hero
 
         // Main-thread-only data
         float[] maxHp = new float[InitialCapacity];
         float[] speed = new float[InitialCapacity];
         int[] xp = new int[InitialCapacity];
         int[] type = new int[InitialCapacity];
-        float[] abilityTimer = new float[InitialCapacity]; // bosses: time until next charge
-        float[] chargeTimer = new float[InitialCapacity];  // bosses: > 0 while charging
+        float[] flyTime = new float[InitialCapacity];   // flyers: seconds left before they leave the map
+        int flyerCount;
 
         readonly GameConfig config;
         readonly Player player;
@@ -68,6 +70,8 @@ namespace Survivor
 
         // Current boss, for the HUD health bar. BossIndex is -1 when no boss is alive.
         public int BossIndex { get; private set; } = -1;
+        // Multiplies the boss walking speed (1 = normal, 0 = stands still). Set by BossSkillSystem.
+        public float BossSpeedScale { get; set; } = 1f;
         public float BossHpRatio => BossIndex >= 0 ? Mathf.Clamp01(Hp[BossIndex] / maxHp[BossIndex]) : 0f;
         public string BossName => BossIndex >= 0 ? config.Enemies[type[BossIndex]].Name : "";
 
@@ -91,10 +95,12 @@ namespace Survivor
             knockbackNext = new NativeArray<Vector2>(InitialCapacity, Allocator.Persistent);
             moveSpeed = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
             flash = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
+            squash = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
             damage = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
             isBoss = new NativeArray<byte>(InitialCapacity, Allocator.Persistent);
             contactDamage = new NativeArray<float>(1, Allocator.Persistent);
             bossFound = new NativeArray<int>(1, Allocator.Persistent);
+            fly = new NativeArray<Vector2>(InitialCapacity, Allocator.Persistent);
         }
 
         public bool IsAlive(int i) => Hp[i] > 0f;
@@ -118,8 +124,21 @@ namespace Survivor
             type[i] = typeIndex;
             isBoss[i] = (byte)(def.IsBoss ? 1 : 0);
             flash[i] = 0f;
-            abilityTimer[i] = config.BossChargeInterval;
-            chargeTimer[i] = 0f;
+            squash[i] = 0f;
+            fly[i] = Vector2.zero;
+        }
+
+        // Swarm member: flies in a straight line at `velocity` (ignores the hero) and quietly leaves the map after
+        // `life` seconds (no reward). It still hurts the hero on contact and can be killed like any enemy.
+        public void SpawnFlyer(int typeIndex, Vector2 position, float hpMultiplier, Vector2 velocity, float life)
+        {
+            var before = Count;
+            Spawn(typeIndex, position, hpMultiplier);
+            if (Count == before) return; // enemy cap reached
+            var i = Count - 1;
+            fly[i] = velocity;
+            flyTime[i] = life;
+            flyerCount++;
         }
 
         public void Tick(float dt)
@@ -138,6 +157,7 @@ namespace Survivor
                 Hp = Hp,
                 Radius = Radius,
                 MoveSpeed = moveSpeed,
+                Fly = fly.Reinterpret<float2>(),
                 BucketStart = grid.BucketStart,
                 Items = grid.Items,
                 PosOut = positionNext.Reinterpret<float2>(),
@@ -157,7 +177,7 @@ namespace Survivor
             var post = new PostJob
             {
                 Pos = positionNext.Reinterpret<float2>(), // the job above wrote the new positions here
-                Hp = Hp, Radius = Radius, Damage = damage, IsBoss = isBoss, Flash = flash,
+                Hp = Hp, Radius = Radius, Damage = damage, IsBoss = isBoss, Flash = flash, Squash = squash,
                 Player = player.Position, PlayerRadius = player.Radius, Dt = dt, Count = Count,
                 ContactDamage = contactDamage, BossFound = bossFound,
             }.Schedule(move);
@@ -167,8 +187,18 @@ namespace Survivor
             (knockback, knockbackNext) = (knockbackNext, knockback);
 
             BossIndex = bossFound[0];
-            if (BossIndex >= 0) moveSpeed[BossIndex] = speed[BossIndex] * UpdateBoss(BossIndex, dt);
+            // Boss walking speed for the next frame; BossSkillSystem stops it while casting / moves it itself while dashing.
+            if (BossIndex >= 0) moveSpeed[BossIndex] = speed[BossIndex] * BossSpeedScale;
             if (contactDamage[0] > 0f) player.TryHurt(contactDamage[0]);
+
+            // Flyers whose time is up leave the map (no reward, no kill).
+            if (flyerCount > 0)
+                for (var i = Count - 1; i >= 0; i--)
+                {
+                    if (fly[i] == Vector2.zero) continue;
+                    flyTime[i] -= dt;
+                    if (flyTime[i] <= 0f && Hp[i] > 0f) RemoveAt(i);
+                }
         }
 
         // Single-threaded Burst pass over all enemies: hit flash, strongest contact damage, boss lookup.
@@ -181,6 +211,7 @@ namespace Survivor
             [ReadOnly] public NativeArray<float> Damage;
             [ReadOnly] public NativeArray<byte> IsBoss;
             public NativeArray<float> Flash;
+            public NativeArray<float> Squash;
             public NativeArray<float> ContactDamage;
             public NativeArray<int> BossFound;
             public float2 Player;
@@ -195,6 +226,7 @@ namespace Survivor
                 {
                     if (Hp[i] <= 0f) continue;
                     Flash[i] = Flash[i] - Dt;
+                    Squash[i] = math.max(0f, Squash[i] - Dt);
                     if (IsBoss[i] != 0) boss = i;
                     var reach = Radius[i] + PlayerRadius;
                     if (math.lengthsq(Pos[i] - Player) < reach * reach) contact = math.max(contact, Damage[i]);
@@ -212,6 +244,7 @@ namespace Survivor
             [ReadOnly] public NativeArray<float> Hp;
             [ReadOnly] public NativeArray<float> Radius;
             [ReadOnly] public NativeArray<float> MoveSpeed;
+            [ReadOnly] public NativeArray<float2> Fly;
             [ReadOnly] public NativeArray<int> BucketStart;
             [ReadOnly] public NativeArray<int> Items;
             [WriteOnly] public NativeArray<float2> PosOut;
@@ -229,6 +262,16 @@ namespace Survivor
                 if (Hp[i] <= 0f)
                 {
                     PosOut[i] = p;
+                    KnockOut[i] = kb;
+                    return;
+                }
+
+                // Flyer (swarm): straight line at its own velocity: no chasing, no wrap-around, no separation.
+                var fv = Fly[i];
+                if (fv.x != 0f || fv.y != 0f)
+                {
+                    kb *= DecayNear;
+                    PosOut[i] = p + (fv + kb) * Dt;
                     KnockOut[i] = kb;
                     return;
                 }
@@ -303,24 +346,6 @@ namespace Survivor
             }
         }
 
-        // Boss behaviour: walks, then periodically charges at the player. Returns the speed multiplier.
-        float UpdateBoss(int i, float dt)
-        {
-            if (chargeTimer[i] > 0f)
-            {
-                chargeTimer[i] -= dt;
-                return config.BossChargeSpeedMultiplier;
-            }
-            abilityTimer[i] -= dt;
-            if (abilityTimer[i] <= 0f)
-            {
-                abilityTimer[i] = config.BossChargeInterval;
-                chargeTimer[i] = config.BossChargeDuration;
-            }
-            // Slows down just before charging, as a warning.
-            return abilityTimer[i] < 0.6f ? 0.2f : 1f;
-        }
-
         public void Damage(int i, float amount, Vector2 knockDirection = default, float knockForce = 0f)
         {
             if (Hp[i] <= 0f) return;
@@ -334,6 +359,8 @@ namespace Survivor
                 dead.Add(i); // killing blow: no knockback, it shatters where it stands
                 return;
             }
+            // Survived the hit: a quick squash (PlayerTuning "Co rúm khi trúng đòn"), and a push back.
+            squash[i] = tuning.HitSquashTime;
             // Survived the hit: pushed back (bosses ignore it). Capped so fast weapons can't launch it across the map.
             if (!boss && knockForce > 0f)
             {
@@ -383,6 +410,7 @@ namespace Survivor
 
         void RemoveAt(int i)
         {
+            if (fly[i] != Vector2.zero) flyerCount--;
             var last = --Count;
             if (i == last) return;
             if (BossIndex == last) BossIndex = i;
@@ -398,9 +426,10 @@ namespace Survivor
             xp[i] = xp[last];
             type[i] = type[last];
             flash[i] = flash[last];
+            squash[i] = squash[last];
             isBoss[i] = isBoss[last];
-            abilityTimer[i] = abilityTimer[last];
-            chargeTimer[i] = chargeTimer[last];
+            fly[i] = fly[last];
+            flyTime[i] = flyTime[last];
         }
 
         // Alive enemies whose body touches the circle.
@@ -468,13 +497,9 @@ namespace Survivor
 
         public void Draw(InstancedRenderer renderer)
         {
-            drawer.Draw(renderer, Position, Radius, flash, type, Id, Count, player.Position.x);
+            drawer.Draw(renderer, Position, Radius, flash, squash, tuning.HitSquashTime, tuning.HitSquashAmount,
+                type, Id, Count, player.Position.x, fly);
             deaths.Draw(renderer);
-
-            // Boss: red warning ring while preparing / during a charge.
-            var b = BossIndex;
-            if (b >= 0 && (chargeTimer[b] > 0f || abilityTimer[b] < 0.6f))
-                renderer.Ring(RenderLayer.Effects, Position[b], Radius[b] * 1.4f, 0.12f, new Color(1f, 0.2f, 0.2f, 0.8f));
         }
 
         void Grow()
@@ -488,15 +513,16 @@ namespace Survivor
             GrowNative(ref knockbackNext, size);
             GrowNative(ref moveSpeed, size);
             GrowNative(ref flash, size);
+            GrowNative(ref squash, size);
             GrowNative(ref damage, size);
             GrowNative(ref isBoss, size);
+            GrowNative(ref fly, size);
             Array.Resize(ref Id, size);
+            Array.Resize(ref flyTime, size);
             Array.Resize(ref maxHp, size);
             Array.Resize(ref speed, size);
             Array.Resize(ref xp, size);
             Array.Resize(ref type, size);
-            Array.Resize(ref abilityTimer, size);
-            Array.Resize(ref chargeTimer, size);
         }
 
         void GrowNative<T>(ref NativeArray<T> array, int size) where T : struct
@@ -518,10 +544,12 @@ namespace Survivor
             knockbackNext.Dispose();
             moveSpeed.Dispose();
             flash.Dispose();
+            squash.Dispose();
             damage.Dispose();
             isBoss.Dispose();
             contactDamage.Dispose();
             bossFound.Dispose();
+            fly.Dispose();
         }
     }
 }

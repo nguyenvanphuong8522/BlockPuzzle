@@ -24,6 +24,7 @@ namespace Survivor
 
         // Grey puff that grows, drifts up and fades (gun smoke).
         public void Smoke(Vector2 at, float radius, float time = 0.35f) => Add(Kind.Smoke, at, radius, new Color(0.85f, 0.85f, 0.85f, 0.55f), time);
+        public void Smoke(Vector2 at, float radius, float time, Color tint) => Add(Kind.Smoke, at, radius, tint, time);
 
         // Vertical lightning strike landing on a point.
         public void Bolt(Vector2 at, Color tint, float time = 0.2f) => Add(Kind.Bolt, at, 6f, tint, time);

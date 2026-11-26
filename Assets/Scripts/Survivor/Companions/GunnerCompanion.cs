@@ -7,14 +7,17 @@ namespace Survivor
     // non-stop while something is in range. Levels add damage, range, piercing and accuracy (the rate stays the same).
     public sealed class GunnerCompanion : Companion
     {
-        public const float FireInterval = 0.14f;
+        // Numbers and card text: Assets/Resources/Upgrades/Companions/Gunner.asset
+        readonly GunnerData data;
+        public GunnerCompanion(GunnerData data) : base(data) => this.data = data;
+        float FireInterval => data.FireInterval;
 
-        static readonly float[] Damage = { 3f, 4f, 5f, 7f, 9f };
-        static readonly float[] Range = { 6f, 6.5f, 7f, 7.5f, 8f };
-        static readonly int[] Pierce = { 0, 0, 1, 1, 2 };
-        static readonly float[] SpreadDegrees = { 8f, 7f, 6f, 5f, 4f };
+        float[] Damage => data.Damage;
+        float[] Range => data.Range;
+        int[] Pierce => data.Pierce;
+        float[] SpreadDegrees => data.SpreadDegrees;
 
-        const float BulletSpeed = 16f;
+        float BulletSpeed => data.BulletSpeed;
         const float BulletRadius = 0.08f;
         const float AimTurnSpeed = 18f;     // how fast the gun swings toward a new target
         const float GunSize = 0.24f;        // world height of the gun sprite
@@ -28,7 +31,7 @@ namespace Survivor
         const int IdleFrames = 4, BlinkFrame = 4;
         const float IdleFps = 6f, BlinkEvery = 3.3f, BlinkTime = 0.13f;
 
-        static readonly Color TracerColor = new Color(1f, 0.9f, 0.5f, 0.85f);
+        Color TracerColor => data.TracerColor;
 
         readonly List<int> found = new List<int>(1);
         float timer = 0.4f;
@@ -38,16 +41,6 @@ namespace Survivor
         int flashFrame;
 
         public override float SightRadius(CompanionContext ctx) => At(Range);
-        public override string Name => "Xạ Thủ Nhí";
-        public override string Description => "Cầm súng tiểu liên, bắn liên tục vào kẻ địch gần nhất (0,14 giây một viên).";
-        public override Color Tint => new Color(0.45f, 0.65f, 1f);
-        public override string NextLevelDescription => (Level + 1) switch
-        {
-            2 => "Sát thương cao hơn, bắn xa hơn.",
-            3 => "Đạn xuyên qua 1 kẻ địch.",
-            4 => "Sát thương cao hơn, bắn chụm hơn.",
-            _ => "Đạn xuyên qua 2 kẻ địch, sát thương cao nhất."
-        };
 
         bool AimsLeft => aim.x < 0f;
         Vector2 Hands => Position + new Vector2(AimsLeft ? -0.17f : 0.17f, 0f);
