@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.CowboyData
   Enabled: 1
   DisplayName: "Cao B\u1ED3i S\xFAng M\xE1y"
-  Description: "H\u1EE2P TH\u1EC2 G\u1EA5u S\xFAng S\u0103n + X\u1EA1 Th\u1EE7 Nh\xED:
-    s\xFAng m\xE1y 6 n\xF2ng kh\u1ED5ng l\u1ED3, quay n\xF2ng r\u1ED3i x\u1EA3 \u0111\u1EA1n
-    li\xEAn t\u1EE5c, s\xE1t th\u01B0\u01A1ng l\u1EDBn."
+  Description: "S\xFAng m\xE1y 6 n\xF2ng kh\u1ED5ng l\u1ED3, quay n\xF2ng r\u1ED3i
+    x\u1EA3 \u0111\u1EA1n li\xEAn t\u1EE5c, s\xE1t th\u01B0\u01A1ng l\u1EDBn."
   LevelDescriptions: []
   Tint: {r: 0.95, g: 0.7, b: 0.35, a: 1}
   Icon: {fileID: 0}
@@ -42,5 +41,5 @@ MonoBehaviour:
   GunSize: 0.62
   Recoil: 0.05
   FlashSize: 0.5
-  BodyScale: 1.15
+  BodyScale: 1.2
   SoundPitch: 0.75

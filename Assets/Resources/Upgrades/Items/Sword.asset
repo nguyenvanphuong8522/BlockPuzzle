@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.ItemData
   Enabled: 1
   DisplayName: "Ki\u1EBFm S\u1EAFc"
-  Description: "T\u0103ng {0}% s\xE1t th\u01B0\u01A1ng cho hero v\xE0 m\u1ECDi \u0111\u1EC7
-    t\u1EED."
+  Description: "T\u0103ng {0}% s\xE1t th\u01B0\u01A1ng(hero v\xE0 \u0111\u1EC7 t\u1EED)."
   Icon: {fileID: 21300000, guid: 37438d3585d7f9147977d8c11cedcb83, type: 3}
   Tint: {r: 1, g: 0.7, b: 0.25, a: 1}
   SortOrder: 3

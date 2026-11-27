@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.PigMaceData
   Enabled: 1
   DisplayName: "L\u1EE3n C\u1EA7m Tr\xF9y"
-  Description: "Lao t\u1EDBi n\u1EC7n tr\xF9y v\xE0o v\xF9ng h\xECnh qu\u1EA1t 120\xB0.
-    M\u1ED7i 18 gi\xE2y t\u1EB7ng hero ng\u1EABu nhi\xEAn +ATK ho\u1EB7c +M\xE1u
-    t\u1ED1i \u0111a."
+  Description: "M\u1ED7i 18 gi\xE2y t\u1EB7ng hero ng\u1EABu nhi\xEAn +ATK ho\u1EB7c
+    +M\xE1u t\u1ED1i \u0111a."
   LevelDescriptions:
   - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, qu\xE0 buff l\u1EDBn h\u01A1n."
   - "V\xF9ng n\u1EC7n r\u1ED9ng h\u01A1n, qu\xE0 buff l\u1EDBn h\u01A1n."
@@ -25,6 +24,9 @@ MonoBehaviour:
   Tint: {r: 1, g: 0.62, b: 0.72, a: 1}
   Icon: {fileID: 0}
   SortOrder: 5
+  MaxLevel: 5
+  FusionOf: []
+  ConsumeIngredients: 1
   Damage:
   - 30
   - 38
@@ -43,13 +45,13 @@ MonoBehaviour:
   - 2
   - 2.1
   - 2.3
-  Swings: 0100000001000000010000000100000002000000
-  DashSpeed: 16
-  ReturnSpeed: 11
-  MaxDashTime: 0.55
-  StayTime: 0.22
+  Swings: 0100000001000000010000000100000001000000
+  DashSpeed: 18
+  ReturnSpeed: 18
+  MaxDashTime: 0.25
+  StayTime: 0.1
   DoubleSwingGap: 0.25
-  SightRange: 7
+  SightRange: 5
   Knockback: 6
   SwingColor: {r: 1, g: 1, b: 1, a: 1}
   BuffInterval: 18

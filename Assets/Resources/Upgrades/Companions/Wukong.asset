@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.WukongData
   Enabled: 1
   DisplayName: "T\u1EC1 Thi\xEAn \u0110\u1EA1i Th\xE1nh"
-  Description: "H\u1EE2P TH\u1EC2 Kh\u1EC9 N\xE9m Chu\u1ED1i + R\xE1i C\xE1 Ki\u1EBFm
-    S\u0129: n\xE9m g\u1EADy nh\u01B0 \xFD kh\u1ED5ng l\u1ED3 xoay tr\xF2n 360\xB0,
+  Description: "S\xE9m g\u1EADy nh\u01B0 \xFD kh\u1ED5ng l\u1ED3 xoay tr\xF2n 360\xB0,
     bay ra qu\xE9t s\u1EA1ch r\u1ED3i bay v\u1EC1 tay."
   LevelDescriptions:
   - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, g\u1EADy d\xE0i h\u01A1n."
@@ -56,16 +55,16 @@ MonoBehaviour:
   - 3
   - 3.4
   HitRadiusScale: 0.9
-  SpinSpeed: 1080
-  ThrowSpeed: 13
-  ReturnSpeed: 15
+  SpinSpeed: 1300
+  ThrowSpeed: 18
+  ReturnSpeed: 18
   SpinGhosts: 2
   Knockback: 4
   SpreadDegrees: 25
   WaitForReturn: 1
   CloneSkill: 1
-  CloneInterval: 15
-  CloneFirstDelay: 3
+  CloneInterval: 22
+  CloneFirstDelay: 22
   CloneCastTime: 1
   CloneCount: 12
   CloneMaxAlive: 16
@@ -92,14 +91,14 @@ MonoBehaviour:
   BarColor: {r: 1, g: 0.55, b: 0.2, a: 1}
   BarBackground: {r: 0.15, g: 0.15, b: 0.15, a: 0.85}
   BarReadyColor: {r: 1, g: 0.95, b: 0.6, a: 1}
-  CloneHp: 100
-  CloneAttackHpCost: 20
+  CloneHp: 80
+  CloneAttackHpCost: 18
   CloneDamage:
-  - 18
-  - 22
+  - 10
+  - 14
+  - 20
   - 27
-  - 33
-  - 40
+  - 30
   CloneAttackInterval: 0.6
   CloneAttackRange: 0.9
   CloneAttackRadius: 1.2
@@ -107,8 +106,8 @@ MonoBehaviour:
   CloneSpinTime: 0.3
   CloneKnockback: 3
   CloneMoveSpeed: 5.5
-  CloneSightRange: 7
-  CloneWanderRadius: 3
+  CloneSightRange: 20
+  CloneWanderRadius: 20
   CloneWanderInterval: 1.6
   CloneWanderSpeedScale: 0.6
   CloneLifetime: 20
@@ -118,14 +117,14 @@ MonoBehaviour:
   CloneHpBarColor: {r: 1, g: 0.8, b: 0.25, a: 1}
   CloneHpBarBackground: {r: 0, g: 0, b: 0, a: 0.6}
   ShowPlumes: 1
-  PlumeLength: 0.8
+  PlumeLength: 1
   PlumeThickness: 1.4
-  FrontPlumeAngle: 72
-  BackPlumeAngle: 112
-  PlumeBase: {x: 0.156, y: 0.242}
-  PlumeSwayDegrees: 9
+  FrontPlumeAngle: 85
+  BackPlumeAngle: 112.7
+  PlumeBase: {x: 0.05, y: 0.242}
+  PlumeSwayDegrees: 8.5
   PlumeSwaySpeed: 3
-  PlumeThrowSwing: 14
+  PlumeThrowSwing: 11.9
   PlumeTint: {r: 1, g: 1, b: 1, a: 1}
   SightRange: 9
-  BodyScale: 1.15
+  BodyScale: 1.25

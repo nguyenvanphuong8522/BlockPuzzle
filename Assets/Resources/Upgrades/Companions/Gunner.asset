@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.GunnerData
   Enabled: 1
   DisplayName: "X\u1EA1 Th\u1EE7 Nh\xED"
-  Description: "C\u1EA7m s\xFAng ti\u1EC3u li\xEAn, b\u1EAFn li\xEAn t\u1EE5c v\xE0o
-    k\u1EBB \u0111\u1ECBch g\u1EA7n nh\u1EA5t (0,14 gi\xE2y m\u1ED9t vi\xEAn)."
+  Description: "B\u1EAFn li\xEAn t\u1EE5c v\xE0o k\u1EBB \u0111\u1ECBch g\u1EA7n
+    nh\u1EA5t (0,14 gi\xE2y m\u1ED9t vi\xEAn)."
   LevelDescriptions:
   - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, b\u1EAFn xa h\u01A1n."
   - "\u0110\u1EA1n xuy\xEAn qua 1 k\u1EBB \u0111\u1ECBch."
@@ -25,6 +25,9 @@ MonoBehaviour:
   Tint: {r: 0.45, g: 0.65, b: 1, a: 1}
   Icon: {fileID: 0}
   SortOrder: 3
+  MaxLevel: 5
+  FusionOf: []
+  ConsumeIngredients: 1
   Damage:
   - 3
   - 4

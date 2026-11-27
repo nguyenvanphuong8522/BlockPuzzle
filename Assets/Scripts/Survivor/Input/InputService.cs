@@ -32,8 +32,15 @@ namespace Survivor
         {
             get
             {
-                var v = move != null ? Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f) : KeyboardMove();
-                return Joystick.sqrMagnitude > v.sqrMagnitude ? Joystick : v;
+                var v = move != null 
+                    ? Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f) 
+                    : KeyboardMove();
+                var joystickDirection = Joystick.normalized;
+                var inputDirection = v.normalized;
+
+                return Joystick.sqrMagnitude > 0.01f
+                    ? joystickDirection
+                    : inputDirection;
             }
         }
 

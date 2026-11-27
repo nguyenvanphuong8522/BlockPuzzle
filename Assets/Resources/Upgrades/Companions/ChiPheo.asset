@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.ChiPheoData
   Enabled: 1
   DisplayName: "Ch\xED Ph\xE8o"
-  Description: "Say kh\u01B0\u1EDBt, n\xE9m chai bom x\u0103ng xanh l\xE1 v\xE0o
-    k\u1EBB \u0111\u1ECBch g\u1EA7n nh\u1EA5t: \u0111\u1EA5t b\u1ED1c ch\xE1y v\xE0i
-    gi\xE2y, qu\xE1i \u0111i v\xE0o l\xE0 m\u1EA5t m\xE1u."
+  Description: "N\xE9m chai bom x\u0103ng v\xE0o k\u1EBB \u0111\u1ECBch g\u1EA7n
+    nh\u1EA5t: \u0111\u1EA5t b\u1ED1c ch\xE1y, qu\xE1i \u0111i v\xE0o l\xE0 m\u1EA5t
+    m\xE1u."
   LevelDescriptions:
   - "L\u1EEDa ch\xE1y m\u1EA1nh h\u01A1n, v\xF9ng ch\xE1y to h\u01A1n."
   - "N\xE9m 2 chai m\u1ED7i l\u1EA7n, ch\xE1y l\xE2u h\u01A1n."

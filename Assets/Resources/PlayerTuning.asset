@@ -39,7 +39,7 @@ MonoBehaviour:
   CompanionCircleSquash: 0.85
   CompanionRegroupSpeed: 8
   StartingCompanions:
-  - Kind: 1
+  - Kind: 6
     Level: 1
   XpToLevelUp: 04000000080000000c0000001000000014000000180000001d0000002100000025000000290000002e00000032000000360000003a0000003e00000042000000470000004b0000004f000000530000005e0000006a00000075000000800000008b00000096000000a2000000ad000000b8000000c3000000
   XpGrowthAfterTable: 11
@@ -50,8 +50,8 @@ MonoBehaviour:
   BossHp: 10000
   BossHpGrowthPerAppearance: 0.6
   BossWarningSeconds: 5
-  BossArenaWidth: 24
-  BossArenaHeight: 32
+  BossArenaWidth: 19
+  BossArenaHeight: 23
   BossArenaWallDamage: 12
   BossArenaWallPush: 0.5
   BossArenaWallThickness: 0.18
@@ -62,32 +62,32 @@ MonoBehaviour:
   BossTrailGems: 30
   BossSkillInterval: 4
   BossFirstSkillDelay: 2.5
-  BossDashCastTime: 0.5
-  BossDashSpeed: 20
-  BossDashDistance: 9
-  BossDashWidthScale: 1
+  BossDashCastTime: 0.35
+  BossDashSpeed: 26
+  BossDashDistance: 18
+  BossDashWidthScale: 1.5
   BossDashWarnColor: {r: 1, g: 0.25, b: 0.2, a: 0.22}
   BossDashFillColor: {r: 0.9, g: 0.05, b: 0.05, a: 0.5}
   BossDashDamage: 25
   BossBurstCastTime: 0.6
   BossBurstWaves: 3
-  BossBurstWaveDelay: 1
+  BossBurstWaveDelay: 0.8
   BossBurstBullets: 16
-  BossBulletSpeed: 6.5
-  BossBulletDamage: 10
-  BossBulletRadius: 0.4
+  BossBulletSpeed: 8
+  BossBulletDamage: 15
+  BossBulletRadius: 0.58
   BossBulletLifetime: 4
   BossBulletColor: {r: 0.90196085, g: 0.050980397, b: 0.050980397, a: 1}
   SwarmEnabled: 1
   SwarmFirstTime: 40
   SwarmInterval: 30
   SwarmIntervalJitter: 8
-  SwarmWarningTime: 2
+  SwarmWarningTime: 1.8
   SwarmEnemyType: 1
   SwarmCount: 22
   SwarmCountPerMinute: 4
   SwarmSpeed: 14
-  SwarmWidth: 5
+  SwarmWidth: 10
   SwarmDepth: 4
   SwarmAimOffset: 1
   SwarmHpMultiplier: 1
@@ -107,8 +107,8 @@ MonoBehaviour:
   FloatTextThickness: 0.15
   NumberBaseHeight: 0.32
   EnemyNumberColor: {r: 1, g: 1, b: 1, a: 1}
-  EnemyNumberScale: 2
+  EnemyNumberScale: 2.3
   BossNumberColor: {r: 1, g: 1, b: 1, a: 1}
-  BossNumberScale: 2
+  BossNumberScale: 2.3
   HurtNumberColor: {r: 1, g: 0.024509802, b: 0, a: 1}
   HurtNumberScale: 3

@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.MonkData
   Enabled: 1
   DisplayName: "S\u01B0 Th\u1EA7y G\xF5 M\xF5"
-  Description: "Ng\u1ED3i g\xF5 m\xF5 t\u1EE5ng kinh: m\u1ED7i gi\xE2y m\u1ED9t v\xF2ng
-    s\xF3ng v\xE0ng n\u1EDF ra t\u1EEB hero, qu\xE1i ch\u1EA1m vi\u1EC1n v\xF2ng
-    th\xEC m\u1EA5t m\xE1u."
+  Description: "M\u1ED7i gi\xE2y m\u1ED9t v\xF2ng s\xF3ng n\u1EDF ra t\u1EEB hero,
+    qu\xE1i ch\u1EA1m vi\u1EC1n v\xF2ng th\xEC m\u1EA5t m\xE1u."
   LevelDescriptions:
   - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, v\xF2ng to h\u01A1n."
   - "S\xE1t th\u01B0\u01A1ng cao h\u01A1n, v\xF2ng to h\u01A1n."
@@ -29,29 +28,29 @@ MonoBehaviour:
   FusionOf: []
   ConsumeIngredients: 1
   Damage:
-  - 10
-  - 13
-  - 17
-  - 22
-  - 30
-  MaxRadius:
-  - 3.5
-  - 4
-  - 4.5
+  - 2
   - 5
-  - 6
-  PulseInterval: 1
-  ExpandSpeed: 5
+  - 9
+  - 11
+  - 14
+  MaxRadius:
+  - 2.7
+  - 3
+  - 3.2
+  - 3.7
+  - 4.5
+  PulseInterval: 0.8
+  ExpandSpeed: 1.5
   StartRadius: 0.4
   HitWidth: 0.35
   Knockback: 1.5
   FollowHero: 1
-  OnlyWhenEnemies: 1
+  OnlyWhenEnemies: 0
   RingColor: {r: 1, g: 0.85, b: 0.35, a: 0.95}
-  RingThickness: 0.1
+  RingThickness: 0.07
   GlowColor: {r: 1, g: 0.75, b: 0.25, a: 0.25}
-  GlowThickness: 0.45
+  GlowThickness: 0.3
   FadePart: 0.45
-  TapPitch: 1.6
+  TapPitch: 1.5
   TapVolume: 0.6
-  BodyScale: 1
+  BodyScale: 1.2

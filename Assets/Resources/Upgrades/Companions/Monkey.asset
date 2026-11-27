@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Survivor::Survivor.MonkeyData
   Enabled: 1
   DisplayName: "Kh\u1EC9 N\xE9m Chu\u1ED1i"
-  Description: "N\xE9m chu\u1ED1i nh\u01B0 boomerang: bay ra r\u1ED3i quay v\u1EC1,
-    g\xE2y s\xE1t th\u01B0\u01A1ng c\u1EA3 \u0111i l\u1EABn v\u1EC1."
+  Description: "N\xE9m chu\u1ED1i boomerang:g\xE2y s\xE1t th\u01B0\u01A1ng c\u1EA3
+    \u0111i l\u1EABn v\u1EC1."
   LevelDescriptions:
   - "S\xE1t th\u01B0\u01A1ng +33%, n\xE9m nhanh h\u01A1n."
   - "N\xE9m 2 qu\u1EA3 chu\u1ED1i m\u1ED7i l\u1EA7n."
@@ -24,6 +24,9 @@ MonoBehaviour:
   Tint: {r: 1, g: 0.85, b: 0.25, a: 1}
   Icon: {fileID: 0}
   SortOrder: 0
+  MaxLevel: 5
+  FusionOf: []
+  ConsumeIngredients: 1
   Damage:
   - 12
   - 16
