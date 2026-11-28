@@ -52,8 +52,6 @@ namespace Survivor
         [Min(0.01f)] public float FadeTime = 0.5f;
 
         [Header("Khác")]
-        [Tooltip("Drawn size (the monkey is 1).")]
-        [Min(0.3f)] public float BodyScale = 1.05f;
 
         public override CompanionKind Kind => CompanionKind.ChiPheo;
         public override Companion Create() => new ChiPheoCompanion(this);

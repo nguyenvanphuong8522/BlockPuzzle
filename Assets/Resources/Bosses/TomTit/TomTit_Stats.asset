@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 50e211d09eace954894c22adfd126713, type: 3}
-  m_Name: BossStats
+  m_Name: TomTit_Stats
   m_EditorClassIdentifier: Survivor::Survivor.BossStats
-  Hp: 10000
+  Hp: 22000
   HpGrowthPerAppearance: 0.6
-  MoveSpeed: 2.1
-  ContactDamage: 25
-  DashDamage: 25
-  SwipeDamage: 20
-  BulletDamage: 15
-  ArenaWallDamage: 12
+  MoveSpeed: 2.6
+  ContactDamage: 35
+  DashDamage: 36
+  SwipeDamage: 32
+  BulletDamage: 20
+  ArenaWallDamage: 14

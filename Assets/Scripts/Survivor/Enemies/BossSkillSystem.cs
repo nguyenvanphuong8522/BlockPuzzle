@@ -6,10 +6,11 @@ namespace Survivor
     // Boss Skill Interval seconds uses a skill, alternating:
     //   1. Lao (dash): stands still and locks a straight path toward the hero. A two-layer red warning is drawn on
     //      the ground: the light layer is the whole path, the dark layer runs from start to end during the cast.
-    //      When it reaches the end the boss dashes along that exact line.
+    //      When it reaches the end the boss dashes along that exact line. Can combo (re-aims before each dash).
     //   2. Quẹt càng (claw swipe): stands still, a red rectangle toward the hero fills from the boss outward
     //      (same two-layer warning as the dash), then the claw sweeps across it and hurts the hero inside. Can combo.
-    //   3. Đạn tỏa (bullet burst): winds up, then fires a ring of bullets in 360 degrees, several waves.
+    //   3. Đạn tỏa (bullet burst): winds up, then fires several waves: a full ring, or a fan aimed at the hero
+    //      (Burst Angle).
     // Runs right after EnemySystem.Tick and before BossArenaSystem (so the arena wall still stops a dash).
     public sealed class BossSkillSystem
     {
@@ -19,8 +20,9 @@ namespace Survivor
 
         readonly EnemySystem enemies;
         readonly Player player;
-        readonly BossSettings tuning;
-        readonly BossStats stats;
+        readonly BossRoster roster;
+        BossSettings tuning => roster.Settings; // the boss fighting now (each boss has its own)
+        BossStats stats => roster.Stats;
         readonly EffectSystem effects;
         readonly CameraShake shake;
         readonly AudioService audio;
@@ -35,6 +37,8 @@ namespace Survivor
         float dashLeft;
         float dashLength;         // planned length (cut at the arena wall)
         bool dashHitsWall;
+        float dashCast;           // length of the current warning (first dash / combo dash)
+        int dashesLeft;
         int wavesLeft, waveIndex;
 
         // Claw swipe
@@ -50,13 +54,12 @@ namespace Survivor
         readonly float[] bulletLife = new float[MaxBullets];
         int bulletCount;
 
-        public BossSkillSystem(EnemySystem enemies, Player player, BossSettings tuning, BossStats stats, EffectSystem effects,
+        public BossSkillSystem(EnemySystem enemies, Player player, BossRoster roster, EffectSystem effects,
             CameraShake shake, AudioService audio, BossArenaSystem arena, SpriteCatalog sprites)
         {
             this.enemies = enemies;
             this.player = player;
-            this.tuning = tuning;
-            this.stats = stats;
+            this.roster = roster;
             this.effects = effects;
             this.shake = shake;
             this.audio = audio;
@@ -100,7 +103,7 @@ namespace Survivor
                 case State.DashCast:
                     enemies.BossSpeedScale = 0f;
                     timer += dt;
-                    if (timer >= tuning.DashCastTime)
+                    if (timer >= dashCast)
                     {
                         state = State.Dash;
                         dashLeft = dashLength;
@@ -122,7 +125,16 @@ namespace Survivor
                     if (dashLeft <= 0f)
                     {
                         if (dashHitsWall) HitWall(next, enemies.Radius[b]);
-                        EndSkill();
+                        dashesLeft--;
+                        if (dashesLeft <= 0) EndSkill();
+                        else
+                        {
+                            // Next dash of the combo: re-aim at the hero, shorter warning.
+                            state = State.DashCast;
+                            timer = 0f;
+                            dashCast = tuning.DashComboCastTime;
+                            AimDash(next);
+                        }
                     }
                     break;
                 }
@@ -221,20 +233,9 @@ namespace Survivor
             {
                 state = State.DashCast;
                 timer = 0f;
-                var toHero = player.Position - bossPos;
-                dashDir = toHero.sqrMagnitude > 0.0001f ? toHero.normalized : Vector2.right;
-                // Cut the path at the arena wall: the boss stops there (and the warning shows where).
-                dashLength = tuning.DashDistance;
-                dashHitsWall = false;
-                if (tuning.DashStopAtWall && arena.Active)
-                {
-                    var toWall = DistanceToWall(bossPos, dashDir, enemies.Radius[enemies.BossIndex]);
-                    if (toWall < dashLength)
-                    {
-                        dashLength = Mathf.Max(0f, toWall);
-                        dashHitsWall = true;
-                    }
-                }
+                dashCast = tuning.DashCastTime;
+                dashesLeft = Mathf.Max(1, tuning.DashCombo);
+                AimDash(bossPos);
             }
             else if (skill == 1)
             {
@@ -281,6 +282,24 @@ namespace Survivor
             audio.PlayAtPitch(Sfx.BossSpawn, 0.7f, 0.6f, 0.05f);
         }
 
+        // Locks a straight path toward the hero, cut at the arena wall (the boss stops there, the warning shows where).
+        void AimDash(Vector2 bossPos)
+        {
+            var toHero = player.Position - bossPos;
+            dashDir = toHero.sqrMagnitude > 0.0001f ? toHero.normalized : Vector2.right;
+            dashLength = tuning.DashDistance;
+            dashHitsWall = false;
+            if (tuning.DashStopAtWall && arena.Active)
+            {
+                var toWall = DistanceToWall(bossPos, dashDir, enemies.Radius[enemies.BossIndex]);
+                if (toWall < dashLength)
+                {
+                    dashLength = Mathf.Max(0f, toWall);
+                    dashHitsWall = true;
+                }
+            }
+        }
+
         void AimSwipe(Vector2 bossPos)
         {
             var toHero = player.Position - bossPos;
@@ -313,13 +332,26 @@ namespace Survivor
             enemies.BossSpeedScale = 1f;
         }
 
-        // One ring of bullets; every other wave is turned half a step so the gaps change.
+        // One wave of bullets. 360 degrees: a full ring, every other wave turned half a step so the gaps change.
+        // Less: a fan of Burst Angle degrees centered on the hero (aimed at each wave), bullets edge to edge.
         void FireWave(int b)
         {
             var n = Mathf.Max(3, tuning.BurstBullets);
-            var step = Mathf.PI * 2f / n;
-            var offset = (waveIndex % 2 == 1 ? 0.5f : 0f) * step;
             var origin = enemies.Position[b];
+            float step, offset;
+            if (tuning.BurstAngle >= 359.9f)
+            {
+                step = Mathf.PI * 2f / n;
+                offset = (waveIndex % 2 == 1 ? 0.5f : 0f) * step;
+            }
+            else
+            {
+                var arc = tuning.BurstAngle * Mathf.Deg2Rad;
+                var toHero = player.Position - origin;
+                var aim = toHero.sqrMagnitude > 0.0001f ? Mathf.Atan2(toHero.y, toHero.x) : 0f;
+                step = arc / (n - 1);
+                offset = aim - arc * 0.5f;
+            }
             var start = enemies.Radius[b] * 0.8f;
             for (var k = 0; k < n && bulletCount < MaxBullets; k++)
             {
@@ -406,11 +438,6 @@ namespace Survivor
                 var k = Mathf.Clamp01(timer / Mathf.Max(0.05f, swipeCast));
                 renderer.Line(RenderLayer.Shadows, near, far, width, tuning.SwipeWarnColor);
                 if (k > 0.001f) renderer.Line(RenderLayer.Shadows, near, near + swipeDir * (length * k), width, tuning.SwipeFillColor);
-                // Bright line on the far edge so you can see how far it reaches.
-                var rim = tuning.SwipeFillColor;
-                rim.a = Mathf.Min(1f, rim.a + 0.3f);
-                var side = SwipeAcross * (width * 0.5f);
-                renderer.Line(RenderLayer.Shadows, far - side, far + side, 0.08f, rim);
                 DrawClaw(renderer, center, near);
                 return;
             }
@@ -439,6 +466,7 @@ namespace Survivor
         // as the warning fills), then swung across the rectangle with the slash, snapping shut halfway.
         void DrawClaw(InstancedRenderer renderer, Vector2 center, Vector2 near)
         {
+            if (!tuning.ShowClaw) return;
             var art = sprites.BossClaw;
             if (art == null || art.IsEmpty) return;
             var across = SwipeAcross * swipeSide;    // direction the claw sweeps toward
@@ -471,14 +499,9 @@ namespace Survivor
             var width = radius * 2f * tuning.DashWidthScale;
             var length = dashLength;
             var to = from + dashDir * length;
-            var k = Mathf.Clamp01(timer / Mathf.Max(0.05f, tuning.DashCastTime));
+            var k = Mathf.Clamp01(timer / Mathf.Max(0.05f, dashCast));
             renderer.Line(RenderLayer.Shadows, from, to, width, tuning.DashWarnColor);
             if (k > 0.001f) renderer.Line(RenderLayer.Shadows, from, from + dashDir * (length * k), width, tuning.DashFillColor);
-            // Thin bright edge at the end so you can see where it stops.
-            var edge = tuning.DashFillColor;
-            edge.a = Mathf.Min(1f, edge.a + 0.3f);
-            var side = new Vector2(-dashDir.y, dashDir.x) * (width * 0.5f);
-            renderer.Line(RenderLayer.Shadows, to - side, to + side, 0.08f, edge);
         }
     }
 }

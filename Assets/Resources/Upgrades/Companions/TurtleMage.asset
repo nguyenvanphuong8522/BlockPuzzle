@@ -25,6 +25,7 @@ MonoBehaviour:
   Icon: {fileID: 0}
   SortOrder: 2
   MaxLevel: 5
+  BodyScale: 1.2
   FusionOf: []
   ConsumeIngredients: 1
   OrbDamage:

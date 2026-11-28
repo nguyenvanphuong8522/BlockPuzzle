@@ -10,7 +10,7 @@ namespace Survivor
     // Runs the game loop in a fixed, explicit order every frame (no per-enemy Update calls).
     public sealed class GameController : IStartable, ITickable, ILateTickable
     {
-        enum State { Playing, Choosing, Paused, DebugPaused, Ended }
+        enum State { Home, Playing, Choosing, Paused, DebugPaused, Ended }
 
         readonly GameConfig config;
         readonly InputService input;
@@ -22,12 +22,17 @@ namespace Survivor
         readonly PickupSystem pickups;
         readonly EffectSystem effects;
         readonly DamageNumberSystem damageNumbers;
+        readonly BloodSystem blood;
+        readonly ChapterService chapters;   // the chapter being played (picked on the Home screen)
+        readonly EnergyService energy;
         readonly FloatingTextSystem floatingText;
         readonly BossSkillSystem bossSkills;
         readonly SwarmSystem swarm;
         readonly EnemyBulletSystem enemyBullets;
         readonly EliteSystem elites;
         readonly TimelineSystem timeline;
+        readonly BossRoster bossRoster;
+        readonly PlayerTuning tuning;
         readonly WeaponSystem weapons;
         readonly CompanionSystem companions;
         readonly BoomerangSystem boomerangs;
@@ -72,7 +77,8 @@ namespace Survivor
             PlayerProgress progress, GameStats stats, HudView hud, DebugPanel debugPanel, PopupController popups, DebugSettings debug,
             InstancedRenderer renderer, AudioService audio, DecorationSystem decorations, SpriteCatalog sprites, CameraShake shake, HapticsService haptics,
             BossArenaSystem arena, FloatingTextSystem floatingText, BossSkillSystem bossSkills, SwarmSystem swarm,
-            EnemyBulletSystem enemyBullets, EliteSystem elites, TimelineSystem timeline)
+            EnemyBulletSystem enemyBullets, EliteSystem elites, TimelineSystem timeline, BossRoster bossRoster, PlayerTuning tuning, BloodSystem blood,
+            ChapterService chapters, EnergyService energy)
         {
             this.arena = arena;
             this.floatingText = floatingText;
@@ -81,6 +87,8 @@ namespace Survivor
             this.enemyBullets = enemyBullets;
             this.elites = elites;
             this.timeline = timeline;
+            this.bossRoster = bossRoster;
+            this.tuning = tuning;
             this.config = config;
             this.input = input;
             this.player = player;
@@ -91,6 +99,9 @@ namespace Survivor
             this.pickups = pickups;
             this.effects = effects;
             this.damageNumbers = damageNumbers;
+            this.blood = blood;
+            this.chapters = chapters;
+            this.energy = energy;
             this.weapons = weapons;
             this.companions = companions;
             this.boomerangs = boomerangs;
@@ -126,10 +137,47 @@ namespace Survivor
             debugPanel.Build();
             hud.PauseClicked += Pause;
             debugPanel.Toggled += OnDebugToggled;
-            popups.PreloadAsync().Forget(); // level-up / pause / result load in the background
+            popups.PreloadAsync().Forget(); // home / level-up / pause / result load in the background
+            audio.PlayMusic();
+
+            // "Restart" reloads the scene straight into a run (energy already paid); otherwise the Home screen first.
+            if (GameSession.AutoStart)
+            {
+                GameSession.AutoStart = false;
+                BeginRun();
+            }
+            else EnterHome();
+        }
+
+        // Home screen: nothing runs; Play (energy paid, chapter picked) starts the run.
+        void EnterHome()
+        {
+            state = State.Home;
+            hud.gameObject.SetActive(false);
+            popups.Show<HomePopup>(new HomeData { OnPlay = BeginRun });
+        }
+
+        void BeginRun()
+        {
+            if (popups.IsOpen<HomePopup>()) popups.Dismiss<HomePopup>();
+            hud.gameObject.SetActive(true);
             upgrades.GiveStartingWeapon();
             upgrades.GiveStartingCompanions(); // "Đệ tử khởi đầu" in PlayerTuning
-            audio.PlayMusic();
+            state = State.Playing;
+        }
+
+        // Back to the Home screen (the run is thrown away): reload the scene.
+        void GoHome()
+        {
+            GameSession.AutoStart = false;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        // Pause menu "Quit": asks first.
+        void AskQuit()
+        {
+            popups.Show<ConfirmPopup>(new ConfirmData { Message = Loc.Get("confirm.quit"), OnYes = GoHome });
+            menuOpenedAt = Time.unscaledTime;
         }
 
         public void Tick()
@@ -139,6 +187,8 @@ namespace Survivor
 
             switch (state)
             {
+                case State.Home:
+                    return; // the Home screen is driven by touch / mouse
                 case State.Choosing:
                     HandleChoiceInput();
                     return;
@@ -148,11 +198,15 @@ namespace Survivor
                         input.CancelPressed); // gamepad / keyboard: move, press, change values, B closes
                     return;
                 case State.Paused:
-                    if (input.PausePressed) Resume();
+                    if (popups.IsOpen<ConfirmPopup>()) // "Quit to Home?" on top: Submit = yes, Esc / B = no
+                    {
+                        if (MenuReady) popups.Get<ConfirmPopup>().HandleInput(input.SubmitPressed, input.PausePressed || input.CancelPressed);
+                    }
+                    else if (input.PausePressed) Resume();
                     else popups.Get<PausePopup>()?.HandleNavigation(input.NavigateVertical(), input.NavigateHorizontal(), input.SubmitPressed);
                     return;
                 case State.Ended:
-                    if (input.WasPressed(Key.R) || (MenuReady && input.SubmitPressed)) Restart();
+                    if (input.WasPressed(Key.R) || (MenuReady && input.SubmitPressed)) GoHome();
                     return;
             }
 
@@ -184,6 +238,7 @@ namespace Survivor
             gems.Tick(dt);
             pickups.Tick(dt);
             effects.Tick(dt);
+            blood.Tick(dt);
             damageNumbers.Tick(dt);
             floatingText.Tick(dt);
             simulationMs = (Time.realtimeSinceStartup - start) * 1000f;
@@ -191,7 +246,7 @@ namespace Survivor
             hud.SetTime(stats.Elapsed);
 
             if (player.IsDead) End(false);
-            else if (stats.Elapsed >= config.SurviveSeconds) End(true);
+            else if (stats.Elapsed >= chapters.Current.SurviveSeconds && !BossPending()) End(true);
             else if (progress.PendingChests > 0) OpenChoice(forChest: true);
             else if (progress.PendingLevelUps > 0) OpenChoice(forChest: false);
         }
@@ -205,6 +260,7 @@ namespace Survivor
             camera.orthographicSize = config.CameraSizeFor(camera.aspect); // follows window resizes
             renderer.SetView(camera);
 
+            renderer.SetGroundLook(tuning.GroundTint, tuning.GroundSaturation);
             renderer.DrawGround(camera);
             decorations.Draw(renderer, camera);
             gems.Draw(renderer);
@@ -219,12 +275,14 @@ namespace Survivor
             companions.Draw(renderer);
             boomerangs.Draw(renderer);
             player.Draw(renderer);
+            blood.Draw(renderer);
             effects.Draw(renderer);
             damageNumbers.Draw(renderer);
             renderer.Flush();
             floatingText.Draw(camera);
             renderMs = (Time.realtimeSinceStartup - start) * 1000f;
 
+            bossRoster.SetAlive(enemies.BossIndex >= 0 ? enemies.TypeOf(enemies.BossIndex) : -1);
             hud.SetBoss(enemies.BossName, enemies.BossIndex >= 0 ? enemies.BossHpRatio : -1f);
             // Countdown to the next boss under the XP bar (+ warning banner), hidden during the fight.
             var nextBoss = spawner.NextBossTime;
@@ -266,7 +324,7 @@ namespace Survivor
             haptics.Stop();
             input.Joystick = Vector2.zero;
             hud.ReleaseJoystick();
-            popups.Show<PausePopup>(new PauseData { OnResume = Resume, OnRestart = Restart });
+            popups.Show<PausePopup>(new PauseData { OnResume = Resume, OnRestart = Restart, OnQuit = AskQuit });
         }
 
         // The game stops while the debug panel is open, so you can change settings calmly.
@@ -333,9 +391,19 @@ namespace Survivor
             state = State.Playing; // anything else pending reopens the panel next frame
         }
 
+        // A boss is alive, or one is due by now (e.g. scheduled right at the end time): the run is only won once it
+        // is beaten, so a boss scheduled at Survive Seconds becomes the final boss instead of ending the run at once.
+        bool BossPending()
+        {
+            if (enemies.BossIndex >= 0) return true;
+            var next = bossRoster.NextTime;
+            return next >= 0f && next <= stats.Elapsed;
+        }
+
         void End(bool survived)
         {
             state = State.Ended;
+            chapters.RecordResult(survived, stats.Elapsed); // best time; survived = cleared (opens the next chapter)
             haptics.Stop();
             menuOpenedAt = Time.unscaledTime;
             audio.StopMusic();
@@ -344,11 +412,21 @@ namespace Survivor
             popups.Show<ResultPopup>(new ResultData
             {
                 Survived = survived, Seconds = stats.Elapsed, Kills = stats.Kills.Value, Level = progress.Level.Value,
-                OnRestart = Restart
+                OnRestart = GoHome
             });
         }
 
-        void Restart() => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Pause menu "Restart": a new run of the same chapter (pays its energy again; not enough = Home screen).
+        void Restart()
+        {
+            if (!energy.TryConsume(chapters.CostOf(chapters.SelectedIndex)))
+            {
+                GoHome();
+                return;
+            }
+            GameSession.AutoStart = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
 
         void UpdateDebugText()
         {

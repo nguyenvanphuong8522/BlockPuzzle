@@ -17,7 +17,7 @@ using UnityEngine.U2D;
 //   Assets/Art/Sprites/enemy3_starfish_0.png ...               enemy type 3 (GameConfig.Enemies order)
 //   Assets/Art/Sprites/weapon_cannonball.png, weapon_anchor.png
 //   Assets/Art/Sprites/pickup_pearl / chest / meat / magnet.png
-//   Assets/Art/Sprites/deco_*.png                              beach props
+//   Assets/Art/Sprites/deco_*.png                              beach props (rock, palm)
 //   Assets/Art/Ground/ground_sand.png                          seamless ground tile
 //   Assets/Audio/sfx_<name>.wav (sfx_enemy_die.wav = Sfx.EnemyDie), music_*.wav
 public static class ArtSetup
@@ -34,7 +34,7 @@ public static class ArtSetup
 
     static readonly (string name, float height)[] Decorations =
     {
-        ("deco_shell", 0.5f), ("deco_shell", 0.5f), ("deco_rock", 1.1f), ("deco_rock", 1.1f), ("deco_palm", 3.4f)
+        ("deco_rock", 1.1f), ("deco_rock", 1.1f), ("deco_palm", 3.4f)
     };
 
     [MenuItem("Survivor/Setup Art & Audio")]
@@ -190,13 +190,14 @@ public static class ArtSetup
         catalog.OrbitBlade = Single("weapon_anchor");
         catalog.Gem = Single("pickup_pearl");
         catalog.Chest = Single("pickup_chest");
+        catalog.UiArrow = Single("ui_arrow");
+        catalog.Decorations = Decorations.Select(d => Single(d.name)).ToArray();
+        catalog.DecorationHeights = Decorations.Select(d => d.height).ToArray();
         catalog.Heal = Single("pickup_meat");
         catalog.Magnet = Single("pickup_magnet");
 
         catalog.GroundTile = AssetDatabase.LoadAssetAtPath<Texture2D>(GroundPath);
         catalog.GroundTileSize = 6f;
-        catalog.Decorations = Decorations.Select(d => Single(d.name)).ToArray();
-        catalog.DecorationHeights = Decorations.Select(d => d.height).ToArray();
         catalog.SpriteScale = 1.5f;
 
         EditorUtility.SetDirty(catalog);

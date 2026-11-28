@@ -27,7 +27,7 @@ namespace Survivor
         const float FlashSize = 0.24f;
         const float Recoil = 0.05f;
 
-        const float Radius = 0.4f;
+        float Radius => 0.4f * Data.BodyScale; // body size (CompanionData.BodyScale)
         const int IdleFrames = 4, BlinkFrame = 4;
         const float IdleFps = 6f, BlinkEvery = 3.3f, BlinkTime = 0.13f;
 
@@ -43,7 +43,7 @@ namespace Survivor
         public override float SightRadius(CompanionContext ctx) => At(Range);
 
         bool AimsLeft => aim.x < 0f;
-        Vector2 Hands => Position + new Vector2(AimsLeft ? -0.17f : 0.17f, 0f);
+        Vector2 Hands => Position + new Vector2(AimsLeft ? -0.17f : 0.17f, 0f) * Data.BodyScale;
         Vector2 GunCenter => Hands + aim * (GripOffset - kick);
         Vector2 Muzzle => GunCenter + aim * MuzzleOffset;
 

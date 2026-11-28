@@ -13,18 +13,17 @@ MonoBehaviour:
   m_Name: LocalizationSettings
   m_EditorClassIdentifier: Survivor::Survivor.LocalizationSettings
   Table: {fileID: 4900000, guid: 5ae67ef8308da294da65dc77e96d5fd0, type: 3}
+  GoogleSheetUrl: 
   Languages:
   - Code: vi
     Column: Vietnamese
     NativeName: "Ti\u1EBFng Vi\u1EC7t"
-    Font: {fileID: 0}
-    FontMaterial: {fileID: 0}
+    Fonts: []
     SystemLanguages: 27000000
   - Code: en
     Column: English
     NativeName: English
-    Font: {fileID: 0}
-    FontMaterial: {fileID: 0}
+    Fonts: []
     SystemLanguages: 0a000000
   UseDeviceLanguage: 1
   DefaultLanguage: en

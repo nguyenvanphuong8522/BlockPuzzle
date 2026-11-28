@@ -2,22 +2,45 @@ using UnityEngine;
 
 namespace Survivor
 {
-    // How the boss fight plays: Assets/Resources/BossSettings.asset (live-tunable in Play mode): skill rules, timing,
-    // sizes, colors, arena. Its stats (HP, speed, damage) are in BossStats.asset.
+    // How ONE boss fights: Assets/Resources/Bosses/<Id>/<Id>_Settings.asset (live-tunable in Play mode): skill rules, timing,
+    // sizes, colors, arena. Its stats (HP, speed, damage) are in <Id>_Stats.asset next to it. Order: BossSchedule.asset.
     // Each skill is only used when the hero is within its distance range (from the boss center):
     // e.g. bullets when he is close, dash when he is far, claw swipe when he is in reach.
     [CreateAssetMenu(menuName = "Survivor/Boss Settings", fileName = "BossSettings")]
     public sealed class BossSettings : ScriptableObject
     {
+        [Header("Hiển thị")]
+        [Tooltip("Picture on the boss bar / countdown / warning. Empty = first frame of its art.")]
+        public Sprite Icon;
+
         [Header("Cảnh báo / phần thưởng / số sát thương")]
         [Tooltip("The \"boss coming\" warning shows this many seconds before a boss appears. 0 = no warning.")]
         [Min(0f)] public float WarningSeconds = 5f;
-        [Tooltip("The boss experience drops as this many gems in a line.")]
+        [Tooltip("On = the boss experience drops as gems lined up along the arena fence (a fence of gems). " +
+                 "Off = a wavy line of Trail Gems gems.")]
+        public bool GemsOnFence = true;
+        [Tooltip("Fence of gems: distance between two gems, and how far inside the wall line they lie (world units).")]
+        [Min(0.2f)] public float FenceGemSpacing = 1f;
+        [Min(0f)] public float FenceGemInset = 0.4f;
+        [Tooltip("Gems On Fence off: the boss experience drops as this many gems in a line.")]
         [Min(1)] public int TrailGems = 30;
         [Tooltip("Color of the damage numbers when you hit the boss.")]
         public Color NumberColor = Color.white;
         [Tooltip("Size of the damage numbers on the boss (times Number Base Height in PlayerTuning).")]
         [Min(0.1f)] public float NumberScale = 2.3f;
+        [Tooltip("Boss numbers start this much higher above its center (world units).")]
+        public float NumberHeight = 0.6f;
+        [Tooltip("How far around the hit boss numbers may appear, times Number Spawn Radius (PlayerTuning).")]
+        [Min(0f)] public float NumberSpread = 2.5f;
+
+        [Header("Chớp trắng khi trúng đòn")]
+        [Tooltip("How long the boss turns white when hit (seconds). 0 = never.")]
+        [Min(0f)] public float HitFlashTime = 0.06f;
+        [Tooltip("After a flash, at least this long (seconds) of its normal look before it can flash again, so fast " +
+                 "repeated hits blink instead of keeping it white.")]
+        [Min(0f)] public float HitFlashGap = 0.14f;
+        [Tooltip("How white the flash is (1 = fully white, 0.5 = half way).")]
+        [Range(0f, 1f)] public float HitFlashStrength = 0.85f;
 
         [Header("Đấu trường (tường)")]
         [Tooltip("Width (left-right) of the arena that closes in around the hero (world units). Keep it a bit smaller " +
@@ -59,6 +82,10 @@ namespace Survivor
         public bool DashStopAtWall = true;
         [Tooltip("Width of the warning path, times the boss body width.")]
         [Min(0.2f)] public float DashWidthScale = 1f;
+        [Tooltip("Dashes in a row (each one re-aims at the hero with a shorter warning).")]
+        [Range(1, 5)] public int DashCombo = 1;
+        [Tooltip("Warning time before each extra dash of the combo (seconds).")]
+        [Min(0.05f)] public float DashComboCastTime = 0.45f;
         [Tooltip("Bottom layer of the warning (whole path).")]
         public Color DashWarnColor = new Color(1f, 0.25f, 0.2f, 0.22f);
         [Tooltip("Top layer that runs from start to end during the warning.")]
@@ -92,6 +119,8 @@ namespace Survivor
         public Color SwipeFillColor = new Color(0.9f, 0.05f, 0.05f, 0.5f);
         [Tooltip("Color of the slash streak when it swings.")]
         public Color SwipeSlashColor = new Color(1f, 0.92f, 0.85f, 0.9f);
+        [Tooltip("Draw the big claw (king crab art) swinging with the slash. Off = only the slash streak (e.g. a shark tail sweep).")]
+        public bool ShowClaw = true;
         [Tooltip("Size of the big claw that swings across the area (world units, length of the claw art).")]
         [Min(0.2f)] public float ClawSize = 2.6f;
         [Tooltip("Where along the rectangle's length the claw swings (0 = at the boss, 1 = far end).")]
@@ -113,8 +142,11 @@ namespace Survivor
         [Range(1, 10)] public int BurstWaves = 2;
         [Tooltip("Seconds between two waves.")]
         [Min(0.05f)] public float BurstWaveDelay = 1f;
-        [Tooltip("Bullets per wave, spread evenly over 360 degrees (every other wave is turned half a step).")]
+        [Tooltip("Bullets per wave, spread evenly over the Burst Angle.")]
         [Range(3, 64)] public int BurstBullets = 16;
+        [Tooltip("Spread of each wave in degrees. 360 = full ring (every other wave turned half a step). Less = a fan " +
+                 "centered on the hero, re-aimed at each wave (e.g. 90).")]
+        [Range(10f, 360f)] public float BurstAngle = 360f;
         [Min(0.5f)] public float BulletSpeed = 5f;
         [Tooltip("Bullet size (world units, radius).")]
         [Min(0.05f)] public float BulletRadius = 0.22f;

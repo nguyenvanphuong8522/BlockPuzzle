@@ -11,6 +11,8 @@ Shader "Survivor/Ground"
         _ColorB ("Color B", Color) = (0.14, 0.19, 0.14, 1)
         _LineColor ("Line Color", Color) = (0.18, 0.24, 0.18, 1)
         _CellSize ("Cell Size", Float) = 2
+        _Tint ("Tint (multiplies the tile)", Color) = (1, 1, 1, 1)
+        _Saturation ("Saturation (0 = gray, 1 = original)", Float) = 1
     }
     SubShader
     {
@@ -32,6 +34,8 @@ Shader "Survivor/Ground"
             float4 _ColorB;
             float4 _LineColor;
             float _CellSize;
+            float4 _Tint;
+            float _Saturation;
 
             struct v2f
             {
@@ -57,6 +61,9 @@ Shader "Survivor/Ground"
                 col = lerp(_LineColor, col, smoothstep(0.0, 0.03, edge));
 
                 float4 tile = tex2D(_MainTex, i.world / _TileSize); // texture wrap mode is Repeat
+                // Darker / less colorful ground so characters, enemies and gems stand out (PlayerTuning "Nền").
+                float gray = dot(tile.rgb, float3(0.299, 0.587, 0.114));
+                tile.rgb = lerp(gray.xxx, tile.rgb, _Saturation) * _Tint.rgb;
                 return lerp(col, tile, _UseTexture);
             }
             ENDCG

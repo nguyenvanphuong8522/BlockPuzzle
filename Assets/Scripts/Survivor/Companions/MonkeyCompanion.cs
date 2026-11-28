@@ -17,7 +17,7 @@ namespace Survivor
         float SpreadDegrees => data.SpreadDegrees;
         float SightRange => data.SightRange;
         const float ThrowPoseTime = 0.25f;    // arm stays up this long after a throw
-        const float Radius = 0.4f;            // drawn ~1.05 units tall; the hero is ~1.35
+        float Radius => 0.4f * Data.BodyScale; // drawn ~1.05 units tall at Body Scale 1; the hero is ~1.35
         const int IdleFrames = 4, ThrowFrame = 4, BlinkFrame = 5;
         const float IdleFps = 6f, BlinkEvery = 3.2f, BlinkTime = 0.13f;
 

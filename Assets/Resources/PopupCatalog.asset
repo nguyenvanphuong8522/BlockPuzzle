@@ -43,3 +43,33 @@ MonoBehaviour:
     Preload: 1
     KeepLoaded: 1
     KeepAsset: 1
+  - TypeName: HomePopup
+    Asset:
+      m_AssetGUID: 75d5e55afd8b43847a24ce9d555944c1
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Preload: 1
+    KeepLoaded: 1
+    KeepAsset: 1
+  - TypeName: SettingsPopup
+    Asset:
+      m_AssetGUID: 3dd1642066064024f9b2b4957976c6c5
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Preload: 1
+    KeepLoaded: 1
+    KeepAsset: 1
+  - TypeName: ConfirmPopup
+    Asset:
+      m_AssetGUID: 35142b76e2a7e4e49a8cc5af3d6f3111
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    Preload: 1
+    KeepLoaded: 1
+    KeepAsset: 1

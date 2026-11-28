@@ -600,7 +600,7 @@ GameObject:
   - component: {fileID: 3947906943331513678}
   - component: {fileID: 6917736788241654715}
   m_Layer: 0
-  m_Name: LanguageButton
+  m_Name: QuitButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -647,7 +647,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.25, g: 0.45, b: 0.35, a: 1}
+  m_Color: {r: 0.6, g: 0.22, b: 0.22, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2159,7 +2159,7 @@ GameObject:
   - component: {fileID: 3685486156094816645}
   - component: {fileID: 6746621941877426042}
   - component: {fileID: 3393822716361642312}
-  - component: {fileID: 2639005843890695211}
+  - component: {fileID: 8910554216847443338}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -2214,7 +2214,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Ng\xF4n ng\u1EEF: Ti\u1EBFng Vi\u1EC7t"
+  m_text: "Tho\xE1t"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2286,7 +2286,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &2639005843890695211
+--- !u!114 &8910554216847443338
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2295,9 +2295,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8122647135958569748}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a3557899fdcebf4da123518a0662aec, type: 3}
+  m_Script: {fileID: 11500000, guid: 96a40cf0649c3be438975323f9acd572, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Survivor::Survivor.LocalizedFont
+  m_EditorClassIdentifier: Survivor::Survivor.LocalizedText
+  Key: pause.quit
 --- !u!1 &8219753276113310915
 GameObject:
   m_ObjectHideFlags: 0
@@ -2586,8 +2587,7 @@ MonoBehaviour:
   sfxPercent: {fileID: 1389283167408426372}
   resumeButton: {fileID: 9223313747007229975}
   restartButton: {fileID: 37144533875361918}
-  languageButton: {fileID: 6917736788241654715}
-  languageLabel: {fileID: 3393822716361642312}
+  quitButton: {fileID: 6917736788241654715}
   rows:
   - {fileID: 3970386055753184269}
   - {fileID: 2726526444156113664}

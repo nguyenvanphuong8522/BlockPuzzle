@@ -393,6 +393,13 @@ namespace Survivor
             groundMaterial.SetFloat("_TileSize", tileSize);
         }
 
+        // Ground color: tint (multiplies the tile) and saturation (0 = gray, 1 = original).
+        public void SetGroundLook(Color tint, float saturation)
+        {
+            groundMaterial.SetColor("_Tint", tint);
+            groundMaterial.SetFloat("_Saturation", saturation);
+        }
+
         public void DrawGround(Camera camera)
         {
             var h = camera.orthographicSize * 2f + 2f;

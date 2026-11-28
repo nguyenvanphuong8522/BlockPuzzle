@@ -31,10 +31,10 @@ MonoBehaviour:
   EliteBarBackground: {r: 0.1, g: 0.1, b: 0.1, a: 0.8}
   EliteAnnounce: announce.elite
   EliteAnnounceColor: {r: 1, g: 0.55, b: 0.25, a: 1}
-  EliteChestChance: 100
+  EliteChestChance: 0
   EliteBonusXp: 30
   EliteBonusGems: 10
-  EliteHealChance: 50
+  EliteHealChance: 0
   RangedDistanceSlack: 0.8
   RangedStrafeSpeed: 0.45
   RangedRetreatSpeed: 0.8

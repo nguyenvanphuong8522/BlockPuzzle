@@ -41,9 +41,8 @@ namespace Survivor
         public float EnemyHpGrowthPerMinute => enemyStats != null ? enemyStats.HpGrowthPerMinute : 0.35f;
         public readonly float DespawnDistance = 26f;          // enemies further than this are moved back near the player
 
-        // Bosses appear at these times (seconds). Each one is stronger than the last.
-        public readonly float[] BossTimes = { 180f, 360f, 540f };
-        // Boss stats: BossStats.asset; boss skills and arena: BossSettings.asset.
+        // Bosses: which one comes when = Resources/Bosses/BossSchedule.asset; each boss's stats / skills / arena =
+        // Resources/Bosses/<Id>/<Id>_Stats.asset and _Settings.asset (see BossRoster).
 
         // Drops from normal enemies (chance per kill). Bosses always drop a chest.
         public readonly float HealAmount = 30f;
@@ -67,13 +66,20 @@ namespace Survivor
                 new Color(1f, 0.5f, 0.71f), unlockTime: 210f, weight: 4f),
             new EnemyDefinition("OcMuonHon", "Ốc Mượn Hồn", hp: 150, speed: 1.2f, damage: 16, radius: 0.62f, xp: 8,
                 new Color(0.95f, 0.82f, 0.64f), unlockTime: 270f, weight: 2f),
-            new EnemyDefinition("VuaCua", "Vua Cua Khổng Lồ", hp: 2500, speed: 2.1f, damage: 25, radius: 1.3f, xp: 60,
+            new EnemyDefinition("VuaCua", "Vua Cua Khổng Lồ", hp: 2500, speed: 2.1f, damage: 25, radius: 1.45f, xp: 60,
                 new Color(0.91f, 0.2f, 0.23f), unlockTime: float.MaxValue, weight: 0f, isBoss: true),
             // Added after the boss so the older types keep their numbers (drop settings, art file names).
             new EnemyDefinition("MucPhunMuc", "Mực Phun Mực", hp: 24, speed: 1.9f, damage: 6, radius: 0.36f, xp: 3,
-                new Color(0.65f, 0.48f, 1f), unlockTime: 120f, weight: 3f, ranged: true),
+                new Color(0.13f, 0.72f, 0.66f), unlockTime: 120f, weight: 3f, ranged: true),
+            // Boss 2 (art enemy8_hammerhead). Bosses: stats / skills in Resources/Bosses/<Id>/, order in BossSchedule.asset.
+            new EnemyDefinition("CaMapBua", "Cá Mập Búa", hp: 4000, speed: 2.4f, damage: 30, radius: 1.5f, xp: 90,
+                new Color(0.36f, 0.49f, 0.6f), unlockTime: float.MaxValue, weight: 0f, isBoss: true),
+            // Boss 3 (art enemy9_mantisshrimp).
+            new EnemyDefinition("TomTit", "Tôm Tít Khổng Lồ", hp: 6000, speed: 2.6f, damage: 35, radius: 1.55f, xp: 120,
+                new Color(0.18f, 0.66f, 0.43f), unlockTime: float.MaxValue, weight: 0f, isBoss: true),
         };
 
-        public int BossType => System.Array.FindIndex(Enemies, e => e.IsBoss);
+        // Index of the enemy type with this Id (-1 = none).
+        public int TypeOf(string id) => System.Array.FindIndex(Enemies, e => e.Id == id);
     }
 }

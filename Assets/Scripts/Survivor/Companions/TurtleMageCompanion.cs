@@ -26,7 +26,7 @@ namespace Survivor
         const float CastPoseTime = 0.3f;
         const float BlastTime = 0.4f;
 
-        const float Radius = 0.4f;
+        float Radius => 0.4f * Data.BodyScale; // body size (CompanionData.BodyScale)
         const int IdleFrames = 4, CastFrame = 4, BlinkFrame = 5;
         const float IdleFps = 6f, BlinkEvery = 3.4f, BlinkTime = 0.13f;
 

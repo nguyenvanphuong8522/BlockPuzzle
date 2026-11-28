@@ -19,8 +19,8 @@ public static class UiPrefabBuilder
     const string ScenePath = "Assets/Scenes/Main.unity";
     static readonly Vector2 Reference = new Vector2(1080, 1920); // portrait, scaled by width
 
-    static Sprite circle;
-    static Sprite square;
+    internal static Sprite circle;
+    internal static Sprite square;
 
     [MenuItem("Survivor/Build UI Prefabs")]
     public static void Build() => Run(false);
@@ -47,6 +47,8 @@ public static class UiPrefabBuilder
         FillCatalog(levelUp, pause, result);
         AssignHud(hud);
         AssetDatabase.SaveAssets();
+        HudSpeedButtonSetup.Setup();  // x2 button next to pause
+        HomeUiBuilder.Build();       // Home screen, Settings, Yes / No popups, chapters
         LocalizationSetup.Setup(); // keys + fonts on the new labels, language row in the pause menu
         Debug.Log("Survivor: UI prefabs ready in " + PrefabDir);
     }
@@ -64,7 +66,7 @@ public static class UiPrefabBuilder
     }
 
     // Real sprite files (prefabs cannot keep sprites created at runtime).
-    static void CreateUiSprites()
+    internal static void CreateUiSprites()
     {
         Directory.CreateDirectory(SpriteDir);
         circle = SpriteFile("ui_circle", 256, true);
@@ -113,7 +115,7 @@ public static class UiPrefabBuilder
     }
 
     // Popup prefab skeleton: root (Canvas, CanvasGroup, popup script) > Dim + AnimatedGroup.
-    static (GameObject root, RectTransform group) PopupRoot<T>(string name, float dim) where T : BasePopup
+    internal static (GameObject root, RectTransform group) PopupRoot<T>(string name, float dim) where T : BasePopup
     {
         var root = CanvasRoot(name, 200);
         root.AddComponent<CanvasGroup>();
@@ -126,14 +128,14 @@ public static class UiPrefabBuilder
         return (root, group);
     }
 
-    static RectTransform Rect(Transform parent, string name)
+    internal static RectTransform Rect(Transform parent, string name)
     {
         var go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
         return (RectTransform)go.transform;
     }
 
-    static Image Img(Transform parent, string name, Sprite sprite, Color color)
+    internal static Image Img(Transform parent, string name, Sprite sprite, Color color)
     {
         var rt = Rect(parent, name);
         var image = rt.gameObject.AddComponent<Image>();
@@ -142,7 +144,7 @@ public static class UiPrefabBuilder
         return image;
     }
 
-    static TextMeshProUGUI Txt(Transform parent, string name, string text, float size, Color? color = null)
+    internal static TextMeshProUGUI Txt(Transform parent, string name, string text, float size, Color? color = null)
     {
         var rt = Rect(parent, name);
         var tmp = rt.gameObject.AddComponent<TextMeshProUGUI>();
@@ -155,7 +157,7 @@ public static class UiPrefabBuilder
         return tmp;
     }
 
-    static Outline Highlight(GameObject go, float distance)
+    internal static Outline Highlight(GameObject go, float distance)
     {
         var outline = go.AddComponent<Outline>();
         outline.effectColor = new Color(1f, 0.85f, 0.3f);
@@ -165,14 +167,14 @@ public static class UiPrefabBuilder
     }
 
     // Sets a [SerializeField] (also private ones) on a component.
-    static void Wire(Object target, string field, Object value)
+    internal static void Wire(Object target, string field, Object value)
     {
         var so = new SerializedObject(target);
         so.FindProperty(field).objectReferenceValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    static void WireArray(Object target, string field, Object[] values)
+    internal static void WireArray(Object target, string field, Object[] values)
     {
         var so = new SerializedObject(target);
         var prop = so.FindProperty(field);
@@ -334,7 +336,7 @@ public static class UiPrefabBuilder
         return root;
     }
 
-    static (Outline row, Slider slider, TextMeshProUGUI percent) SliderRow(Transform parent, string name, string label, float y)
+    internal static (Outline row, Slider slider, TextMeshProUGUI percent) SliderRow(Transform parent, string name, string label, float y)
     {
         var row = Img(parent, name, square, new Color(1f, 1f, 1f, 0.04f));
         row.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0, y), new Vector2(820, 110));
@@ -366,7 +368,7 @@ public static class UiPrefabBuilder
         return (Highlight(row.gameObject, 4f), slider, percent);
     }
 
-    static (Outline row, TapButton button) ButtonRow(Transform parent, string name, string label, float y, Color color)
+    internal static (Outline row, TapButton button) ButtonRow(Transform parent, string name, string label, float y, Color color)
     {
         var row = Img(parent, name, square, color);
         row.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0, y), new Vector2(420, 80));

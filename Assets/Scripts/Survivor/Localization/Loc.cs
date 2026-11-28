@@ -62,6 +62,7 @@ namespace Survivor
             current = fallback = -1;
             currentLanguage = null;
             Changed = null;
+            LocFonts.ReleaseAll();
         }
 
         public static bool Has(string key)
@@ -133,10 +134,11 @@ namespace Survivor
             EnsureLoaded();
             var language = settings.Find(code);
             if (language == null || language == currentLanguage) return;
-            Apply(language);
+            var fontsLoading = Apply(language);
             PlayerPrefs.SetString(PrefsKey, language.Code);
             PlayerPrefs.Save();
             Changed?.Invoke();
+            if (!fontsLoading) LocFonts.ReleaseStale(); // texts are back on their own fonts: drop the old ones
         }
 
         // Next language in the list (for a simple "Language: X" button).
@@ -154,14 +156,7 @@ namespace Survivor
         public static void ApplyFont(TMP_Text text, TMP_FontAsset original, Material originalMaterial)
         {
             if (text == null) return;
-            var language = CurrentLanguage;
-            var font = language != null && language.Font != null ? language.Font : original;
-            if (font == null) return;
-            if (text.font != font) text.font = font;
-            var material = language != null && language.Font != null
-                ? (language.FontMaterial != null ? language.FontMaterial : font.material)
-                : (originalMaterial != null ? originalMaterial : font.material);
-            if (material != null && text.fontSharedMaterial != material) text.fontSharedMaterial = material;
+            LocFonts.Apply(text, CurrentLanguage, original, originalMaterial);
         }
 
         // Re-reads the CSV (editor tools; also handy after editing the table during Play).
@@ -173,8 +168,9 @@ namespace Survivor
             byText.Clear();
             reportedMissing.Clear();
             EnsureLoaded();
-            if (code != null && settings.Find(code) != null) Apply(settings.Find(code));
+            var fontsLoading = code != null && settings.Find(code) != null && Apply(settings.Find(code));
             Changed?.Invoke();
+            if (!fontsLoading) LocFonts.ReleaseStale();
         }
 
         static string Cell(string[] row, int column) =>
@@ -236,11 +232,13 @@ namespace Survivor
             return -1;
         }
 
-        static void Apply(LocalizationSettings.Language language)
+        // Returns true while the language's fonts are still loading (Changed fires again when they are in).
+        static bool Apply(LocalizationSettings.Language language)
         {
             currentLanguage = language;
             current = ColumnOf(language);
             fallback = ColumnOf(settings.Find(settings.FallbackLanguage));
+            return Application.isPlaying && LocFonts.Load(language, () => Changed?.Invoke());
         }
 
         static void ReportMissing(string key)

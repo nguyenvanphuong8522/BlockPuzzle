@@ -259,7 +259,6 @@ static class ArtGen
         Anchor();
         Palm();
         Rock();
-        Shell();
         Sand();
         for (var f = 0; f < 9; f++) Pig(f);
         ItemIcons();
@@ -276,9 +275,12 @@ static class ArtGen
         FireBottle();
         for (var f = 0; f < 4; f++) Fire(f);
         UiArrow();
+        UiIcons();
         for (var f = 0; f < 3; f++) Squid(f);
         InkBlob();
         for (var f = 0; f < 2; f++) BossClaw(f);
+        for (var f = 0; f < 2; f++) Hammerhead(f);
+        for (var f = 0; f < 2; f++) MantisShrimp(f);
     }
 
     static string P(string name)
@@ -366,7 +368,10 @@ static class ArtGen
         var s = size / 128f;
         using (var c = new Canvas(size, size, 3f * s))
         {
-            c.G.ScaleTransform(s, s);
+            // The king is drawn at 86% and centered, so its claws and legs keep a margin from the edges.
+            var fit = king ? 0.86f : 1f;
+            c.G.TranslateTransform(size * (1f - fit) / 2f, size * (1f - fit) / 2f);
+            c.G.ScaleTransform(s * fit, s * fit);
             var claw = f == 0 ? 0f : -6f;
             var leg = f == 0 ? 0f : 3f;
 
@@ -504,34 +509,190 @@ static class ArtGen
     // ---------- Octopus ----------
     // ---------- Enemy: ink-spitting squid (ranged), enemy7_squid_0..2 ----------
     // Pointed purple mantle with fins, big eyes, a little spout mouth; tentacles sway between frames.
+    // ---------- Boss 2: hammerhead shark (enemy8, 256 px) ----------
+    // Chibi front view: wide hammer head with an eye at each end, toothy grin, white belly, tail swaying (f 0 / 1).
+    static void Hammerhead(int f)
+    {
+        var size = 256;
+        var s = size / 128f;
+        using (var c = new Canvas(size, size, 3f * s))
+        {
+            // Drawn at 86% and centered, so the fins and outline keep a margin from the edges.
+            const float fit = 0.86f;
+            c.G.TranslateTransform(size * (1f - fit) / 2f, size * (1f - fit) / 2f);
+            c.G.ScaleTransform(s * fit, s * fit);
+            var body = Paint.Hex("5C7C9A");
+            var dark = Paint.Darker(body, 0.25f);
+            var belly = Paint.Hex("E9F1F5");
+            var sway = f == 0 ? -6f : 6f;
+            var fin = f == 0 ? 0f : 4f;
+
+            // Tail and side fins (behind the body)
+            c.Add(Paint.Poly(64, 98, 42 + sway, 124, 64, 112, 86 + sway, 124), dark);
+            c.Add(Paint.Poly(34, 72, 10, 92 + fin, 40, 88), dark);
+            c.Add(Paint.Poly(94, 72, 118, 92 + fin, 88, 88), dark);
+            // Dorsal fin sticking up behind the head
+            c.Add(Paint.Poly(54, 34, 66, 4, 76, 34), dark);
+            c.Flush();
+
+            // Body + belly
+            c.Add(Paint.Smooth(64, 36, 92, 48, 98, 78, 86, 104, 42, 104, 30, 78, 36, 48), body);
+            c.Flush();
+            c.Fill(Paint.Ellipse(64, 84, 21, 16), belly);
+            // Gills
+            for (var i = 0; i < 3; i++)
+            {
+                c.Line(dark, 2f, 38 + i * 4, 62, 36 + i * 4, 74);
+                c.Line(dark, 2f, 90 - i * 4, 62, 92 - i * 4, 74);
+            }
+
+            // Hammer head
+            c.Add(Paint.RoundRect(10, 24, 108, 28, 14), body);
+            c.Flush();
+            c.Shine(40, 31, 16, 4, 110);
+            c.Eye(22, 38, 7, 8, 0.35f, 0.1f);
+            c.Eye(106, 38, 7, 8, -0.35f, 0.1f);
+            c.Brow(14, 27, 30, 31);
+            c.Brow(114, 27, 98, 31);
+
+            // Toothy grin
+            using (var b = new SolidBrush(Paint.Hex("3A1820"))) c.G.FillEllipse(b, 46, 56, 36, 16);
+            for (var i = 0; i < 5; i++)
+            {
+                var x = 49 + i * 6.2f;
+                c.Fill(Paint.Poly(x, 57, x + 3.1f, 63, x + 6.2f, 57), Color.White);
+                c.Fill(Paint.Poly(x + 2, 71, x + 5.1f, 65.5f, x + 8, 71), Color.White);
+            }
+            c.Save(P("enemy8_hammerhead_" + f));
+        }
+    }
+
+    // ---------- Boss 3: giant mantis shrimp (enemy9, 256 px) ----------
+    // Side view facing right: blue tail fan, striped green abdomen, big head with two stalk eyes and antennae,
+    // pink punching clubs in front (f 0 = cocked, f 1 = thrown forward), little orange legs pedalling.
+    static void MantisShrimp(int f)
+    {
+        var size = 256;
+        var s = size / 128f;
+        using (var c = new Canvas(size, size, 3f * s))
+        {
+            // Drawn at 86% and centered, so the outline, antennae and clubs keep a margin from the edges.
+            const float fit = 0.86f;
+            c.G.TranslateTransform(size * (1f - fit) / 2f, size * (1f - fit) / 2f);
+            c.G.ScaleTransform(s * fit, s * fit);
+            var body = Paint.Hex("2FA86E");
+            var dark = Paint.Darker(body, 0.3f);
+            var stripe = Paint.Hex("F2D14B");
+            var leg = Paint.Hex("FF8A3D");
+            var tail = Paint.Hex("3E7BE6");
+            var club = Paint.Hex("F0506E");
+            var step = f == 0 ? 0f : 3f;
+            var punch = f == 0 ? 0f : 6f;
+
+            // Antennae (behind everything)
+            c.Limb(leg, 2f, 98, 50, 114, 34, 125, 30);
+            c.Limb(leg, 2f, 94, 48, 106, 22, 114, 8);
+
+            // Little legs under the body
+            for (var i = 0; i < 4; i++)
+            {
+                var x = 46 + i * 11;
+                var k = (i % 2 == 0 ? step : -step);
+                c.Limb(leg, 4f, x, 84, x - 3 + k, 96, x + 1 + k, 104);
+            }
+
+            // Tail fan
+            c.Add(Paint.Poly(22, 76, 4, 58, 2, 74), tail);
+            c.Add(Paint.Poly(22, 78, 2, 80, 6, 96), tail);
+            c.Add(Paint.Poly(24, 80, 12, 100, 26, 98), tail);
+            c.Flush();
+            c.Fill(Paint.Ellipse(8, 68, 2.5f, 2.5f), stripe);
+            c.Fill(Paint.Ellipse(8, 88, 2.5f, 2.5f), stripe);
+
+            // Abdomen: overlapping striped segments, tail to head
+            var segX = new float[] { 28, 40, 52, 64 };
+            var segR = new float[] { 11, 13, 15, 17 };
+            for (var i = 0; i < segX.Length; i++)
+            {
+                c.Add(Paint.Ellipse(segX[i], 78 - i * 1.5f, segR[i], segR[i] * 0.85f), body);
+                c.Flush();
+                c.Line(stripe, 3f, segX[i] - segR[i] * 0.6f, 72 - i * 2, segX[i], 66 - i * 3, segX[i] + segR[i] * 0.6f, 72 - i * 2);
+            }
+
+            // Back club (behind the head): elbow down, forearm up, club at the end
+            var backClub = Paint.Darker(club, 0.2f);
+            c.Limb(backClub, 5f, 84, 84, 98, 98, 104 + punch, 86 + punch * 0.3f);
+            c.Add(Paint.Ellipse(106 + punch, 80 + punch * 0.5f, 6, 8), backClub);
+            c.Flush();
+
+            // Head / carapace
+            c.Add(Paint.Smooth(64, 54, 84, 44, 100, 50, 106, 66, 98, 84, 74, 90, 60, 74), body);
+            c.Flush();
+            c.Shine(80, 54, 11, 4, 110);
+            for (var i = 0; i < 3; i++) c.Line(dark, 2f, 68 + i * 3, 60, 64 + i * 3, 82);
+
+            // Eye stalks + big eyes (gold rims)
+            c.Limb(dark, 5f, 80, 52, 77, 40, 76, 32);
+            c.Limb(dark, 5f, 92, 52, 97, 42, 100, 34);
+            c.Add(Paint.Ellipse(75, 26, 11, 11), stripe);
+            c.Add(Paint.Ellipse(101, 28, 11, 11), stripe);
+            c.Flush();
+            c.Eye(75, 26, 8, 8, 0.6f, 0.2f);
+            c.Eye(101, 28, 8, 8, 0.6f, 0.2f);
+            c.Brow(66, 14, 82, 19);
+            c.Brow(94, 17, 110, 14);
+
+            // Toothy grin on the front of the head
+            using (var b = new SolidBrush(Paint.Hex("3A1820"))) c.G.FillEllipse(b, 90, 62, 14, 8);
+            c.Fill(Paint.Poly(92, 63, 94.5f, 67, 97, 63), Color.White);
+            c.Fill(Paint.Poly(97, 63, 99.5f, 67, 102, 63), Color.White);
+
+            // Front club: elbow down, forearm up, big pink club (thrown forward on f 1) with a folded hook
+            c.Limb(club, 6f, 90, 84, 104, 100, 112 + punch, 88 + punch * 0.3f);
+            c.Add(Paint.Ellipse(115 + punch, 80 + punch * 0.5f, 8, 10), club);
+            c.Flush();
+            c.Shine(112 + punch, 75 + punch * 0.5f, 3.5f, 2.5f, 170);
+            c.Line(Paint.Ink, 2f, 110 + punch, 84 + punch * 0.5f, 118 + punch, 86 + punch * 0.5f);
+            c.Save(P("enemy9_mantisshrimp_" + f));
+        }
+    }
+
+    // Ranged enemy (enemy7): teal squid with a long siphon snout pointing forward (sprites face right = toward
+    // the hero). Its shots come out of the snout tip: <Id>_Settings Muzzle Offset (~ 1.0, 0.11 body radii).
     static void Squid(int f)
     {
         using (var c = new Canvas(128, 128, 3f))
         {
-            var color = Paint.Hex("A77BFF");
-            var dark = Paint.Hex("7A52D6");
+            var color = Paint.Hex("22B8A8");
+            var dark = Paint.Hex("12806F");
             var w = new[] { 0f, 5f, -5f }[f];
-            for (var i = 0; i < 6; i++)
+            for (var i = 0; i < 5; i++)
             {
-                var x = 38 + i * 10.5f;
+                var x = 32 + i * 10f;
                 var sway = (i % 2 == 0 ? w : -w);
                 c.Limb(dark, 6, x, 82, x + sway * 0.6f, 98, x - sway * 0.4f, 112, x + sway, 122);
             }
             // Mantle: tall pointed body with side fins
-            c.Add(Paint.Poly(30, 40, 18, 28, 36, 30), color);
-            c.Add(Paint.Poly(98, 40, 110, 28, 92, 30), color);
-            c.Add(Paint.Smooth(64, 6, 92, 40, 94, 70, 82, 88, 46, 88, 34, 70, 36, 40), color);
+            c.Add(Paint.Poly(24, 40, 12, 28, 30, 30), color);
+            c.Add(Paint.Poly(84, 40, 96, 28, 78, 30), color);
+            c.Add(Paint.Smooth(54, 6, 82, 40, 84, 70, 72, 88, 36, 88, 24, 70, 26, 40), color);
             c.Flush();
-            c.Shine(52, 30, 8, 12, 110);
-            c.Fill(Paint.Ellipse(72, 22, 3.5f, 3.5f), Paint.Lighter(color, 0.45f));
-            c.Fill(Paint.Ellipse(78, 34, 2.5f, 2.5f), Paint.Lighter(color, 0.45f));
-            // Grumpy eyes and a round spout mouth (it spits ink from there)
-            c.Eye(54, 62, 7, 9, 0.2f, 0.3f);
-            c.Eye(74, 62, 7, 9, 0.2f, 0.3f);
-            c.Brow(46, 50, 60, 54);
-            c.Brow(82, 50, 68, 54);
-            using (var b = new SolidBrush(Paint.Ink)) c.G.FillEllipse(b, 58, 75, 12, 10);
-            using (var b = new SolidBrush(Paint.Hex("3A1E6A"))) c.G.FillEllipse(b, 60.5f, 77.5f, 7, 5);
+            // Big snout growing out of the middle of the face, pointing forward to a wide round mouth
+            var puff = f == 0 ? 0f : 2f;
+            c.Limb(dark, 20, 54, 70, 80, 71, 100, 72);
+            c.Add(Paint.Ellipse(54, 70, 12, 11), dark);             // base of the snout on the face
+            c.Add(Paint.Ellipse(106, 72, 12 + puff, 16 + puff), dark); // mouth rim
+            c.Flush();
+            c.Fill(Paint.Ellipse(107, 72, 6.5f + puff * 0.5f, 10 + puff * 0.5f), Paint.Hex("08332D")); // mouth hole
+            c.Line(Paint.Lighter(dark, 0.3f), 3f, 58, 64, 96, 66);                                       // shine on the tube
+            c.Shine(42, 30, 8, 12, 110);
+            c.Fill(Paint.Ellipse(62, 22, 3.5f, 3.5f), Paint.Lighter(color, 0.45f));
+            c.Fill(Paint.Ellipse(68, 34, 2.5f, 2.5f), Paint.Lighter(color, 0.45f));
+            // Grumpy eyes looking at the target (to the right)
+            c.Eye(42, 50, 7, 9, 0.5f, 0.2f);
+            c.Eye(64, 50, 7, 9, 0.5f, 0.2f);
+            c.Brow(34, 38, 48, 42);
+            c.Brow(72, 38, 58, 42);
             c.Save(P("enemy7_squid_" + f));
         }
     }
@@ -1501,6 +1662,59 @@ static class ArtGen
     }
 
     // White arrow pointing right with an ink outline (HUD warning arrow, tinted by the UI).
+    // Home screen icons (white, tinted in the UI): ui_gear (settings), ui_energy (lightning bolt), ui_lock.
+    static void UiIcons()
+    {
+        using (var c = new Canvas(128, 128, 0f))
+        {
+            using (var b = new SolidBrush(Color.White))
+            {
+                for (var i = 0; i < 8; i++)
+                {
+                    var a = i * Math.PI / 4;
+                    var p = new GraphicsPath();
+                    p.AddRectangle(new RectangleF(-11, -60, 22, 30));
+                    using (var m = new System.Drawing.Drawing2D.Matrix())
+                    {
+                        m.Translate(64, 64);
+                        m.Rotate((float)(a * 180 / Math.PI));
+                        p.Transform(m);
+                    }
+                    c.G.FillPath(b, p);
+                }
+                c.G.FillEllipse(b, 18, 18, 92, 92);
+            }
+            using (var hole = new SolidBrush(Color.Transparent))
+            {
+                c.G.CompositingMode = CompositingMode.SourceCopy;
+                c.G.FillEllipse(hole, 44, 44, 40, 40);
+                c.G.CompositingMode = CompositingMode.SourceOver;
+            }
+            c.Save(P("ui_gear"));
+        }
+        using (var c = new Canvas(128, 128, 0f))
+        {
+            c.Fill(Paint.Poly(76, 4, 22, 72, 58, 72, 46, 124, 106, 50, 68, 50, 84, 4), Color.White);
+            c.Save(P("ui_energy"));
+        }
+        using (var c = new Canvas(128, 128, 0f))
+        {
+            using (var pen = new Pen(Color.White, 14f))
+                c.G.DrawArc(pen, 34, 10, 60, 70, 180, 180);
+            c.G.FillRectangle(Brushes.White, 34, 44, 14, 14);
+            c.G.FillRectangle(Brushes.White, 80, 44, 14, 14);
+            c.Fill(Paint.RoundRect(18, 54, 92, 66, 12), Color.White);
+            c.G.CompositingMode = CompositingMode.SourceCopy;
+            using (var hole = new SolidBrush(Color.Transparent))
+            {
+                c.G.FillEllipse(hole, 56, 72, 16, 16);
+                c.G.FillRectangle(hole, 60, 84, 8, 20);
+            }
+            c.G.CompositingMode = CompositingMode.SourceOver;
+            c.Save(P("ui_lock"));
+        }
+    }
+
     static void UiArrow()
     {
         using (var c = new Canvas(96, 96, 4f))
@@ -2366,24 +2580,6 @@ static class ArtGen
             c.Flush();
             c.Shine(52, 54, 18, 8, 80);
             c.Save(P("deco_rock"));
-        }
-    }
-
-    static void Shell()
-    {
-        using (var c = new Canvas(64, 64, 2.5f))
-        {
-            var fan = new GraphicsPath();
-            fan.AddPie(8, 10, 48, 48, 200, 140);
-            c.Add(fan, Paint.Hex("FFB3C7"));
-            c.Add(Paint.RoundRect(26, 32, 12, 8, 3), Paint.Hex("FFB3C7"));
-            c.Flush();
-            for (var i = 0; i < 5; i++)
-            {
-                var a = (210 + i * 30) * Math.PI / 180;
-                c.Line(Paint.Hex("E07A98"), 2f, 32, 34, 32 + (float)Math.Cos(a) * 20, 34 + (float)Math.Sin(a) * 20);
-            }
-            c.Save(P("deco_shell"));
         }
     }
 

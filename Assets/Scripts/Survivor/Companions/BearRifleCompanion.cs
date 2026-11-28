@@ -9,7 +9,7 @@ namespace Survivor
     // Every number and the card text: Assets/Resources/Upgrades/Companions/BearRifle.asset.
     public sealed class BearRifleCompanion : Companion
     {
-        const float Radius = 0.4f;
+        float Radius => 0.4f * Data.BodyScale; // body size (CompanionData.BodyScale)
         const float FlashTime = 0.07f;
         const int IdleFrames = 4, BlinkFrame = 4, ReloadFrame = 5;
         const float IdleFps = 6f, BlinkEvery = 3.5f, BlinkTime = 0.13f;
@@ -41,7 +41,7 @@ namespace Survivor
             var s = ctx.Sprites.Rifle;
             return s != null ? data.GunSize * s.rect.width / s.rect.height : data.GunSize * 4f;
         }
-        Vector2 Hands => Position + new Vector2(AimsLeft ? -0.17f : 0.17f, -0.02f);
+        Vector2 Hands => Position + new Vector2(AimsLeft ? -0.17f : 0.17f, -0.02f) * Data.BodyScale;
         Vector2 GunDir => reloading ? ReloadDir : aim;
         Vector2 ReloadDir
         {

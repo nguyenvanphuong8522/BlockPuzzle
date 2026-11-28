@@ -45,7 +45,7 @@ namespace Survivor
         }
 
         public void Draw(InstancedRenderer renderer, NativeArray<Vector2> position, NativeArray<float> radius,
-            NativeArray<float> flash, NativeArray<float> squash, float squashTime, float squashAmount,
+            NativeArray<float> flash, int bossIndex, float bossFlashGap, float bossFlashStrength, NativeArray<float> squash, float squashTime, float squashAmount,
             int[] type, int[] id, int count, float playerX, NativeArray<Vector2> fly, NativeArray<byte> elite, Color eliteTint)
         {
             if (count == 0) return;
@@ -61,7 +61,8 @@ namespace Survivor
             {
                 new DrawJob
                 {
-                    Pos = position.Reinterpret<float2>(), Radius = radius, Flash = flash, Type = typeNative, Id = idNative,
+                    Pos = position.Reinterpret<float2>(), Radius = radius, Flash = flash, BossIndex = bossIndex, BossFlashGap = bossFlashGap, BossFlashStrength = bossFlashStrength,
+                    Type = typeNative, Id = idNative,
                     Squash = squash, InverseSquashTime = squashTime > 0.001f ? 1f / squashTime : 0f, SquashAmount = squashAmount,
                     FrameUv = frameUv, FrameAspect = frameAspect, FrameTrim = frameTrim, FrameTexture = frameTexture,
                     TypeFrameStart = typeFrameStart, TypeFrameCount = typeFrameCount, TypeFps = typeFps, TypeColor = typeColor,
@@ -87,6 +88,8 @@ namespace Survivor
             [ReadOnly] public NativeArray<float2> Pos;
             [ReadOnly] public NativeArray<float> Radius;
             [ReadOnly] public NativeArray<float> Flash;
+            public int BossIndex;
+            public float BossFlashGap, BossFlashStrength; // boss: white only while its timer is above the gap (EnemySystem.Damage)
             [ReadOnly] public NativeArray<float> Squash;     // hit squash timer, counts down from the squash time
             [ReadOnly] public NativeArray<float2> Fly;       // flyers face where they fly, others face the hero
             [ReadOnly] public NativeArray<byte> Elite;       // elites are drawn tinted
@@ -128,7 +131,7 @@ namespace Survivor
 
                     var t = Type[i];
                     var frames = TypeFrameCount[t];
-                    var flash = Flash[i] > 0f ? 1f : 0f;
+                    var flash = i == BossIndex ? (Flash[i] > BossFlashGap ? BossFlashStrength : 0f) : (Flash[i] > 0f ? 1f : 0f);
                     // Hit squash: wider and shorter for a moment (rises and falls back), feet stay on the ground.
                     var sq = Squash[i] > 0f ? SquashAmount * math.sin(math.PI * math.saturate(Squash[i] * InverseSquashTime)) : 0f;
                     var sx = 1f + sq * 0.8f;

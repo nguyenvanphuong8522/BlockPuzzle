@@ -47,12 +47,12 @@ namespace Survivor
         public Color EliteAnnounceColor = new Color(1f, 0.55f, 0.25f);
         [Header("Quái tinh anh: phần thưởng")]
         [Tooltip("Chance (percent) to drop a chest.")]
-        [Range(0f, 100f)] public float EliteChestChance = 100f;
+        [Range(0f, 100f)] public float EliteChestChance = 0f;
         [Tooltip("Extra experience dropped as a line of gems toward the hero.")]
         [Min(0)] public int EliteBonusXp = 30;
         [Min(1)] public int EliteBonusGems = 10;
         [Tooltip("Chance (percent) to also drop a drumstick (heal).")]
-        [Range(0f, 100f)] public float EliteHealChance = 50f;
+        [Range(0f, 100f)] public float EliteHealChance = 0f;
 
         [Header("Quái bắn xa (chung; khoảng cách, nhịp bắn, đạn: ở Settings của từng loại)")]
         [Tooltip("Comfort zone around Keep Distance: inside it, it stops walking in/out and circles the hero.")]

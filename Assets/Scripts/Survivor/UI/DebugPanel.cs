@@ -13,6 +13,7 @@ namespace Survivor
         readonly Player player;
         readonly EnemySystem enemies;
         readonly EnemySpawner spawner;
+        readonly BossRoster bosses;
         readonly SwarmSystem swarm;
         readonly EliteSystem elites;
         readonly TimelineSystem timeline;
@@ -20,6 +21,8 @@ namespace Survivor
         readonly GameStats stats;
         readonly UpgradeService upgrades;
         readonly PickupSystem pickups;
+        readonly EnergyService energy;
+        readonly ChapterService chapters;
         readonly AudioService audio;
         readonly GemSystem gems;
         readonly PlayerTuning tuning;
@@ -48,12 +51,14 @@ namespace Survivor
 
         public DebugPanel(DebugSettings settings, Player player, EnemySystem enemies, EnemySpawner spawner,
             PlayerProgress progress, GameStats stats, UpgradeService upgrades, PickupSystem pickups, AudioService audio, GemSystem gems, PlayerTuning tuning, HapticsService haptics,
-            SwarmSystem swarm, EliteSystem elites, TimelineSystem timeline)
+            SwarmSystem swarm, EliteSystem elites, TimelineSystem timeline, BossRoster bosses,
+            EnergyService energy, ChapterService chapters)
         {
             this.settings = settings;
             this.player = player;
             this.enemies = enemies;
             this.spawner = spawner;
+            this.bosses = bosses;
             this.swarm = swarm;
             this.elites = elites;
             this.timeline = timeline;
@@ -61,6 +66,8 @@ namespace Survivor
             this.stats = stats;
             this.upgrades = upgrades;
             this.pickups = pickups;
+            this.energy = energy;
+            this.chapters = chapters;
             this.audio = audio;
             this.gems = gems;
             this.tuning = tuning;
@@ -131,14 +138,21 @@ namespace Survivor
             CompanionPickerRows(rt, ref y);
             ActionRow(rt, "Full vũ khí cấp tối đa", upgrades.GiveAllWeaponsMaxed, ref y);
             ActionRow(rt, "Thả 1000 quái", () => spawner.SpawnBurst(1000), ref y);
-            ActionRow(rt, "Gọi boss", spawner.SpawnBoss, ref y);
+            foreach (var b in bosses.All) // one button per boss (only if no boss is alive)
+            {
+                var boss = b;
+                ActionRow(rt, "Gọi boss: " + boss.Definition.Name, () => spawner.SpawnBoss(boss), ref y);
+            }
             ActionRow(rt, "Gọi đàn quái bay", swarm.TriggerNow, ref y);
             ActionRow(rt, "Thả 5 Mực Phun Mực (bắn xa)", SpawnSquids, ref y);
             ActionRow(rt, "Gọi quái tinh anh", elites.SpawnNow, ref y);
             ActionRow(rt, "Chạy sự kiện timeline kế tiếp", () => UnityEngine.Debug.Log("[Debug] Timeline: " + timeline.TriggerNext()), ref y);
             ActionRow(rt, "Thử anim hút ngọc (F4)", () => gems.SpawnTestRing(20), ref y);
             ActionRow(rt, "Thả rương", () => pickups.Spawn(PickupKind.Chest, player.Position + new Vector2(1.5f, 0f)), ref y);
+            ActionRow(rt, "Thả rương boss (xa 15m)", () => pickups.Spawn(PickupKind.BossChest, player.Position + new Vector2(6f, 14f)), ref y);
             ActionRow(rt, "Giết hết quái", enemies.KillAll, ref y);
+            ActionRow(rt, "Năng lượng: hồi đầy (+60)", () => energy.Add(energy.Max), ref y);
+            ActionRow(rt, "Mở khóa mọi chương", chapters.UnlockAll, ref y);
             ActionRow(rt, "Tua thời gian +60s", () => stats.Elapsed += 60f, ref y);
 
             panel.SetActive(false);

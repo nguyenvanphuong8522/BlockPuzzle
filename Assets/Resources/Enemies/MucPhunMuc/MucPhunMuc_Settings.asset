@@ -16,9 +16,17 @@ MonoBehaviour:
   Weight: 3
   CanBeElite: 1
   KnockbackScale: 1
+  NumberScale: 1
+  NumberHeight: 0.5
+  NumberSpread: 2
+  OwnNumberColor: 0
+  NumberColor: {r: 1, g: 1, b: 1, a: 1}
+  OwnBloodColor: 0
+  BloodColor: {r: 1, g: 0, b: 0, a: 1}
   KeepDistance: 5
   ShotInterval: 2.6
   ShootRange: 8
+  MuzzleOffset: {x: 1, y: 0.11}
   Windup: 0.35
   ShotSpeed: 5.5
   ShotRadius: 0.2

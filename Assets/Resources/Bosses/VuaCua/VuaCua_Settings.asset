@@ -10,12 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 18d9eadf08656f84e99613a7d9c04a5e, type: 3}
-  m_Name: BossSettings
+  m_Name: VuaCua_Settings
   m_EditorClassIdentifier: Survivor::Survivor.BossSettings
+  Icon: {fileID: 0}
   WarningSeconds: 5
+  GemsOnFence: 1
+  FenceGemSpacing: 1
+  FenceGemInset: 0.4
   TrailGems: 30
   NumberColor: {r: 1, g: 1, b: 1, a: 1}
-  NumberScale: 2.3
+  NumberScale: 3.5
+  NumberHeight: 0.6
+  NumberSpread: 2.5
+  HitFlashTime: 0.06
+  HitFlashGap: 0.14
+  HitFlashStrength: 0.85
   ArenaWidth: 19
   ArenaHeight: 23
   ArenaWallPush: 0.5
@@ -34,6 +43,8 @@ MonoBehaviour:
   DashDistance: 18
   DashStopAtWall: 1
   DashWidthScale: 1.5
+  DashCombo: 1
+  DashComboCastTime: 1
   DashWarnColor: {r: 1, g: 0.25, b: 0.2, a: 0.22}
   DashFillColor: {r: 0.9, g: 0.05, b: 0.05, a: 0.5}
   SwipeEnabled: 1
@@ -50,6 +61,7 @@ MonoBehaviour:
   SwipeWarnColor: {r: 1, g: 0.25, b: 0.2, a: 0.22}
   SwipeFillColor: {r: 0.9, g: 0.05, b: 0.05, a: 0.5}
   SwipeSlashColor: {r: 1, g: 0.92, b: 0.85, a: 0.9}
+  ShowClaw: 1
   ClawSize: 2.6
   ClawAlong: 0.6
   ClawRaiseDistance: 1.4
@@ -60,7 +72,8 @@ MonoBehaviour:
   BurstCastTime: 0.6
   BurstWaves: 3
   BurstWaveDelay: 0.8
-  BurstBullets: 16
+  BurstBullets: 5
+  BurstAngle: 120
   BulletSpeed: 8
   BulletRadius: 0.58
   BulletLifetime: 4

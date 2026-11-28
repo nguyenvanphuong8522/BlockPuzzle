@@ -19,6 +19,8 @@ MonoBehaviour:
   Haste: 1
   Area: 1
   CameraViewWidth: 18
+  GroundTint: {r: 0.62, g: 0.6, b: 0.57, a: 1}
+  GroundSaturation: 0.75
   HpBarWidth: 0.95
   HpBarHeight: 0.14
   HpBarOutline: 0.03
@@ -39,7 +41,7 @@ MonoBehaviour:
   CompanionCircleSquash: 0.85
   CompanionRegroupSpeed: 8
   StartingCompanions:
-  - Kind: 9
+  - Kind: 3
     Level: 1
   XpToLevelUp: 04000000080000000c0000001000000014000000180000001d0000002100000025000000290000002e00000032000000360000003a0000003e00000042000000470000004b0000004f000000530000005e0000006a00000075000000800000008b00000096000000a2000000ad000000b8000000c3000000
   XpGrowthAfterTable: 11
@@ -47,111 +49,6 @@ MonoBehaviour:
   MarkerSize: 0.5
   MarkerHeight: 1.2
   MarkerTint: {r: 1, g: 1, b: 1, a: 1}
-  BossHp: 10000
-  BossHpGrowthPerAppearance: 0.6
-  BossWarningSeconds: 5
-  BossArenaWidth: 19
-  BossArenaHeight: 23
-  BossArenaWallDamage: 12
-  BossArenaWallPush: 0.5
-  BossArenaWallThickness: 0.18
-  BossArenaWallColor: {r: 1, g: 0.25, b: 0.2, a: 0}
-  BossArenaFenceHeight: 0.7
-  BossArenaFenceSegment: 1.8
-  BossArenaFenceTint: {r: 1, g: 1, b: 1, a: 1}
-  BossTrailGems: 30
-  BossSkillInterval: 4
-  BossFirstSkillDelay: 2.5
-  BossDashCastTime: 0.35
-  BossDashSpeed: 26
-  BossDashDistance: 18
-  BossDashWidthScale: 1.5
-  BossDashWarnColor: {r: 1, g: 0.25, b: 0.2, a: 0.22}
-  BossDashFillColor: {r: 0.9, g: 0.05, b: 0.05, a: 0.5}
-  BossDashDamage: 25
-  BossBurstCastTime: 0.6
-  BossBurstWaves: 3
-  BossBurstWaveDelay: 0.8
-  BossBurstBullets: 16
-  BossBulletSpeed: 8
-  BossBulletDamage: 15
-  BossBulletRadius: 0.58
-  BossBulletLifetime: 4
-  BossBulletColor: {r: 0.90196085, g: 0.050980397, b: 0.050980397, a: 1}
-  BossSwipeEnabled: 1
-  BossSwipeCastTime: 0.9
-  BossSwipeAimTime: 0.25
-  BossSwipeLength: 5
-  BossSwipeWidth: 4
-  BossSwipeOffset: 0
-  BossSwipeSwingTime: 0.18
-  BossSwipeDamage: 20
-  BossSwipeCombo: 1
-  BossSwipeComboCastTime: 0.5
-  BossSwipeWarnColor: {r: 1, g: 0.25, b: 0.2, a: 0.22}
-  BossSwipeFillColor: {r: 0.9, g: 0.05, b: 0.05, a: 0.5}
-  BossSwipeSlashColor: {r: 1, g: 0.92, b: 0.85, a: 0.9}
-  EliteEnabled: 1
-  EliteFirstTime: 75
-  EliteInterval: 50
-  EliteIntervalJitter: 10
-  EliteCount: 1
-  EliteExtraEveryMinutes: 4
-  EliteSizeMultiplier: 1.8
-  EliteHpMultiplier: 15
-  EliteDamageMultiplier: 1.5
-  EliteSpeedMultiplier: 1.5
-  EliteXpMultiplier: 5
-  EliteKnockbackScale: 0.25
-  EliteTint: {r: 1, g: 0.78, b: 0.55, a: 1}
-  EliteGlow: {r: 1, g: 0.2, b: 0.05, a: 0.65}
-  EliteBarWidth: 1.6
-  EliteBarHeight: 0.12
-  EliteBarColor: {r: 1, g: 0.3, b: 0.25, a: 1}
-  EliteBarBackground: {r: 0.1, g: 0.1, b: 0.1, a: 0.8}
-  EliteAnnounce: "TINH ANH XU\u1EA4T HI\u1EC6N!"
-  EliteAnnounceColor: {r: 1, g: 0.55, b: 0.25, a: 1}
-  EliteChestChance: 100
-  EliteBonusXp: 30
-  EliteBonusGems: 10
-  EliteHealChance: 50
-  RangedKeepDistance: 5
-  RangedDistanceSlack: 0.8
-  RangedStrafeSpeed: 0.45
-  RangedRetreatSpeed: 0.8
-  RangedShotInterval: 2.6
-  RangedShootRange: 8
-  RangedOnlyOnScreen: 1
-  RangedWindup: 0.35
-  InkSpeed: 5.5
-  InkDamage: 8
-  InkRadius: 0.2
-  InkLifetime: 3
-  InkSize: 0.45
-  InkColor: {r: 1, g: 0.12, b: 0.08, a: 1}
-  InkGlowColor: {r: 1, g: 0.2, b: 0.1, a: 0.4}
-  InkGlowSize: 2.2
-  InkCoreColor: {r: 1, g: 0.92, b: 0.75, a: 1}
-  SwarmEnabled: 1
-  SwarmFirstTime: 40
-  SwarmInterval: 30
-  SwarmIntervalJitter: 8
-  SwarmWarningTime: 1.8
-  SwarmShowWarning: 0
-  SwarmEnemyType: 1
-  SwarmCount: 22
-  SwarmCountPerMinute: 4
-  SwarmSpeed: 14
-  SwarmWidth: 10
-  SwarmDepth: 4
-  SwarmAimOffset: 1
-  SwarmHpMultiplier: 1
-  HitSquashTime: 0.14
-  HitSquashAmount: 0.12
-  KnockbackStrength: 2.5
-  KnockbackDecay: 7
-  KnockbackMaxSpeed: 9
-  KnockbackStunSpeed: 2
   FloatTextSize: 60
   FloatTextDuration: 1.4
   FloatTextRise: 1.1
@@ -163,8 +60,6 @@ MonoBehaviour:
   NumberBaseHeight: 0.32
   EnemyNumberColor: {r: 1, g: 1, b: 1, a: 1}
   EnemyNumberScale: 2.3
-  BossNumberColor: {r: 1, g: 1, b: 1, a: 1}
-  BossNumberScale: 2.3
   HurtNumberColor: {r: 1, g: 0.024509802, b: 0, a: 1}
   HurtNumberScale: 3
   NumberLifetime: 0.6

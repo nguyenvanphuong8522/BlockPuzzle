@@ -11,7 +11,7 @@ using UnityEngine.UI;
 //   - creates Assets/Resources/LocalizationSettings.asset (languages, fonts) if missing
 //   - UI prefabs + Main scene: every fixed label whose text is in Localization.csv gets a LocalizedText (key);
 //     every other TextMeshPro text gets a LocalizedFont (switches font with the language; its words come from code)
-//   - adds the "Language" row to the pause menu
+//   - adds the "Quit" row (back to Home) to the pause menu; the language is set on the Home screen (Settings)
 //   - text fields of assets (announcements, pig buff texts) are changed to their keys
 // Safe to run again. "Reload Table" re-reads the CSV (also in Play mode).
 public static class LocalizationSetup
@@ -32,7 +32,7 @@ public static class LocalizationSetup
         {
             var root = PrefabUtility.LoadPrefabContents(path);
             var changed = TagTexts(root, report, Path.GetFileNameWithoutExtension(path));
-            if (Path.GetFileNameWithoutExtension(path) == "PausePopup") changed |= AddPauseLanguageRow(root, report);
+            if (Path.GetFileNameWithoutExtension(path) == "PausePopup") changed |= AddPauseQuitRow(root, report);
             if (changed) PrefabUtility.SaveAsPrefabAsset(root, path);
             PrefabUtility.UnloadPrefabContents(root);
         }
@@ -117,42 +117,42 @@ public static class LocalizationSetup
 
     static string PathOf(Transform t) => t.parent == null ? t.name : PathOf(t.parent) + "/" + t.name;
 
-    // Pause menu: a "Language: X" button row under Restart (press / left-right to switch).
-    static bool AddPauseLanguageRow(GameObject root, List<string> report)
+    // Pause menu: a "Quit" button row under Restart (back to the Home screen, after a confirmation).
+    static bool AddPauseQuitRow(GameObject root, List<string> report)
     {
         var popup = root.GetComponent<PausePopup>();
         if (popup == null) return false;
         var so = new SerializedObject(popup);
-        if (so.FindProperty("languageButton").objectReferenceValue != null) return false;
+        if (so.FindProperty("quitButton").objectReferenceValue != null) return false;
 
         var restart = root.transform.Find("Group/Panel/RestartButton") ?? FindDeep(root.transform, "RestartButton");
         if (restart == null)
         {
-            report.Add("PausePopup: RestartButton not found, language row not added.");
+            report.Add("PausePopup: RestartButton not found, quit row not added.");
             return false;
         }
         var panel = (RectTransform)restart.parent;
         panel.sizeDelta = new Vector2(panel.sizeDelta.x, Mathf.Max(panel.sizeDelta.y, 840f));
 
         var row = Object.Instantiate(restart.gameObject, panel);
-        row.name = "LanguageButton";
+        row.name = "QuitButton";
         var rt = (RectTransform)row.transform;
         rt.anchoredPosition = ((RectTransform)restart).anchoredPosition + new Vector2(0f, -100f);
         rt.sizeDelta = new Vector2(Mathf.Max(rt.sizeDelta.x, 520f), rt.sizeDelta.y);
-        row.GetComponent<Image>().color = new Color(0.25f, 0.45f, 0.35f);
+        row.GetComponent<Image>().color = new Color(0.6f, 0.22f, 0.22f);
         var label = row.GetComponentInChildren<TMP_Text>(true);
-        var lt = label.GetComponent<LocalizedText>();
-        if (lt != null) Object.DestroyImmediate(lt);
-        if (label.GetComponent<LocalizedFont>() == null) label.gameObject.AddComponent<LocalizedFont>();
-        label.text = "Ngôn ngữ: Tiếng Việt";
+        var font = label.GetComponent<LocalizedFont>();
+        if (font != null) Object.DestroyImmediate(font);
+        var lt = label.GetComponent<LocalizedText>() ?? label.gameObject.AddComponent<LocalizedText>();
+        lt.Key = "pause.quit";
+        label.text = "Thoát";
 
-        so.FindProperty("languageButton").objectReferenceValue = row.GetComponent<TapButton>();
-        so.FindProperty("languageLabel").objectReferenceValue = label;
+        so.FindProperty("quitButton").objectReferenceValue = row.GetComponent<TapButton>();
         var rows = so.FindProperty("rows");
         rows.arraySize++;
         rows.GetArrayElementAtIndex(rows.arraySize - 1).objectReferenceValue = row.GetComponent<Outline>();
         so.ApplyModifiedPropertiesWithoutUndo();
-        report.Add("PausePopup: added the language row.");
+        report.Add("PausePopup: added the quit row.");
         return true;
     }
 

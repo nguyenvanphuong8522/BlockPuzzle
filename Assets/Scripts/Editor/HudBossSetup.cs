@@ -26,18 +26,14 @@ public static class HudBossSetup
 
         so.FindProperty("xpBar").objectReferenceValue = t.Find("XpBar")?.gameObject;
 
-        // ---- Boss bar on the XP bar's place, with the boss picture at its left end ----
+        // ---- Boss bar on the XP bar's place (no picture on it: the countdown and the warning show the boss) ----
         var bossBar = (RectTransform)t.Find("BossBar");
-        if (bossBar != null && bossBar.Find("Icon") == null)
+        if (bossBar != null && bossBar.anchorMin != new Vector2(0.5f, 1f))
         {
             bossBar.anchorMin = new Vector2(0.5f, 1f);
             bossBar.anchorMax = new Vector2(0.5f, 1f);
-            bossBar.anchoredPosition = new Vector2(30f, -136f);
+            bossBar.anchoredPosition = new Vector2(0f, -136f);
             bossBar.sizeDelta = new Vector2(940f, 44f);
-            var ring = MakeImage("IconRing", bossBar, new Vector2(0f, 0.5f), new Vector2(-16f, 0f), new Vector2(92f, 92f), circle);
-            ring.color = new Color(0.55f, 0.05f, 0.1f, 1f);
-            var icon = MakeImage("Icon", bossBar, new Vector2(0f, 0.5f), new Vector2(-16f, 2f), new Vector2(80f, 80f), null);
-            so.FindProperty("bossBarIcon").objectReferenceValue = icon;
         }
 
         // ---- Countdown under the XP bar ----

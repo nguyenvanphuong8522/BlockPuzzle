@@ -95,6 +95,7 @@ namespace Survivor
         [Header("Pickups")]
         public Sprite Gem;
         public Sprite Chest;
+        public Sprite UiArrow; // white arrow pointing right (boss chest edge pointer)
         public Sprite Heal;
         public Sprite Magnet;
 

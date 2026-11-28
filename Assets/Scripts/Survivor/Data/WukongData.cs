@@ -160,8 +160,6 @@ namespace Survivor
         [Header("Khác")]
         [Tooltip("Only enemies within this distance are targeted.")]
         [Min(0.5f)] public float SightRange = 9f;
-        [Tooltip("Drawn size of the monkey king (the monkey is 1).")]
-        [Min(0.3f)] public float BodyScale = 1.15f;
 
         public override CompanionKind Kind => CompanionKind.Wukong;
         public override Companion Create() => new WukongCompanion(this);

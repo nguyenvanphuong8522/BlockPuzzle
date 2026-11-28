@@ -25,10 +25,13 @@ namespace Survivor
             builder.RegisterInstance(PlayerTuning.LoadOrDefault());
             builder.RegisterInstance(GunSettings.LoadOrDefault());
             builder.RegisterInstance(SpawnTimeline.LoadOrDefault());
-            builder.RegisterInstance(BossSettings.LoadOrDefault());
-            builder.RegisterInstance(BossStats.LoadOrDefault());
+            builder.Register<BossRoster>(Lifetime.Singleton); // every boss + its Stats / Settings assets, schedule
             builder.RegisterInstance(EnemyStats.LoadOrDefault());
             builder.RegisterInstance(EnemySettings.LoadOrDefault());
+            builder.RegisterInstance(BloodSettings.LoadOrDefault());
+            builder.RegisterInstance(HomeSettings.LoadOrDefault());
+            builder.Register<ChapterService>(Lifetime.Singleton); // Home screen chapters (picked one = played one)
+            builder.Register<EnergyService>(Lifetime.Singleton);  // energy for runs
             builder.Register<AudioService>(Lifetime.Singleton);
             builder.Register<InputService>(Lifetime.Singleton);
             builder.Register<HapticsService>(Lifetime.Singleton);
@@ -54,6 +57,7 @@ namespace Survivor
             builder.RegisterEntryPoint<RewardDropSystem>().AsSelf(); // entry point = created at start, nobody needs to ask for it
             builder.Register<EffectSystem>(Lifetime.Singleton);
             builder.Register<DamageNumberSystem>(Lifetime.Singleton);
+            builder.Register<BloodSystem>(Lifetime.Singleton);
             builder.Register<FloatingTextSystem>(Lifetime.Singleton);
             builder.Register<DecorationSystem>(Lifetime.Singleton);
 

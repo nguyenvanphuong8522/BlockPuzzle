@@ -20,6 +20,22 @@ namespace Survivor
         [Tooltip("How much it gets pushed back by hits, compared to other enemies (0 = not at all, 1 = normal).")]
         [Min(0f)] public float KnockbackScale = 1f;
 
+        [Header("Số sát thương")]
+        [Tooltip("Size of the damage numbers on this type, times Enemy Number Scale (PlayerTuning).")]
+        [Min(0.1f)] public float NumberScale = 1f;
+        [Tooltip("Numbers start this much higher above its center (world units), e.g. for a big body.")]
+        public float NumberHeight = 0f;
+        [Tooltip("How far around the hit numbers may appear, times Number Spawn Radius (PlayerTuning); bigger body = wider.")]
+        [Min(0f)] public float NumberSpread = 1f;
+        [Tooltip("On = use Number Color below instead of Enemy Number Color (PlayerTuning).")]
+        public bool OwnNumberColor;
+        public Color NumberColor = Color.white;
+
+        [Header("Máu")]
+        [Tooltip("On = it bleeds Blood Color below. Off = the shared Enemy Color (BloodSettings).")]
+        public bool OwnBloodColor;
+        public Color BloodColor = new Color(0.8f, 0.1f, 0.1f, 1f);
+
         [Header("Bắn xa (chỉ dùng nếu loại này bắn xa)")]
         [Tooltip("Distance it tries to keep from the hero (world units): walks in when farther, backs off when closer.")]
         [Min(0.5f)] public float KeepDistance = 5f;
@@ -27,6 +43,9 @@ namespace Survivor
         [Min(0.1f)] public float ShotInterval = 2.6f;
         [Tooltip("It only shoots when the hero is within this distance.")]
         [Min(0.5f)] public float ShootRange = 8f;
+        [Tooltip("Where shots come out, from the body center in body radii: x = toward the hero (the art faces it), " +
+                 "y = up. The squid's snout mouth is about (1.0, 0.11).")]
+        public Vector2 MuzzleOffset = new Vector2(0f, -0.12f);
         [Tooltip("How long it puffs up before shooting (a warning you can see), seconds.")]
         [Min(0f)] public float Windup = 0.35f;
         [Tooltip("Shot: speed, hit radius, lifetime.")]

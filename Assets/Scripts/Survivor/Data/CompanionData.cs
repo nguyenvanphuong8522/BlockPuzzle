@@ -24,6 +24,10 @@ namespace Survivor
         [Tooltip("Highest level (1..5). 1 = it never gets upgrade cards (e.g. a fusion).")]
         [Range(1, Companion.MaxLevel)] public int MaxLevel = Companion.MaxLevel;
 
+        [Header("Hình")]
+        [Tooltip("Drawn size of its body (1 = normal). Its shadow and hands follow; attack numbers and range do not change.")]
+        [Min(0.3f)] public float BodyScale = 1f;
+
         [Header("Hợp thể (fusion)")]
         [Tooltip("Empty = a normal companion. Otherwise it is a fusion: never offered normally; once you own every " +
                  "companion listed here at max level, the next level-up (or chest) is sure to offer it.")]

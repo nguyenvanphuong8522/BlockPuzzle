@@ -15,6 +15,7 @@ public class SurvivorProfileTest
     [UnityTest]
     public IEnumerator ProfileSystems()
     {
+        GameSession.AutoStart = true; // skip the Home screen, straight into a run
         SceneManager.LoadScene("Main");
         yield return null;
         yield return null;

@@ -12,10 +12,10 @@ namespace Survivor
         readonly GameStats stats;
         readonly AudioService audio;
         readonly PlayerTuning tuning;
-        readonly BossStats boss;
+        readonly BossRoster bosses;
+        readonly ChapterService chapters; // chapter difficulty: spawn rate x Spawn Rate Scale
         float accumulator;
         float nextHorde;
-        int nextBoss;
         int bossesSpawned;
 
         // True during a boss fight: no normal enemies or hordes (boss times still count).
@@ -25,13 +25,14 @@ namespace Survivor
         public bool AutoHordes { get; set; } = true;
 
         // Elapsed time at which the next boss appears, -1 = no boss left.
-        public float NextBossTime => nextBoss < config.BossTimes.Length ? config.BossTimes[nextBoss] : -1f;
+        public float NextBossTime => bosses.NextTime;
 
         public EnemySpawner(GameConfig config, EnemySystem enemies, Player player, GameStats stats, AudioService audio,
-            PlayerTuning tuning, BossStats boss)
+            PlayerTuning tuning, BossRoster bosses, ChapterService chapters)
         {
             this.tuning = tuning;
-            this.boss = boss;
+            this.bosses = bosses;
+            this.chapters = chapters;
             this.config = config;
             this.enemies = enemies;
             this.player = player;
@@ -49,7 +50,8 @@ namespace Survivor
                 if (t >= nextHorde) nextHorde = t + config.HordeInterval; // no horde right after the fight
                 return;
             }
-            var rate = Mathf.Min(config.MaxSpawnPerSecond, config.BaseSpawnPerSecond + t * config.SpawnPerSecondGrowth);
+            var rate = Mathf.Min(config.MaxSpawnPerSecond, config.BaseSpawnPerSecond + t * config.SpawnPerSecondGrowth)
+                       * chapters.Current.SpawnRateScale;
             accumulator += rate * dt;
             while (accumulator >= 1f)
             {
@@ -63,22 +65,23 @@ namespace Survivor
                 if (AutoHordes) SpawnHorde(t);
             }
 
-            if (nextBoss < config.BossTimes.Length && t >= config.BossTimes[nextBoss])
-            {
-                nextBoss++;
-                SpawnBoss();
-            }
+            var bossTime = bosses.NextTime;
+            if (bossTime >= 0f && t >= bossTime) SpawnBoss(bosses.TakeNext());
         }
 
-        public void SpawnBoss()
+        // Debug: the next boss of the schedule (without using up its turn).
+        public void SpawnBoss() => SpawnBoss(bosses.Upcoming ?? bosses.Current);
+
+        public void SpawnBoss(BossRoster.Boss b)
         {
-            // Boss HP, speed and touch damage come from BossStats.asset; HP grows with each appearance.
-            var baseHp = config.Enemies[config.BossType].Hp;
-            var hpMultiplier = boss.Hp / baseHp * (1f + bossesSpawned * boss.HpGrowthPerAppearance);
+            if (b == null || enemies.BossIndex >= 0) return; // one boss at a time
+            // HP, speed and touch damage come from that boss's Stats asset; HP grows with every boss fight.
+            var s = b.Stats;
+            var hpMultiplier = s.Hp / Mathf.Max(1f, b.Definition.Hp) * (1f + bossesSpawned * s.HpGrowthPerAppearance);
             bossesSpawned++;
             var before = enemies.Count;
-            enemies.Spawn(config.BossType, RandomRingPoint(), hpMultiplier);
-            if (enemies.Count > before) enemies.SetSpeedAndDamage(enemies.Count - 1, boss.MoveSpeed, boss.ContactDamage);
+            enemies.Spawn(b.Type, RandomRingPoint(), hpMultiplier);
+            if (enemies.Count > before) enemies.SetSpeedAndDamage(enemies.Count - 1, s.MoveSpeed, s.ContactDamage);
             audio.Play(Sfx.BossSpawn);
         }
 

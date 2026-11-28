@@ -14,15 +14,18 @@ namespace Survivor
         readonly PickupSystem pickups;
         readonly Player player;
         readonly EnemySettings tuning;
-        readonly BossSettings boss;
+        readonly BossRoster roster;
+        readonly BossArenaSystem arena;   // still up when the boss dies (it ends on its next Tick)
+        BossSettings boss;                // settings of the boss that just died (fence of gems, trail)
         readonly IDisposable subscription;
 
         public RewardDropSystem(EnemyDropSettings settings, GemSystem gems, PickupSystem pickups, Player player,
-            EnemySettings tuning, ISubscriber<EnemyKilledEvent> killed, BossSettings boss)
+            EnemySettings tuning, ISubscriber<EnemyKilledEvent> killed, BossRoster roster, BossArenaSystem arena)
         {
+            this.arena = arena;
             this.player = player;
             this.tuning = tuning;
-            this.boss = boss;
+            this.roster = roster;
             this.settings = settings;
             this.gems = gems;
             this.pickups = pickups;
@@ -31,6 +34,7 @@ namespace Survivor
 
         void OnEnemyKilled(EnemyKilledEvent e)
         {
+            boss = (e.IsBoss ? roster.FindType(e.Type)?.Settings : null) ?? roster.Settings;
             foreach (var reward in settings.RewardsFor(e.Type))
             {
                 if (reward == null || UnityEngine.Random.value * 100f >= reward.ChancePercent) continue;
@@ -54,8 +58,11 @@ namespace Survivor
             switch (reward.Type)
             {
                 case RewardType.Gem:
-                    if (fromBoss) gems.SpawnTrail(at, player.Position, reward.Amount, boss.TrailGems); // a line of gems
-                    else gems.Spawn(at, reward.Amount); // one gem holding all the experience
+                    if (!fromBoss) gems.Spawn(at, reward.Amount); // one gem holding all the experience
+                    else if (boss.GemsOnFence && arena.UpOrJustEnded) // a fence of gems along the arena wall
+                        gems.SpawnRectangle(arena.Center, new Vector2(boss.ArenaWidth, boss.ArenaHeight) - Vector2.one * (2f * boss.FenceGemInset),
+                            reward.Amount, boss.FenceGemSpacing);
+                    else gems.SpawnTrail(at, player.Position, reward.Amount, boss.TrailGems); // a line of gems
                     break;
                 case RewardType.Heal:
                     SpawnPickups(PickupKind.Heal, at, reward.Amount);
@@ -64,7 +71,7 @@ namespace Survivor
                     SpawnPickups(PickupKind.Magnet, at, reward.Amount);
                     break;
                 case RewardType.Chest:
-                    SpawnPickups(PickupKind.Chest, at, reward.Amount);
+                    SpawnPickups(fromBoss ? PickupKind.BossChest : PickupKind.Chest, at, reward.Amount);
                     break;
             }
         }

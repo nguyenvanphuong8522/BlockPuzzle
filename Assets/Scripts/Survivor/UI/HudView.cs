@@ -23,6 +23,12 @@ namespace Survivor
         [SerializeField] TextMeshProUGUI killText;
         [SerializeField] TextMeshProUGUI debugText;
         [SerializeField] TapButton pauseButton;
+        [Tooltip("x2 speed button (made by Survivor > Setup Hud Speed Button): toggles normal / double game speed.")]
+        [SerializeField] TapButton speedButton;
+        [SerializeField] Image speedBackground;
+        [SerializeField] Color speedOffColor = new Color(0f, 0f, 0f, 0.55f);
+        [SerializeField] Color speedOnColor = new Color(1f, 0.75f, 0.15f, 0.95f);
+        [Min(1f)] [SerializeField] float fastSpeed = 2f;
 
         [Header("Boss")]
         [SerializeField] GameObject bossBar;
@@ -43,7 +49,7 @@ namespace Survivor
         [SerializeField] Image[] bossWarningIcons = new Image[0];
         [Tooltip("Banner blink speed.")]
         [SerializeField] float warningBlinkSpeed = 7f;
-        [Tooltip("Picture of the boss. Empty = first frame of the boss enemy art.")]
+        [Tooltip("Fallback picture when a boss has no Icon in its Settings and no art. Each boss normally shows its own.")]
         [SerializeField] Sprite bossIcon;
 
         [Header("Cảnh báo đàn bay")]
@@ -70,20 +76,22 @@ namespace Survivor
         int shownBossSeconds = -1;
         float warningShownAt = -1f;
         PlayerTuning tuning;
-        BossSettings boss;
+        BossRoster bosses;
+        DebugSettings debug;
+        SpriteCatalog spriteCatalog;
+        Sprite shownIcon;
+        BossSettings boss => bosses?.Settings; // the boss alive now, or the next one
 
         public event Action PauseClicked;
 
         [Inject]
         public void Construct(InputService input, PlayerProgress playerProgress, GameStats stats, PlayerTuning playerTuning,
-            SpriteCatalog sprites, GameConfig config, BossSettings bossSettings)
+            SpriteCatalog sprites, GameConfig config, BossRoster bossRoster, DebugSettings debugSettings)
         {
             tuning = playerTuning;
-            boss = bossSettings;
-            if (bossIcon == null && config.BossType < sprites.Enemies.Length && sprites.Enemies[config.BossType] is { IsEmpty: false } art)
-                bossIcon = art.Frames[0];
-            foreach (var image in new[] { bossBarIcon, bossCountdownIcon }) SetIcon(image);
-            foreach (var image in bossWarningIcons) SetIcon(image);
+            bosses = bossRoster;
+            spriteCatalog = sprites;
+            RefreshBossIcon();
             if (bossCountdown != null) bossCountdown.SetActive(false);
             if (bossWarning != null) bossWarning.gameObject.SetActive(false);
             if (swarmWarning != null) swarmWarning.gameObject.SetActive(false);
@@ -94,6 +102,9 @@ namespace Survivor
 
             joystick.Input = input;
             pauseButton.OnPressed = () => PauseClicked?.Invoke();
+            debug = debugSettings;
+            if (speedButton != null) speedButton.OnPressed = ToggleSpeed;
+            RefreshSpeedButton();
             bossBar.SetActive(false);
 
             subscriptions.Add(progress.Xp.Subscribe(_ => RefreshXp()));
@@ -101,6 +112,19 @@ namespace Survivor
             subscriptions.Add(progress.Level.Subscribe(_ => RefreshTexts()));
             subscriptions.Add(stats.Kills.Subscribe(_ => RefreshTexts()));
             Loc.Changed += RefreshTexts;
+        }
+
+        // x2 button: normal speed <-> Fast Speed (same setting as the debug panel's game speed).
+        void ToggleSpeed()
+        {
+            debug.GameSpeed = debug.GameSpeed > 1.01f ? 1f : fastSpeed;
+            Time.timeScale = debug.GameSpeed;
+            RefreshSpeedButton();
+        }
+
+        void RefreshSpeedButton()
+        {
+            if (speedBackground != null) speedBackground.color = debug != null && debug.GameSpeed > 1.01f ? speedOnColor : speedOffColor;
         }
 
         // Level and kill labels (also when the language changes).
@@ -126,6 +150,8 @@ namespace Survivor
         // Shows the boss health bar while a boss is alive. ratio < 0 hides it.
         public void SetBoss(string name, float ratio)
         {
+            RefreshBossIcon();
+            RefreshSpeedButton(); // the debug panel can change the speed too
             var visible = ratio >= 0f;
             if (bossBar.activeSelf != visible) bossBar.SetActive(visible);
             if (xpBar != null && xpBar.activeSelf == visible) xpBar.SetActive(!visible); // boss bar replaces the XP bar
@@ -136,11 +162,30 @@ namespace Survivor
             if (bossName.text != name) bossName.text = name;
         }
 
-        void SetIcon(Image image)
+        // The current boss's picture (its Settings > Icon, else the first frame of its art) on the bar, the countdown
+        // and the warning banner. Changes when the next / living boss changes.
+        void RefreshBossIcon()
+        {
+            var b = bosses?.Current;
+            Sprite icon = null;
+            if (b != null)
+            {
+                icon = b.Settings.Icon;
+                if (icon == null && b.Type < spriteCatalog.Enemies.Length && spriteCatalog.Enemies[b.Type] is { IsEmpty: false } art)
+                    icon = art.Frames[0];
+            }
+            if (icon == null) icon = bossIcon;
+            if (icon == shownIcon) return;
+            shownIcon = icon;
+            foreach (var image in new[] { bossBarIcon, bossCountdownIcon }) SetIcon(image, icon);
+            foreach (var image in bossWarningIcons) SetIcon(image, icon);
+        }
+
+        static void SetIcon(Image image, Sprite icon)
         {
             if (image == null) return;
-            image.sprite = bossIcon;
-            image.enabled = bossIcon != null;
+            image.sprite = icon;
+            image.enabled = icon != null;
             image.preserveAspect = true;
         }
 
@@ -178,6 +223,7 @@ namespace Survivor
 
         public void SetBossCountdown(float secondsLeft)
         {
+            RefreshBossIcon();
             var visible = secondsLeft >= 0f;
             if (bossCountdown != null)
             {

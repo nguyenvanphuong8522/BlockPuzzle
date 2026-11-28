@@ -10,7 +10,6 @@ namespace Survivor
     public sealed class EnemyBulletSystem
     {
         const int MaxBullets = 512;
-        const float MouthOffset = -0.12f; // the spout is a bit below the body center (in enemy radii, see Mouth)
 
         readonly EnemySystem enemies;
         readonly Player player;
@@ -40,7 +39,16 @@ namespace Survivor
 
         EnemyDefinition TypeOf(int enemy) => config.Enemies[enemies.TypeOf(enemy)];
 
-        Vector2 Mouth(int i) => enemies.Position[i] + new Vector2(0f, enemies.Radius[i] * MouthOffset);
+        // Where its shots come out: the type's Muzzle Offset (body radii), x mirrored to the side the art faces
+        // (sprites face right and flip to face the hero; flyers face their flight).
+        Vector2 Mouth(int i)
+        {
+            var p = enemies.Position[i];
+            var r = enemies.Radius[i];
+            var offset = TypeOf(i).Settings.MuzzleOffset;
+            var facing = p.x > player.Position.x ? -1f : 1f;
+            return p + new Vector2(offset.x * facing * r, offset.y * r);
+        }
 
         bool CanShoot(int i, EnemyTypeSettings s)
         {

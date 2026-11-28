@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Survivor
 {
-    // Boss stats (numbers for balancing): Assets/Resources/BossStats.asset - health, speed, damage.
-    // How the boss behaves (when it uses which skill, cast times, sizes, colors) is in BossSettings.asset.
+    // Stats of ONE boss (numbers for balancing): Assets/Resources/Bosses/<Id>/<Id>_Stats.asset - health, speed, damage.
+    // How it behaves (when it uses which skill, cast times, sizes, colors) is in <Id>_Settings.asset next to it.
     [CreateAssetMenu(menuName = "Survivor/Boss Stats", fileName = "BossStats")]
     public sealed class BossStats : ScriptableObject
     {

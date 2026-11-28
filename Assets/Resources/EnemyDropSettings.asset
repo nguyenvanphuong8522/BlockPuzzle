@@ -98,7 +98,41 @@ MonoBehaviour:
     - Type: 1
       ChancePercent: 0.4
       Amount: 1
+  - Name: "C\xE1 M\u1EADp B\xFAa"
+    Rewards:
+    - Type: 3
+      ChancePercent: 100
+      Amount: 1
+    - Type: 0
+      ChancePercent: 100
+      Amount: 90
+  - Name: "T\xF4m T\xEDt Kh\u1ED5ng L\u1ED3"
+    Rewards:
+    - Type: 3
+      ChancePercent: 100
+      Amount: 1
+    - Type: 0
+      ChancePercent: 100
+      Amount: 120
   HealSize: 0.95
   MagnetSize: 0.9
   ChestSize: 0.9
   PickupRadius: 0.45
+  HighlightDrops: 1
+  HealGlowColor: {r: 1, g: 0.35, b: 0.3, a: 0.4}
+  MagnetGlowColor: {r: 0.35, g: 0.65, b: 1, a: 0.4}
+  GlowSize: 1.1
+  RingInterval: 1.1
+  RingMaxSize: 1.8
+  RingThickness: 0.08
+  BossChestSize: 1.6
+  BeamHeight: 10
+  BeamWidth: 1.1
+  BeamColor: {r: 1, g: 0.85, b: 0.35, a: 0.4}
+  BeamCoreColor: {r: 1, g: 0.97, b: 0.8, a: 0.55}
+  BeamPulse: 0.25
+  ShowChestPointer: 1
+  PointerSize: 1.1
+  PointerMargin: 0.9
+  PointerBackColor: {r: 0.1, g: 0.08, b: 0.15, a: 0.6}
+  PointerColor: {r: 1, g: 0.85, b: 0.3, a: 1}

@@ -38,8 +38,6 @@ namespace Survivor
         [Tooltip("How far the gun shakes back on each shot.")]
         [Min(0f)] public float Recoil = 0.05f;
         [Min(0f)] public float FlashSize = 0.5f;
-        [Tooltip("Drawn size of the cowboy (the gunner is 1).")]
-        [Min(0.3f)] public float BodyScale = 1.15f;
         [Tooltip("Pitch of the gun sound (lower = heavier).")]
         [Range(0.3f, 2f)] public float SoundPitch = 0.75f;
 

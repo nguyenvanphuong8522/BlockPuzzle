@@ -24,7 +24,7 @@ namespace Survivor
         const float MaxFlightTime = 1.2f;     // a pellet that lost its target pops after this
         const float ShotPoseTime = 0.25f;
 
-        const float Radius = 0.4f;
+        float Radius => 0.4f * Data.BodyScale; // body size (CompanionData.BodyScale)
         const int IdleFrames = 4, ShotFrame = 4, BlinkFrame = 5;
         const float IdleFps = 6f, BlinkEvery = 3.5f, BlinkTime = 0.13f;
 

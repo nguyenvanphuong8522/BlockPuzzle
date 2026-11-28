@@ -180,7 +180,7 @@ namespace Survivor
 
         public override void Draw(InstancedRenderer renderer, CompanionContext ctx)
         {
-            var r = BodyRadius;
+            var r = BodyRadius * Data.BodyScale;
             var feet = Position.y - r;
             renderer.Ellipse(RenderLayer.Shadows, new Vector2(Position.x, feet + 0.05f), new Vector2(r * 1.8f, r * 0.55f),
                 new Color(0f, 0f, 0f, 0.22f));

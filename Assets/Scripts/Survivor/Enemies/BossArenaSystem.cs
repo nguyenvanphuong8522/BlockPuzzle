@@ -15,8 +15,9 @@ namespace Survivor
         readonly EnemySystem enemies;
         readonly EnemySpawner spawner;
         readonly Player player;
-        readonly BossSettings tuning;
-        readonly BossStats stats;
+        readonly BossRoster roster;
+        BossSettings tuning => roster.Settings;
+        BossStats stats => roster.Stats;
         readonly EffectSystem effects;
         readonly CameraShake shake;
         readonly SpriteCatalog sprites;
@@ -28,18 +29,19 @@ namespace Survivor
 
         public bool Active { get; private set; }
         public Vector2 Center => center;
+        // Up now, or ended this very frame / just before (the boss died): its Center is still the fight's arena.
+        public bool UpOrJustEnded => Active || (fadeOut >= 0f && fadeOut < 0.25f);
         public Vector2 Size => new Vector2(tuning.ArenaWidth, tuning.ArenaHeight);
         public Vector2 Half => Size * 0.5f;
 
-        public BossArenaSystem(EnemySystem enemies, EnemySpawner spawner, Player player, BossSettings tuning, BossStats stats,
+        public BossArenaSystem(EnemySystem enemies, EnemySpawner spawner, Player player, BossRoster roster,
             EffectSystem effects, CameraShake shake, SpriteCatalog sprites)
         {
             this.sprites = sprites;
             this.enemies = enemies;
             this.spawner = spawner;
             this.player = player;
-            this.tuning = tuning;
-            this.stats = stats;
+            this.roster = roster;
             this.effects = effects;
             this.shake = shake;
         }

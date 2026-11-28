@@ -25,13 +25,18 @@ namespace Survivor
         readonly AudioService audio;
         readonly HapticsService haptics;
         readonly DamageNumberSystem damageNumbers;
+        readonly BloodSystem blood;
+        readonly ChapterService chapters; // chapter difficulty: damage taken x Damage Taken Scale
         readonly PlayerTuning tuning;
         float hurtTimer;
 
         public Player(GameConfig config, PlayerTuning tuning, DebugSettings debug, SpriteCatalog sprites, AudioService audio,
-            HapticsService haptics, DamageNumberSystem damageNumbers)
+            HapticsService haptics, DamageNumberSystem damageNumbers, BloodSystem blood,
+            ChapterService chapters)
         {
             this.damageNumbers = damageNumbers;
+            this.blood = blood;
+            this.chapters = chapters;
             this.tuning = tuning;
             Stats = new PlayerStats(tuning);
             Radius = config.PlayerRadius;
@@ -63,11 +68,12 @@ namespace Survivor
             if (hurtTimer > 0f || IsDead) return;
             // Armor (Giáp item): takes less damage, never below 1 so a hit always counts.
             var reduction = Mathf.Clamp(Stats.DamageReduction, 0f, Stats.DamageReductionCap);
-            damage = Mathf.Max(1f, damage * (1f - reduction));
+            damage = Mathf.Max(1f, damage * chapters.Current.DamageTakenScale * (1f - reduction));
             hurtTimer = hurtCooldown;
             HurtFlash = 0.12f;
             audio.Play(Sfx.Hurt, 0.6f, 0.08f, 0.2f);
             haptics.PlayHit(); // phone / gamepad vibration (also in god mode, so it can be tuned)
+            blood.Hero(Position, Radius); // enemy touch or shot (also in god mode)
             damageNumbers.SpawnHurt(Position + new Vector2(0.75f, Radius * 1.2f), damage); // red number, beside the marker (also in god mode)
             if (debug.GodMode || debug.SessionGodMode) return; // still flashes, so you can see you were hit
             Hp.Value = Mathf.Max(0f, Hp.Value - damage);

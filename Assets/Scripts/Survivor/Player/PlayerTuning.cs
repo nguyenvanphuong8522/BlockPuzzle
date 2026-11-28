@@ -46,6 +46,12 @@ namespace Survivor
                  "you see more. The height follows the screen shape. Enemies keep spawning just outside the view.")]
         [Min(4f)] public float CameraViewWidth = GameConfig.DefaultViewWidth;
 
+        [Header("Nền")]
+        [Tooltip("Multiplies the ground picture: lower = darker ground, so characters, enemies and gems stand out. White = original.")]
+        public Color GroundTint = new Color(0.62f, 0.6f, 0.57f);
+        [Tooltip("Color strength of the ground: 0 = gray, 1 = original colors.")]
+        [Range(0f, 1.5f)] public float GroundSaturation = 0.75f;
+
         [Header("Thanh máu hero")]
         [Tooltip("Width of the HP bar under the hero (world units).")]
         [Min(0.1f)] public float HpBarWidth = 0.92f;

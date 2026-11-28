@@ -69,6 +69,9 @@ namespace Survivor
         readonly IPublisher<EnemyKilledEvent> killedPublisher;
         readonly EnemyDeathSystem deaths;
         readonly DamageNumberSystem damageNumbers;
+        readonly BloodSystem blood;
+        readonly BossRoster bosses;    // the boss's hit flash rule (its Settings)
+        readonly ChapterService chapters; // chapter difficulty: every enemy's HP x Enemy Hp Scale
         readonly EnemyDrawer drawer;
         readonly AudioService audio;
         readonly EnemySettings tuning; // ranged / elite look / squash / knockback rules
@@ -89,7 +92,8 @@ namespace Survivor
         public string NameOf(int typeIndex) => Loc.Get("enemy." + config.Enemies[typeIndex].Id, config.Enemies[typeIndex].Name);
 
         public EnemySystem(GameConfig config, Player player, IPublisher<EnemyKilledEvent> killedPublisher,
-            DamageNumberSystem damageNumbers, EnemyDrawer drawer, AudioService audio, EnemyDeathSystem deaths, EnemySettings tuning)
+            DamageNumberSystem damageNumbers, EnemyDrawer drawer, AudioService audio, EnemyDeathSystem deaths, EnemySettings tuning,
+            BloodSystem blood, BossRoster bosses, ChapterService chapters)
         {
             this.tuning = tuning;
             this.deaths = deaths;
@@ -97,6 +101,9 @@ namespace Survivor
             this.player = player;
             this.killedPublisher = killedPublisher;
             this.damageNumbers = damageNumbers;
+            this.blood = blood;
+            this.bosses = bosses;
+            this.chapters = chapters;
             this.drawer = drawer;
             this.audio = audio;
 
@@ -128,7 +135,7 @@ namespace Survivor
 
             var i = Count++;
             Position[i] = position;
-            Hp[i] = maxHp[i] = def.Hp * hpMultiplier;
+            Hp[i] = maxHp[i] = def.Hp * hpMultiplier * chapters.Current.EnemyHpScale;
             Radius[i] = def.Radius;
             Id[i] = nextId++;
             knockback[i] = Vector2.zero;
@@ -413,9 +420,18 @@ namespace Survivor
         {
             if (Hp[i] <= 0f) return;
             Hp[i] -= amount;
-            flash[i] = 0.08f;
             var boss = isBoss[i] != 0;
-            damageNumbers.Spawn(Position[i], amount, boss);
+            if (!boss) flash[i] = 0.08f;
+            else
+            {
+                // Boss: white for its Hit Flash Time, then at least Hit Flash Gap seconds of normal look before it can
+                // flash again, so a stream of hits blinks instead of keeping it white. One timer: white while above the gap.
+                var b = bosses.FindType(type[i])?.Settings;
+                if (b != null && flash[i] <= 0f && b.HitFlashTime > 0f) flash[i] = b.HitFlashTime + b.HitFlashGap;
+            }
+            damageNumbers.Spawn(Position[i], amount, boss, type[i]);
+            // Blood flies the way the hit pushes it (or away from the hero when the hit has no direction).
+            blood.Enemy(Position[i], Radius[i], type[i], knockDirection.sqrMagnitude > 0.0001f ? knockDirection : Position[i] - player.Position);
             audio.Play(Sfx.Hit, 0.35f, 0.15f, 0.06f);
             if (Hp[i] <= 0f)
             {
@@ -565,7 +581,10 @@ namespace Survivor
 
         public void Draw(InstancedRenderer renderer)
         {
-            drawer.Draw(renderer, Position, Radius, flash, squash, tuning.HitSquashTime, tuning.HitSquashAmount,
+            var bossLook = BossIndex >= 0 ? bosses.FindType(type[BossIndex])?.Settings : null;
+            drawer.Draw(renderer, Position, Radius, flash, BossIndex, bossLook != null ? bossLook.HitFlashGap : 0f,
+                bossLook != null ? bossLook.HitFlashStrength : 1f, squash,
+                tuning.HitSquashTime, tuning.HitSquashAmount,
                 type, Id, Count, player.Position.x, fly, elite, tuning.EliteTint);
             deaths.Draw(renderer);
         }

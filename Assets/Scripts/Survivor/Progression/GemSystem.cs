@@ -77,6 +77,29 @@ namespace Survivor
             }
         }
 
+        // Boss reward: the experience as gems lined up along a rectangle (the arena fence), one every `spacing`
+        // world units, so they form a fence of gems around the arena.
+        public void SpawnRectangle(Vector2 center, Vector2 size, int totalXp, float spacing)
+        {
+            if (totalXp <= 0 || size.x <= 0f || size.y <= 0f) return;
+            var perimeter = 2f * (size.x + size.y);
+            var pieces = Mathf.Clamp(Mathf.RoundToInt(perimeter / Mathf.Max(0.2f, spacing)), 4, totalXp);
+            var step = perimeter / pieces;
+            var half = size * 0.5f;
+            for (var k = 0; k < pieces; k++)
+            {
+                // Walk the outline from the top-left corner, clockwise.
+                var d = k * step;
+                Vector2 p;
+                if (d < size.x) p = new Vector2(-half.x + d, half.y);
+                else if ((d -= size.x) < size.y) p = new Vector2(half.x, half.y - d);
+                else if ((d -= size.y) < size.x) p = new Vector2(half.x - d, -half.y);
+                else p = new Vector2(-half.x, -half.y + (d - size.x));
+                var xp = totalXp / pieces + (k < totalXp % pieces ? 1 : 0);
+                if (xp > 0) Spawn(center + p, xp);
+            }
+        }
+
         // Debug / tuning helper: a ring of gems just inside the magnet radius, so the pickup animation plays at once.
         public void SpawnTestRing(int amount)
         {

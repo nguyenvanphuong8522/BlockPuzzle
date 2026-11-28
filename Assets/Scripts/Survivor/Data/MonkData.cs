@@ -43,8 +43,6 @@ namespace Survivor
         [Tooltip("Pitch of the wooden fish \"tok\".")]
         [Range(0.3f, 3f)] public float TapPitch = 1.6f;
         [Range(0f, 1f)] public float TapVolume = 0.6f;
-        [Tooltip("Drawn size (the monkey is 1).")]
-        [Min(0.3f)] public float BodyScale = 1f;
 
         public override CompanionKind Kind => CompanionKind.Monk;
         public override Companion Create() => new MonkCompanion(this);
