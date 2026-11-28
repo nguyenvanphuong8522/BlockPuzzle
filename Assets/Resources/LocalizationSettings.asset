@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 283aa31af7ca37e46b8835cc2c5a2bad, type: 3}
+  m_Name: LocalizationSettings
+  m_EditorClassIdentifier: Survivor::Survivor.LocalizationSettings
+  Table: {fileID: 4900000, guid: 5ae67ef8308da294da65dc77e96d5fd0, type: 3}
+  Languages:
+  - Code: vi
+    Column: Vietnamese
+    NativeName: "Ti\u1EBFng Vi\u1EC7t"
+    Font: {fileID: 0}
+    FontMaterial: {fileID: 0}
+    SystemLanguages: 27000000
+  - Code: en
+    Column: English
+    NativeName: English
+    Font: {fileID: 0}
+    FontMaterial: {fileID: 0}
+    SystemLanguages: 0a000000
+  UseDeviceLanguage: 1
+  DefaultLanguage: en
+  FallbackLanguage: en
+  LogMissingKeys: 1

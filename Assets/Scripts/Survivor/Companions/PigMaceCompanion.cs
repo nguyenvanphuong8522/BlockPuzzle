@@ -67,14 +67,14 @@ namespace Survivor
                 hero.Stats.BonusMight += bonus;
                 ctx.Effects.Ring(hero.Position, 1.3f, t.AtkColor, 0.5f);
                 ctx.Effects.Burst(hero.Position, 0.9f, t.AtkColor, 0.3f);
-                ctx.FloatingText.Show(Format(t.AtkText, (bonus * 100f).ToString("0.#")), t.AtkColor);
+                ctx.FloatingText.Show(Format(Loc.Text(t.AtkText), (bonus * 100f).ToString("0.#")), t.AtkColor);
             }
             else
             {
                 var amount = At(t.MaxHpBonus);
                 hero.IncreaseMaxHp(amount); // also heals that much and plays the plus-sign effect
                 ctx.Effects.Ring(hero.Position, 1.3f, t.HpColor, 0.5f);
-                ctx.FloatingText.Show(Format(t.HpText, amount.ToString("0.#")), t.HpColor);
+                ctx.FloatingText.Show(Format(Loc.Text(t.HpText), amount.ToString("0.#")), t.HpColor);
             }
             ctx.Effects.Ring(Position, 0.9f, Tint, 0.35f);
             ctx.Audio.Play(Sfx.Cast, 0.6f, 0.05f, 0.05f);

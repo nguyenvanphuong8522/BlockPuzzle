@@ -19,9 +19,9 @@ namespace Survivor
         public Color AtkColor = new Color(1f, 0.45f, 0.2f);
         public Color HpColor = new Color(0.35f, 0.95f, 0.45f);
         [Tooltip("Text over the hero's head for the ATK gift. {0} = the number.")]
-        public string AtkText = "+{0}% ATK";
+        public string AtkText = "buff.atk";
         [Tooltip("Text over the hero's head for the Max HP gift. {0} = the number.")]
-        public string HpText = "+{0} Máu tối đa";
+        public string HpText = "buff.hp";
 
         [Header("Thanh đếm giờ buff")]
         [Tooltip("Countdown bar under the pig (world units). Width 0 = hidden.")]

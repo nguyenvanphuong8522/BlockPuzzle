@@ -25,6 +25,9 @@ namespace Survivor
         readonly FloatingTextSystem floatingText;
         readonly BossSkillSystem bossSkills;
         readonly SwarmSystem swarm;
+        readonly EnemyBulletSystem enemyBullets;
+        readonly EliteSystem elites;
+        readonly TimelineSystem timeline;
         readonly WeaponSystem weapons;
         readonly CompanionSystem companions;
         readonly BoomerangSystem boomerangs;
@@ -68,12 +71,16 @@ namespace Survivor
             BoomerangSystem boomerangs, UpgradeService upgrades,
             PlayerProgress progress, GameStats stats, HudView hud, DebugPanel debugPanel, PopupController popups, DebugSettings debug,
             InstancedRenderer renderer, AudioService audio, DecorationSystem decorations, SpriteCatalog sprites, CameraShake shake, HapticsService haptics,
-            BossArenaSystem arena, FloatingTextSystem floatingText, BossSkillSystem bossSkills, SwarmSystem swarm)
+            BossArenaSystem arena, FloatingTextSystem floatingText, BossSkillSystem bossSkills, SwarmSystem swarm,
+            EnemyBulletSystem enemyBullets, EliteSystem elites, TimelineSystem timeline)
         {
             this.arena = arena;
             this.floatingText = floatingText;
             this.bossSkills = bossSkills;
             this.swarm = swarm;
+            this.enemyBullets = enemyBullets;
+            this.elites = elites;
+            this.timeline = timeline;
             this.config = config;
             this.input = input;
             this.player = player;
@@ -137,6 +144,8 @@ namespace Survivor
                     return;
                 case State.DebugPaused:
                     if (input.PausePressed) debugPanel.Toggle(); // Esc / Start also closes the debug panel
+                    else debugPanel.HandleNavigation(input.NavigateVertical(), input.NavigateHorizontal(), input.SubmitPressed,
+                        input.CancelPressed); // gamepad / keyboard: move, press, change values, B closes
                     return;
                 case State.Paused:
                     if (input.PausePressed) Resume();
@@ -161,8 +170,11 @@ namespace Survivor
             player.Tick(input.Move, dt);
             spawner.Tick(dt);
             swarm.Tick(dt);          // swarm event: warning, then a flock flying across the hero
+            elites.Tick(dt);         // elite enemies: big tough copies now and then
+            timeline.Tick(dt);       // scripted moments (SpawnTimeline.asset): circles, walls, groups at set seconds
             enemies.Tick(dt);
             bossSkills.Tick(dt);     // boss dash / bullet burst (before the arena, so the wall stops a dash)
+            enemyBullets.Tick(dt);   // ranged enemies (ink squid): windup, shots, blobs hitting the hero
             arena.Tick(dt);          // boss arena: wall, keeps hero and boss inside
             weapons.Tick(dt);
             companions.Tick(dt);
@@ -200,6 +212,8 @@ namespace Survivor
             enemies.Draw(renderer);
             arena.Draw(renderer);
             bossSkills.Draw(renderer);
+            enemyBullets.Draw(renderer);
+            elites.Draw(renderer);
             projectiles.Draw(renderer);
             weapons.Draw(renderer);
             companions.Draw(renderer);
@@ -215,7 +229,11 @@ namespace Survivor
             // Countdown to the next boss under the XP bar (+ warning banner), hidden during the fight.
             var nextBoss = spawner.NextBossTime;
             hud.SetBossCountdown(enemies.BossIndex >= 0 || nextBoss < 0f ? -1f : nextBoss - stats.Elapsed);
-            hud.SetSwarmWarning(swarm.WarningActive, swarm.WarningDirection, swarm.WarningProgress);
+            var swarmWarn = swarm.WarningActive;
+            if (timeline.WarningActive && !swarmWarn)
+                hud.SetSwarmWarning(true, timeline.WarningDirection, timeline.WarningProgress);
+            else
+                hud.SetSwarmWarning(swarmWarn, swarm.WarningDirection, swarm.WarningProgress);
             UpdateDebugText();
         }
 
@@ -232,7 +250,7 @@ namespace Survivor
             hud.ReleaseJoystick();
             popups.Show<LevelUpPopup>(new LevelUpData
             {
-                Title = forChest ? "RƯƠNG BÁU!" : items ? "CHỌN ĐỒ!" : "CHỌN ĐỆ TỬ!",
+                Title = Loc.Get(forChest ? "levelup.title_chest" : items ? "levelup.title_items" : "levelup.title_companions"),
                 Kind = forChest ? ChoiceKind.Chest : items ? ChoiceKind.Item : ChoiceKind.Companion,
                 Options = options, OnPick = ChooseUpgrade
             });

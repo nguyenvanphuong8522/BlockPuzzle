@@ -13,6 +13,8 @@ namespace Survivor
         const float Radius = 0.4f;
         const float HitPoseTime = 0.14f;
         const float ChantFps = 3f;
+        // Rings are drawn under the hero, companions and enemies (World layer), above the ground and the gems.
+        const RenderLayer RingLayer = RenderLayer.Pickups;
 
         sealed class Wave
         {
@@ -125,11 +127,11 @@ namespace Survivor
                 {
                     var glow = data.GlowColor;
                     glow.a *= fade;
-                    renderer.Ring(RenderLayer.Effects, w.Center, w.Radius, data.GlowThickness, glow);
+                    renderer.Ring(RingLayer, w.Center, w.Radius + data.GlowThickness * 0.5f, data.GlowThickness / Mathf.Max(0.01f, w.Radius + data.GlowThickness * 0.5f), glow);
                 }
                 var edge = data.RingColor;
                 edge.a *= fade;
-                renderer.Ring(RenderLayer.Effects, w.Center, w.Radius, data.RingThickness, edge);
+                renderer.Ring(RingLayer, w.Center, w.Radius + data.RingThickness * 0.5f, data.RingThickness / Mathf.Max(0.01f, w.Radius + data.RingThickness * 0.5f), edge);
             }
         }
 

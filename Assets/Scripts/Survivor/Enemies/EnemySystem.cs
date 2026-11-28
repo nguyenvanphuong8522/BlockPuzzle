@@ -45,6 +45,8 @@ namespace Survivor
         NativeArray<float> contactDamage; // [0] = strongest enemy touching the player this frame
         NativeArray<int> bossFound;       // [0] = index of a living boss, or -1
         NativeArray<Vector2> fly;         // flyer (swarm): fixed velocity; zero = normal enemy chasing the hero
+        NativeArray<float> keep;          // ranged enemy: distance it keeps from the hero (sign = circling side); 0 = melee
+        NativeArray<byte> elite;          // 1 = elite (EliteSystem), drawn tinted
 
         // Main-thread-only data
         float[] maxHp = new float[InitialCapacity];
@@ -54,6 +56,14 @@ namespace Survivor
         float[] flyTime = new float[InitialCapacity];   // flyers: seconds left before they leave the map
         int flyerCount;
 
+        // Ranged enemies: seconds until the next shot (EnemyBulletSystem counts it down and fires).
+        public float[] ShootTimer = new float[InitialCapacity];
+        public bool IsRanged(int i) => keep[i] != 0f;
+        // Elite: a bigger, tougher copy of a normal enemy (EliteSystem). Tinted and with its own health bar.
+        public bool IsElite(int i) => elite[i] != 0;
+        public int TypeOf(int i) => type[i];
+        public float MaxHp(int i) => maxHp[i];
+
         readonly GameConfig config;
         readonly Player player;
         readonly IPublisher<EnemyKilledEvent> killedPublisher;
@@ -61,7 +71,7 @@ namespace Survivor
         readonly DamageNumberSystem damageNumbers;
         readonly EnemyDrawer drawer;
         readonly AudioService audio;
-        readonly PlayerTuning tuning; // knockback strength / slide / stun are tuned there
+        readonly EnemySettings tuning; // ranged / elite look / squash / knockback rules
         readonly SpatialGrid grid = new SpatialGrid(1f);
         readonly List<int> candidates = new List<int>(128);
         readonly List<int> dead = new List<int>(128);
@@ -73,10 +83,13 @@ namespace Survivor
         // Multiplies the boss walking speed (1 = normal, 0 = stands still). Set by BossSkillSystem.
         public float BossSpeedScale { get; set; } = 1f;
         public float BossHpRatio => BossIndex >= 0 ? Mathf.Clamp01(Hp[BossIndex] / maxHp[BossIndex]) : 0f;
-        public string BossName => BossIndex >= 0 ? config.Enemies[type[BossIndex]].Name : "";
+        public string BossName => BossIndex >= 0 ? NameOf(type[BossIndex]) : "";
+
+        // Translated enemy name (Localization.csv "enemy.<Id>"), the code name when there is none.
+        public string NameOf(int typeIndex) => Loc.Get("enemy." + config.Enemies[typeIndex].Id, config.Enemies[typeIndex].Name);
 
         public EnemySystem(GameConfig config, Player player, IPublisher<EnemyKilledEvent> killedPublisher,
-            DamageNumberSystem damageNumbers, EnemyDrawer drawer, AudioService audio, EnemyDeathSystem deaths, PlayerTuning tuning)
+            DamageNumberSystem damageNumbers, EnemyDrawer drawer, AudioService audio, EnemyDeathSystem deaths, EnemySettings tuning)
         {
             this.tuning = tuning;
             this.deaths = deaths;
@@ -101,6 +114,8 @@ namespace Survivor
             contactDamage = new NativeArray<float>(1, Allocator.Persistent);
             bossFound = new NativeArray<int>(1, Allocator.Persistent);
             fly = new NativeArray<Vector2>(InitialCapacity, Allocator.Persistent);
+            keep = new NativeArray<float>(InitialCapacity, Allocator.Persistent);
+            elite = new NativeArray<byte>(InitialCapacity, Allocator.Persistent);
         }
 
         public bool IsAlive(int i) => Hp[i] > 0f;
@@ -126,6 +141,18 @@ namespace Survivor
             flash[i] = 0f;
             squash[i] = 0f;
             fly[i] = Vector2.zero;
+            // Ranged: keeps its distance, circling one way or the other (random side per enemy).
+            keep[i] = def.IsRanged ? def.Settings.KeepDistance * (UnityEngine.Random.value < 0.5f ? -1f : 1f) : 0f;
+            ShootTimer[i] = def.IsRanged ? UnityEngine.Random.Range(0.6f, 1f) * def.Settings.ShotInterval : 0f;
+            elite[i] = 0;
+        }
+
+        // Overrides the walking speed and touch damage of enemy i (the boss uses BossStats).
+        public void SetSpeedAndDamage(int i, float newSpeed, float newDamage)
+        {
+            speed[i] = newSpeed;
+            moveSpeed[i] = newSpeed;
+            damage[i] = newDamage;
         }
 
         // Swarm member: flies in a straight line at `velocity` (ignores the hero) and quietly leaves the map after
@@ -139,6 +166,24 @@ namespace Survivor
             fly[i] = velocity;
             flyTime[i] = life;
             flyerCount++;
+        }
+
+        // Elite: a bigger, tougher copy of a normal enemy (numbers: EnemySettings "Quái tinh anh"). Returns its index,
+        // or -1 when the enemy cap is reached.
+        public int SpawnElite(int typeIndex, Vector2 position, float hpMultiplier)
+        {
+            var before = Count;
+            var es = config.Enemies[typeIndex].Stats; // this type's elite multipliers
+            Spawn(typeIndex, position, hpMultiplier * es.EliteHpMultiplier);
+            if (Count == before) return -1;
+            var i = Count - 1;
+            elite[i] = 1;
+            Radius[i] *= es.EliteSizeMultiplier;
+            damage[i] *= es.EliteDamageMultiplier;
+            speed[i] *= es.EliteSpeedMultiplier;
+            moveSpeed[i] = speed[i];
+            xp[i] = Mathf.RoundToInt(xp[i] * es.EliteXpMultiplier);
+            return i;
         }
 
         public void Tick(float dt)
@@ -158,6 +203,10 @@ namespace Survivor
                 Radius = Radius,
                 MoveSpeed = moveSpeed,
                 Fly = fly.Reinterpret<float2>(),
+                Keep = keep,
+                KeepSlack = Mathf.Max(0.05f, tuning.RangedDistanceSlack),
+                StrafeSpeed = tuning.RangedStrafeSpeed,
+                RetreatSpeed = tuning.RangedRetreatSpeed,
                 BucketStart = grid.BucketStart,
                 Items = grid.Items,
                 PosOut = positionNext.Reinterpret<float2>(),
@@ -245,6 +294,8 @@ namespace Survivor
             [ReadOnly] public NativeArray<float> Radius;
             [ReadOnly] public NativeArray<float> MoveSpeed;
             [ReadOnly] public NativeArray<float2> Fly;
+            [ReadOnly] public NativeArray<float> Keep;
+            public float KeepSlack, StrafeSpeed, RetreatSpeed;
             [ReadOnly] public NativeArray<int> BucketStart;
             [ReadOnly] public NativeArray<int> Items;
             [WriteOnly] public NativeArray<float2> PosOut;
@@ -300,6 +351,18 @@ namespace Survivor
 
                 var dist = math.sqrt(distSq);
                 var velocity = dist > 0.001f ? toPlayer * (MoveSpeed[i] / dist) : float2.zero;
+                var keepSigned = Keep[i];
+                if (keepSigned != 0f && dist > 0.001f)
+                {
+                    // Ranged: walk in when too far, back off when too close, circle the hero inside the comfort zone.
+                    var keepDist = math.abs(keepSigned);
+                    var dir = toPlayer / dist;
+                    var along = math.clamp((dist - keepDist) / KeepSlack, -1f, 1f);   // +1 = come closer, -1 = back off
+                    var tangent = new float2(-dir.y, dir.x) * math.sign(keepSigned);
+                    var strafe = (1f - math.abs(along)) * StrafeSpeed;
+                    var walk = along > 0f ? along : along * RetreatSpeed;
+                    velocity = (dir * walk + tangent * strafe) * MoveSpeed[i];
+                }
                 velocity *= math.saturate(1f - math.length(kb) * InverseStunSpeed); // knocked back: no chasing
                 var push = far ? float2.zero : Separation(i, p);
 
@@ -359,9 +422,11 @@ namespace Survivor
                 dead.Add(i); // killing blow: no knockback, it shatters where it stands
                 return;
             }
-            // Survived the hit: a quick squash (PlayerTuning "Co rúm khi trúng đòn"), and a push back.
+            // Survived the hit: a quick squash (EnemySettings "Co rúm khi trúng đòn"), and a push back.
             squash[i] = tuning.HitSquashTime;
             // Survived the hit: pushed back (bosses ignore it). Capped so fast weapons can't launch it across the map.
+            knockForce *= config.Enemies[type[i]].Settings.KnockbackScale; // per type (its Settings)
+            if (elite[i] != 0) knockForce *= tuning.EliteKnockbackScale; // elites barely budge
             if (!boss && knockForce > 0f)
             {
                 var kb = (Vector2)knockback[i] + knockDirection * (knockForce * tuning.KnockbackStrength);
@@ -400,7 +465,7 @@ namespace Survivor
             for (var k = dead.Count - 1; k >= 0; k--) // highest index first keeps the swap-remove correct
             {
                 var i = dead[k];
-                killedPublisher.Publish(new EnemyKilledEvent(Position[i], xp[i], config.Enemies[type[i]].IsBoss, type[i]));
+                killedPublisher.Publish(new EnemyKilledEvent(Position[i], xp[i], config.Enemies[type[i]].IsBoss, type[i], elite[i] != 0));
                 deaths.Add(Position[i], Radius[i], type[i], Id[i], isBoss[i] != 0); // death animation
                 if (i == BossIndex) BossIndex = -1;
                 RemoveAt(i);
@@ -429,6 +494,9 @@ namespace Survivor
             squash[i] = squash[last];
             isBoss[i] = isBoss[last];
             fly[i] = fly[last];
+            keep[i] = keep[last];
+            elite[i] = elite[last];
+            ShootTimer[i] = ShootTimer[last];
             flyTime[i] = flyTime[last];
         }
 
@@ -498,7 +566,7 @@ namespace Survivor
         public void Draw(InstancedRenderer renderer)
         {
             drawer.Draw(renderer, Position, Radius, flash, squash, tuning.HitSquashTime, tuning.HitSquashAmount,
-                type, Id, Count, player.Position.x, fly);
+                type, Id, Count, player.Position.x, fly, elite, tuning.EliteTint);
             deaths.Draw(renderer);
         }
 
@@ -517,8 +585,11 @@ namespace Survivor
             GrowNative(ref damage, size);
             GrowNative(ref isBoss, size);
             GrowNative(ref fly, size);
+            GrowNative(ref keep, size);
+            GrowNative(ref elite, size);
             Array.Resize(ref Id, size);
             Array.Resize(ref flyTime, size);
+            Array.Resize(ref ShootTimer, size);
             Array.Resize(ref maxHp, size);
             Array.Resize(ref speed, size);
             Array.Resize(ref xp, size);
@@ -550,6 +621,8 @@ namespace Survivor
             contactDamage.Dispose();
             bossFound.Dispose();
             fly.Dispose();
+            keep.Dispose();
+            elite.Dispose();
         }
     }
 }

@@ -134,116 +134,6 @@ namespace Survivor
         [Tooltip("Tint for the triangle. White = the original blue art.")]
         public Color MarkerTint = Color.white;
 
-        [Header("Đấu boss")]
-        [Tooltip("HP of the first boss.")]
-        [Min(1f)] public float BossHp = 2500f;
-        [Tooltip("Extra HP for each later boss: 0.6 = +60% per appearance (2nd boss = 1.6x, 3rd = 2.2x).")]
-        [Min(0f)] public float BossHpGrowthPerAppearance = 0.6f;
-        [Tooltip("The \"boss coming\" warning shows this many seconds before a boss appears. 0 = no warning.")]
-        [Min(0f)] public float BossWarningSeconds = 5f;
-        [Tooltip("Width (left-right) of the rectangular arena that closes in around the hero when a boss appears " +
-                 "(world units). Keep it a bit smaller than Camera View Width so both side walls are on screen.")]
-        [UnityEngine.Serialization.FormerlySerializedAs("BossArenaSize")]
-        [Min(4f)] public float BossArenaWidth = 11f;
-        [Tooltip("Height (up-down) of the boss arena (world units). Portrait screens show more height than width.")]
-        [UnityEngine.Serialization.FormerlySerializedAs("BossArenaSize")]
-        [Min(4f)] public float BossArenaHeight = 15f;
-        [Tooltip("Damage when the hero touches the wall.")]
-        [Min(0f)] public float BossArenaWallDamage = 8f;
-        [Tooltip("How far the wall pushes the hero back in when touched.")]
-        [Min(0f)] public float BossArenaWallPush = 0.6f;
-        [Min(0.02f)] public float BossArenaWallThickness = 0.18f;
-        public Color BossArenaWallColor = new Color(1f, 0.25f, 0.2f, 0.9f);
-        [Tooltip("Height of the barbed-wire fence art drawn on the wall (world units).")]
-        [Min(0.05f)] public float BossArenaFenceHeight = 0.7f;
-        [Tooltip("Length of one fence segment (one post + wires). The sides are split into whole segments.")]
-        [Min(0.2f)] public float BossArenaFenceSegment = 1.8f;
-        [Tooltip("Tint of the fence art (white = original colors).")]
-        public Color BossArenaFenceTint = Color.white;
-        [Tooltip("The boss experience drops as this many gems in a line.")]
-        [Min(1)] public int BossTrailGems = 30;
-
-        [Header("Kỹ năng boss")]
-        [Tooltip("Seconds the boss walks between two skills. Skills alternate: dash, bullet burst, dash...")]
-        [Min(0.5f)] public float BossSkillInterval = 3.5f;
-        [Tooltip("Seconds before the first skill after the boss appears.")]
-        [Min(0f)] public float BossFirstSkillDelay = 2.5f;
-
-        [Tooltip("Lao: warning time. The dark red bar fills the path from start to end in this many seconds, then the boss dashes.")]
-        [Min(0.1f)] public float BossDashCastTime = 1.1f;
-        [Tooltip("Lao: dash speed (world units per second).")]
-        [Min(1f)] public float BossDashSpeed = 16f;
-        [Tooltip("Lao: dash length (world units). The boss aims at where the hero is when the warning starts.")]
-        [Min(1f)] public float BossDashDistance = 9f;
-        [Tooltip("Lao: width of the warning path, times the boss body width.")]
-        [Min(0.2f)] public float BossDashWidthScale = 1f;
-        [Tooltip("Lao: bottom layer of the warning (whole path).")]
-        public Color BossDashWarnColor = new Color(1f, 0.25f, 0.2f, 0.22f);
-        [Tooltip("Lao: top layer that runs from start to end during the warning.")]
-        public Color BossDashFillColor = new Color(0.9f, 0.05f, 0.05f, 0.5f);
-        [Tooltip("Lao: damage when the dashing boss runs into the hero (its normal touch damage applies otherwise).")]
-        [Min(0f)] public float BossDashDamage = 25f;
-
-        [Tooltip("Đạn tỏa: how long the boss winds up before the first wave (seconds).")]
-        [Min(0f)] public float BossBurstCastTime = 0.6f;
-        [Tooltip("Đạn tỏa: number of waves.")]
-        [Range(1, 10)] public int BossBurstWaves = 2;
-        [Tooltip("Đạn tỏa: seconds between two waves.")]
-        [Min(0.05f)] public float BossBurstWaveDelay = 1f;
-        [Tooltip("Đạn tỏa: bullets per wave, spread evenly over 360 degrees (every other wave is turned half a step).")]
-        [Range(3, 64)] public int BossBurstBullets = 16;
-        [Min(0.5f)] public float BossBulletSpeed = 5f;
-        [Min(0f)] public float BossBulletDamage = 10f;
-        [Tooltip("Bullet size (world units, radius).")]
-        [Min(0.05f)] public float BossBulletRadius = 0.22f;
-        [Tooltip("How long a bullet flies before disappearing (seconds).")]
-        [Min(0.2f)] public float BossBulletLifetime = 4f;
-        public Color BossBulletColor = new Color(1f, 0.35f, 0.15f);
-
-        [Header("Đàn quái bay ngang")]
-        [Tooltip("A flock of enemies flies in a straight line from one side, right across the hero, to the other side. " +
-                 "A warning arrow shows on that edge of the screen first.")]
-        public bool SwarmEnabled = true;
-        [Tooltip("Seconds into the run before the first swarm.")]
-        [Min(0f)] public float SwarmFirstTime = 40f;
-        [Tooltip("Average seconds between two swarms (± Swarm Interval Jitter).")]
-        [Min(3f)] public float SwarmInterval = 35f;
-        [Min(0f)] public float SwarmIntervalJitter = 8f;
-        [Tooltip("How long the warning shows before the swarm comes in.")]
-        [Min(0f)] public float SwarmWarningTime = 2f;
-        [Tooltip("Enemy type of the swarm (GameConfig order): 0 crab, 1 flying fish, 2 jellyfish, 3 starfish, 4 octopus, 5 hermit.")]
-        [Min(0)] public int SwarmEnemyType = 1;
-        [Tooltip("Enemies in one swarm at the start of the run...")]
-        [Min(1)] public int SwarmCount = 22;
-        [Tooltip("...plus this many more for every minute survived.")]
-        [Min(0f)] public float SwarmCountPerMinute = 4f;
-        [Tooltip("Flight speed (world units per second).")]
-        [Min(0.5f)] public float SwarmSpeed = 7f;
-        [Tooltip("Width of the swarm across its path (world units).")]
-        [Min(0f)] public float SwarmWidth = 5f;
-        [Tooltip("Length of the swarm along its path (world units).")]
-        [Min(0f)] public float SwarmDepth = 4f;
-        [Tooltip("The swarm's path passes this far from the hero at most (random). 0 = straight through the hero.")]
-        [Min(0f)] public float SwarmAimOffset = 1f;
-        [Tooltip("Health multiplier of swarm enemies (on top of the normal growth over time).")]
-        [Min(0.01f)] public float SwarmHpMultiplier = 1f;
-
-        [Header("Co rúm khi trúng đòn")]
-        [Tooltip("How long an enemy (or boss) squashes when hit and survives (seconds). The killing hit never squashes.")]
-        [Min(0f)] public float HitSquashTime = 0.14f;
-        [Tooltip("How much it squashes: 0.12 = 12% shorter (and a bit wider) at the peak. 0 = off.")]
-        [Range(0f, 0.5f)] public float HitSquashAmount = 0.12f;
-
-        [Header("Đẩy lùi quái (knockback)")]
-        [Tooltip("Only when the hit does NOT kill. Multiplies every weapon's push (0 = no knockback).")]
-        [Min(0f)] public float KnockbackStrength = 2.5f;
-        [Tooltip("How fast the push dies out. Lower = enemies slide back further.")]
-        [Min(0.5f)] public float KnockbackDecay = 7f;
-        [Tooltip("Cap on the push speed, so fast-firing weapons can't launch enemies across the screen.")]
-        [Min(0f)] public float KnockbackMaxSpeed = 9f;
-        [Tooltip("While pushed faster than this, the enemy stops walking toward the hero (0 = it never stops).")]
-        [Min(0f)] public float KnockbackStunSpeed = 2f;
-
         [Header("Chữ bay trên đầu hero")]
         [Tooltip("Font size of the texts that float up over the hero (e.g. the pig's gift). In UI pixels on a 1080-wide screen.")]
         [Min(8f)] public float FloatTextSize = 60f;
@@ -267,12 +157,23 @@ namespace Survivor
         [Tooltip("Color of the numbers when you hit a normal enemy.")]
         public Color EnemyNumberColor = Color.white;
         [Min(0.1f)] public float EnemyNumberScale = 1f;
-        [Tooltip("Color of the numbers when you hit a boss.")]
-        public Color BossNumberColor = new Color(1f, 0.85f, 0.3f);
-        [Min(0.1f)] public float BossNumberScale = 1.6f;
         [Tooltip("Color of the number shown when the hero loses HP.")]
         public Color HurtNumberColor = new Color(1f, 0.22f, 0.2f);
         [Min(0.1f)] public float HurtNumberScale = 2f;
+        [Tooltip("How long a number stays on screen (seconds).")]
+        [Min(0.1f)] public float NumberLifetime = 0.6f;
+        [Tooltip("Numbers appear at a random point within this distance of the hit (world units), in the fan above it. 0 = always on the hit point.")]
+        [Min(0f)] public float NumberSpawnRadius = 0.35f;
+        [Tooltip("Width of the fan above the hit that numbers appear in and fly out along (degrees). 180 = the whole upper half, 0 = straight up.")]
+        [Range(0f, 360f)] public float NumberSpreadDegrees = 180f;
+        [Tooltip("Start speed of a number flying away from the hit (world units / second).")]
+        [Min(0f)] public float NumberFlySpeed = 2.2f;
+        [Tooltip("How fast the number slows down (higher = stops sooner). 0 = constant speed.")]
+        [Min(0f)] public float NumberFlyDrag = 3f;
+        [Tooltip("Lift added to every number at the start (world units up), so it starts above the enemy's center.")]
+        public float NumberStartLift = 0.3f;
+        [Tooltip("Numbers for damage the hero takes fly at this fraction of the speed above.")]
+        [Min(0f)] public float HurtNumberSpeedScale = 0.6f;
 
         public static PlayerTuning LoadOrDefault()
         {

@@ -149,6 +149,40 @@ namespace Survivor
             }
         }
 
+        // Debug: recruit one companion, or +1 level if the hero already has it. A fusion (Wukong, Cowboy...) is
+        // added as a new one each time, like fusing again. Returns what happened, for the debug panel.
+        public string DebugGiveCompanion(CompanionData data)
+        {
+            if (data == null) return "";
+            if (!data.IsFusion)
+            {
+                var owned = Owned(data);
+                if (owned != null)
+                {
+                    if (owned.IsMaxLevel) return "đã cấp tối đa";
+                    owned.LevelUp();
+                    return $"lên cấp {owned.Level}";
+                }
+            }
+            if (!companions.HasFreeSlot) return $"hết chỗ (tối đa {CompanionSystem.MaxSlots})";
+            companions.Add(data.Create());
+            return "đã thêm";
+        }
+
+        // Debug: the most recently added companion leaves (frees a slot).
+        public void DebugRemoveLastCompanion()
+        {
+            var list = companions.Companions;
+            if (list.Count > 0) companions.Remove(list[list.Count - 1]);
+        }
+
+        // Level of the owned companion of this type, 0 if none.
+        public int DebugOwnedLevel(CompanionData data)
+        {
+            var owned = data != null ? Owned(data) : null;
+            return owned != null ? owned.Level : 0;
+        }
+
         // ---- Level-up screen: companions most of the time, items every Nth level-up (PlayerTuning) ----
 
         // levelUpNumber = 1 for the first level-up of the run, 2 for the second...
@@ -182,7 +216,7 @@ namespace Survivor
                 var picked = item;
                 candidates.Add(new UpgradeOption
                 {
-                    Title = item.DisplayName, Badge = next == 1 ? "MỚI!" : "", Tint = item.Tint, Icon = item.Icon,
+                    Title = item.LocalizedName, Badge = next == 1 ? Loc.Get("card.new") : "", Tint = item.Tint, Icon = item.Icon,
                     Description = item.FormatDescription(),
                     Stars = next, MaxStars = item.MaxPicks <= 10 ? item.MaxPicks : 0, StarIsNew = true,
                     Apply = () => { itemPicks[picked] = Picks(picked) + 1; picked.Apply(player); }
@@ -276,7 +310,7 @@ namespace Survivor
 
         UpgradeOption FusionOption(CompanionData fusion) => new UpgradeOption
         {
-            Title = fusion.DisplayName, Badge = "HỢP THỂ!", Description = fusion.Description, Tint = fusion.Tint,
+            Title = fusion.LocalizedName, Badge = Loc.Get("card.fusion"), Description = fusion.LocalizedDescription, Tint = fusion.Tint,
             Icon = IconFor(fusion), Stars = 1, MaxStars = fusion.MaxLevel, StarIsNew = true, IsFusion = true,
             Recipe = RecipeFor(fusion, null, 0),
             Apply = () => Fuse(fusion)
@@ -320,7 +354,7 @@ namespace Survivor
                     var fusion = FusionUsing(d);
                     candidates.Add(new UpgradeOption
                     {
-                        Title = d.DisplayName, Badge = "MỚI!", Description = d.Description, Tint = d.Tint, Icon = IconFor(d),
+                        Title = d.LocalizedName, Badge = Loc.Get("card.new"), Description = d.LocalizedDescription, Tint = d.Tint, Icon = IconFor(d),
                         Stars = 1, MaxStars = d.MaxLevel, StarIsNew = true,
                         Recipe = fusion != null ? RecipeFor(fusion, d, 1) : null,
                         Apply = () => companions.Add(d.Create())
@@ -347,7 +381,7 @@ namespace Survivor
             {
                 result.Add(new UpgradeOption
                 {
-                    Title = "Hồi Phục", Badge = "", Description = "Hồi 30 máu.", Tint = new Color(1f, 0.4f, 0.4f), Icon = sprites.ItemHeart,
+                    Title = Loc.Get("card.heal.title"), Badge = "", Description = Loc.Get("card.heal.desc"), Tint = new Color(1f, 0.4f, 0.4f), Icon = sprites.ItemHeart,
                     Apply = () => player.Heal(30f)
                 });
             }

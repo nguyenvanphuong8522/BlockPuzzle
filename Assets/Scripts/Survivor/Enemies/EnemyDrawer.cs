@@ -46,7 +46,7 @@ namespace Survivor
 
         public void Draw(InstancedRenderer renderer, NativeArray<Vector2> position, NativeArray<float> radius,
             NativeArray<float> flash, NativeArray<float> squash, float squashTime, float squashAmount,
-            int[] type, int[] id, int count, float playerX, NativeArray<Vector2> fly)
+            int[] type, int[] id, int count, float playerX, NativeArray<Vector2> fly, NativeArray<byte> elite, Color eliteTint)
         {
             if (count == 0) return;
             if (matrices.Length < count) Allocate(Mathf.NextPowerOfTwo(count));
@@ -66,7 +66,8 @@ namespace Survivor
                     FrameUv = frameUv, FrameAspect = frameAspect, FrameTrim = frameTrim, FrameTexture = frameTexture,
                     TypeFrameStart = typeFrameStart, TypeFrameCount = typeFrameCount, TypeFps = typeFps, TypeColor = typeColor,
                     Count = count, View = renderer.ViewRect, Time = Time.time, SpriteScale = sprites.SpriteScale,
-                    PlayerX = playerX, Texture = pass, Fly = fly.Reinterpret<float2>(),
+                    PlayerX = playerX, Texture = pass, Fly = fly.Reinterpret<float2>(), Elite = elite,
+                    EliteTint = new float4(eliteTint.r, eliteTint.g, eliteTint.b, eliteTint.a),
                     Matrices = matrices.Reinterpret<float4x4>(), Colors = colors.Reinterpret<float4>(),
                     Shapes = shapes.Reinterpret<float4>(), Uvs = uvs.Reinterpret<float4>(), Keys = keys,
                     ShadowMatrices = shadowMatrices.Reinterpret<float4x4>(), ShadowColors = shadowColors.Reinterpret<float4>(),
@@ -88,6 +89,8 @@ namespace Survivor
             [ReadOnly] public NativeArray<float> Flash;
             [ReadOnly] public NativeArray<float> Squash;     // hit squash timer, counts down from the squash time
             [ReadOnly] public NativeArray<float2> Fly;       // flyers face where they fly, others face the hero
+            [ReadOnly] public NativeArray<byte> Elite;       // elites are drawn tinted
+            public float4 EliteTint;
             public float InverseSquashTime, SquashAmount;
             [ReadOnly] public NativeArray<int> Type;
             [ReadOnly] public NativeArray<int> Id;
@@ -164,7 +167,7 @@ namespace Survivor
                     var centerY = p.y + r * 0.3f - (fullHeight - height) * 0.5f; // keep the bottom edge where it was
                     Matrices[n] = Quad(new float2(p.x + trim.x * width, centerY + trim.y * height),
                         new float2(width * trim.z, height * trim.w));
-                    Colors[n] = new float4(1f, 1f, 1f, 1f);
+                    Colors[n] = Elite[i] != 0 ? EliteTint : new float4(1f, 1f, 1f, 1f);
                     Shapes[n] = new float4(3f, 0f, flash, 0f);
                     Uvs[n] = FrameUv[frame];
                     Keys[n] = p.y - r; // feet: lower on screen = drawn later = in front

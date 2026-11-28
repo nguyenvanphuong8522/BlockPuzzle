@@ -276,6 +276,9 @@ static class ArtGen
         FireBottle();
         for (var f = 0; f < 4; f++) Fire(f);
         UiArrow();
+        for (var f = 0; f < 3; f++) Squid(f);
+        InkBlob();
+        for (var f = 0; f < 2; f++) BossClaw(f);
     }
 
     static string P(string name)
@@ -499,6 +502,53 @@ static class ArtGen
     }
 
     // ---------- Octopus ----------
+    // ---------- Enemy: ink-spitting squid (ranged), enemy7_squid_0..2 ----------
+    // Pointed purple mantle with fins, big eyes, a little spout mouth; tentacles sway between frames.
+    static void Squid(int f)
+    {
+        using (var c = new Canvas(128, 128, 3f))
+        {
+            var color = Paint.Hex("A77BFF");
+            var dark = Paint.Hex("7A52D6");
+            var w = new[] { 0f, 5f, -5f }[f];
+            for (var i = 0; i < 6; i++)
+            {
+                var x = 38 + i * 10.5f;
+                var sway = (i % 2 == 0 ? w : -w);
+                c.Limb(dark, 6, x, 82, x + sway * 0.6f, 98, x - sway * 0.4f, 112, x + sway, 122);
+            }
+            // Mantle: tall pointed body with side fins
+            c.Add(Paint.Poly(30, 40, 18, 28, 36, 30), color);
+            c.Add(Paint.Poly(98, 40, 110, 28, 92, 30), color);
+            c.Add(Paint.Smooth(64, 6, 92, 40, 94, 70, 82, 88, 46, 88, 34, 70, 36, 40), color);
+            c.Flush();
+            c.Shine(52, 30, 8, 12, 110);
+            c.Fill(Paint.Ellipse(72, 22, 3.5f, 3.5f), Paint.Lighter(color, 0.45f));
+            c.Fill(Paint.Ellipse(78, 34, 2.5f, 2.5f), Paint.Lighter(color, 0.45f));
+            // Grumpy eyes and a round spout mouth (it spits ink from there)
+            c.Eye(54, 62, 7, 9, 0.2f, 0.3f);
+            c.Eye(74, 62, 7, 9, 0.2f, 0.3f);
+            c.Brow(46, 50, 60, 54);
+            c.Brow(82, 50, 68, 54);
+            using (var b = new SolidBrush(Paint.Ink)) c.G.FillEllipse(b, 58, 75, 12, 10);
+            using (var b = new SolidBrush(Paint.Hex("3A1E6A"))) c.G.FillEllipse(b, 60.5f, 77.5f, 7, 5);
+            c.Save(P("enemy7_squid_" + f));
+        }
+    }
+
+    // Ink blob shot by the squid (48x48): dark purple ball with a glossy highlight.
+    static void InkBlob()
+    {
+        using (var c = new Canvas(48, 48, 2.5f))
+        {
+            c.Add(Paint.Smooth(24, 6, 38, 14, 42, 28, 32, 40, 16, 40, 6, 28, 10, 14), Paint.Hex("4A2380"));
+            c.Flush();
+            c.Fill(Paint.Ellipse(27, 27, 9, 8), Paint.Hex("6A38B0"));
+            c.Shine(18, 16, 6, 4, 170);
+            c.Save(P("projectile_ink"));
+        }
+    }
+
     static void Octopus(int f)
     {
         using (var c = new Canvas(128, 128, 3f))
@@ -1498,6 +1548,37 @@ static class ArtGen
     }
 
     // Long red staff with gold bands at both ends, lying horizontally (spun by the game).
+    // Boss (king crab) big claw for the claw-swipe skill: arm from the left, pincer pointing right (+x).
+    // f 0 = open, 1 = snapped shut.
+    static void BossClaw(int f)
+    {
+        using (var c = new Canvas(128, 128, 3f))
+        {
+            var shell = Paint.Hex("E8333A");
+            var dark = Paint.Darker(shell, 0.2f);
+            // Arm: two segments with a joint
+            c.Limb(dark, 16, 2, 70, 30, 62, 52, 64);
+            c.Add(Paint.Ellipse(32, 63, 11, 11), shell);
+            c.Flush();
+            // Pincer: a circle with a wedge cut out facing right (GDI angles: 0 = right)
+            var open = f == 0 ? 62f : 10f;
+            c.Add(Paint.Pie(80, 64, 34, open / 2f, 360f - open), shell);
+            c.Flush();
+            // Teeth on both jaws
+            for (var i = 0; i < 3; i++)
+            {
+                var x = 88 + i * 9;
+                var gap = f == 0 ? 14f + i * 7f : 4f;
+                c.Fill(Paint.Poly(x, 64 - gap, x + 5, 64 - gap + 6, x + 9, 64 - gap), Paint.Hex("FFF2D8"));
+                c.Fill(Paint.Poly(x, 64 + gap, x + 5, 64 + gap - 6, x + 9, 64 + gap), Paint.Hex("FFF2D8"));
+            }
+            c.Shine(70, 46, 14, 6, 90);
+            c.Fill(Paint.Ellipse(66, 80, 4, 4), Paint.Lighter(shell, 0.4f));
+            c.Fill(Paint.Ellipse(56, 70, 3, 3), Paint.Lighter(shell, 0.4f));
+            c.Save(P("fx_bossclaw_" + f));
+        }
+    }
+
     static void Staff()
     {
         using (var c = new Canvas(256, 40, 3f))

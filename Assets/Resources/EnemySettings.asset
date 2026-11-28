@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75073b9755926fb47b62496d307da2c7, type: 3}
+  m_Name: EnemySettings
+  m_EditorClassIdentifier: Survivor::Survivor.EnemySettings
+  BaseSpawnPerSecond: 2
+  SpawnPerSecondGrowth: 0.08
+  MaxSpawnPerSecond: 80
+  HordeInterval: 60
+  EliteEnabled: 1
+  EliteFirstTime: 75
+  EliteInterval: 50
+  EliteIntervalJitter: 10
+  EliteCount: 1
+  EliteExtraEveryMinutes: 4
+  EliteKnockbackScale: 0.25
+  EliteTint: {r: 1, g: 0.78, b: 0.55, a: 1}
+  EliteGlow: {r: 1, g: 0.2, b: 0.05, a: 0.65}
+  EliteBarWidth: 1.6
+  EliteBarHeight: 0.12
+  EliteBarColor: {r: 1, g: 0.3, b: 0.25, a: 1}
+  EliteBarBackground: {r: 0.1, g: 0.1, b: 0.1, a: 0.8}
+  EliteAnnounce: announce.elite
+  EliteAnnounceColor: {r: 1, g: 0.55, b: 0.25, a: 1}
+  EliteChestChance: 100
+  EliteBonusXp: 30
+  EliteBonusGems: 10
+  EliteHealChance: 50
+  RangedDistanceSlack: 0.8
+  RangedStrafeSpeed: 0.45
+  RangedRetreatSpeed: 0.8
+  RangedOnlyOnScreen: 1
+  SwarmEnabled: 1
+  SwarmFirstTime: 40
+  SwarmInterval: 30
+  SwarmIntervalJitter: 8
+  SwarmWarningTime: 1.8
+  SwarmShowWarning: 0
+  SwarmEnemyType: 1
+  SwarmCount: 22
+  SwarmCountPerMinute: 4
+  SwarmSpeed: 14
+  SwarmWidth: 10
+  SwarmDepth: 4
+  SwarmAimOffset: 1
+  HitSquashTime: 0.14
+  HitSquashAmount: 0.12
+  KnockbackStrength: 2.5
+  KnockbackDecay: 7
+  KnockbackMaxSpeed: 9
+  KnockbackStunSpeed: 2

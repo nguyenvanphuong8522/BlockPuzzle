@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Survivor
 {
     // Boss fight arena. When a boss appears:
-    //   - a rectangular wall closes in around the hero (width / height etc. in PlayerTuning, "Đấu boss")
+    //   - a rectangular wall closes in around the hero (width / height etc. in BossSettings.asset, "Đấu trường")
     //   - the boss is brought inside, every other enemy shatters and vanishes (no rewards), normal spawning stops
     //   - the hero and the boss can't leave; touching the wall hurts the hero and pushes them back in
     // When the boss dies the wall disappears and spawning resumes (its experience drops as a trail, see GemSystem.SpawnTrail).
@@ -15,7 +15,8 @@ namespace Survivor
         readonly EnemySystem enemies;
         readonly EnemySpawner spawner;
         readonly Player player;
-        readonly PlayerTuning tuning;
+        readonly BossSettings tuning;
+        readonly BossStats stats;
         readonly EffectSystem effects;
         readonly CameraShake shake;
         readonly SpriteCatalog sprites;
@@ -27,10 +28,10 @@ namespace Survivor
 
         public bool Active { get; private set; }
         public Vector2 Center => center;
-        public Vector2 Size => new Vector2(tuning.BossArenaWidth, tuning.BossArenaHeight);
+        public Vector2 Size => new Vector2(tuning.ArenaWidth, tuning.ArenaHeight);
         public Vector2 Half => Size * 0.5f;
 
-        public BossArenaSystem(EnemySystem enemies, EnemySpawner spawner, Player player, PlayerTuning tuning,
+        public BossArenaSystem(EnemySystem enemies, EnemySpawner spawner, Player player, BossSettings tuning, BossStats stats,
             EffectSystem effects, CameraShake shake, SpriteCatalog sprites)
         {
             this.sprites = sprites;
@@ -38,6 +39,7 @@ namespace Survivor
             this.spawner = spawner;
             this.player = player;
             this.tuning = tuning;
+            this.stats = stats;
             this.effects = effects;
             this.shake = shake;
         }
@@ -120,9 +122,9 @@ namespace Survivor
             if (p.y + r > center.y + half.y) push.y -= 1f;
             if (push != Vector2.zero)
             {
-                player.TryHurt(tuning.BossArenaWallDamage); // has its own short invulnerability, so it ticks, not drains
-                p += push.normalized * tuning.BossArenaWallPush;
-                effects.Burst(p - push.normalized * r, 0.35f, tuning.BossArenaWallColor, 0.15f);
+                player.TryHurt(stats.ArenaWallDamage); // has its own short invulnerability, so it ticks, not drains
+                p += push.normalized * tuning.ArenaWallPush;
+                effects.Burst(p - push.normalized * r, 0.35f, tuning.ArenaWallColor, 0.15f);
             }
             player.Position = p;
         }
@@ -145,9 +147,9 @@ namespace Survivor
             }
             else return;
 
-            var color = tuning.BossArenaWallColor;
+            var color = tuning.ArenaWallColor;
             color.a *= alpha * (0.75f + 0.25f * Mathf.Sin(Time.time * 6f)); // slow pulse
-            var t = tuning.BossArenaWallThickness;
+            var t = tuning.ArenaWallThickness;
             var h = size * 0.5f;
             // With fence art the red line lies on the ground under the fence; without it, it is the wall itself.
             var fence = sprites.BarbedFence;
@@ -170,8 +172,8 @@ namespace Survivor
         void DrawFence(InstancedRenderer renderer, Sprite fence, Vector2 size, float alpha)
         {
             var brush = renderer.Brush(RenderLayer.Effects, fence);
-            var height = tuning.BossArenaFenceHeight;
-            var tint = tuning.BossArenaFenceTint;
+            var height = tuning.ArenaFenceHeight;
+            var tint = tuning.ArenaFenceTint;
             tint.a *= alpha;
             var h = size * 0.5f;
             var uv = brush.Uv;
@@ -179,7 +181,7 @@ namespace Survivor
             var lift = height * 0.4f; // the posts stand on the wall line
 
             // Top and bottom: split the width into whole segments.
-            var nx = Mathf.Max(1, Mathf.RoundToInt(size.x / tuning.BossArenaFenceSegment));
+            var nx = Mathf.Max(1, Mathf.RoundToInt(size.x / tuning.ArenaFenceSegment));
             var segX = size.x / nx;
             for (var k = 0; k < nx; k++)
             {
@@ -188,7 +190,7 @@ namespace Survivor
                 renderer.DrawRotated(brush, uv, center + new Vector2(along, -h.y + lift), new Vector2(segX, height), 0f, tint);
             }
             // Left and right: split the height into whole segments.
-            var ny = Mathf.Max(1, Mathf.RoundToInt(size.y / tuning.BossArenaFenceSegment));
+            var ny = Mathf.Max(1, Mathf.RoundToInt(size.y / tuning.ArenaFenceSegment));
             var segY = size.y / ny;
             for (var k = 0; k < ny; k++)
             {

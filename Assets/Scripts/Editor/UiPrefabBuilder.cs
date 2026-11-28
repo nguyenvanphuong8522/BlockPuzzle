@@ -47,6 +47,7 @@ public static class UiPrefabBuilder
         FillCatalog(levelUp, pause, result);
         AssignHud(hud);
         AssetDatabase.SaveAssets();
+        LocalizationSetup.Setup(); // keys + fonts on the new labels, language row in the pause menu
         Debug.Log("Survivor: UI prefabs ready in " + PrefabDir);
     }
 

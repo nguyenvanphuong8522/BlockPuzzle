@@ -68,6 +68,10 @@ namespace Survivor
         public Sprite FireBottle;
         [Tooltip("Flame (base at the bottom), frames cycled to flicker")]
         public SpriteAnim Fire = new SpriteAnim();
+        [Tooltip("Ink blob spat by the squid (ranged enemy)")]
+        public Sprite InkBlob;
+        [Tooltip("King crab boss claw for the claw swipe (pincer pointing right): 0 open, 1 shut")]
+        public SpriteAnim BossClaw = new SpriteAnim();
         [Tooltip("120-degree slash arc pointing right: swing start, full arc, fading")]
         public SpriteAnim Slash = new SpriteAnim();
         [Tooltip("Frames 0-3 idle, 4 cast, 5 blink")]

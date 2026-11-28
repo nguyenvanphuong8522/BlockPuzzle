@@ -22,7 +22,10 @@ namespace Survivor
         [SerializeField] TextMeshProUGUI sfxPercent;
         [SerializeField] TapButton resumeButton;
         [SerializeField] TapButton restartButton;
-        [Tooltip("Rows in navigation order: music, sfx, resume, restart. Each needs an Outline (the highlight).")]
+        [Tooltip("Language row (bottom): pressing it or left / right switches language. Made by Survivor > Localization > Setup.")]
+        [SerializeField] TapButton languageButton;
+        [SerializeField] TextMeshProUGUI languageLabel;
+        [Tooltip("Rows in navigation order: music, sfx, resume, restart, language. Each needs an Outline (the highlight).")]
         [SerializeField] Outline[] rows;
         [SerializeField] float sliderStep = 0.1f;
 
@@ -47,6 +50,22 @@ namespace Survivor
             });
             resumeButton.OnPressed = () => data?.OnResume?.Invoke();
             restartButton.OnPressed = () => data?.OnRestart?.Invoke();
+            if (languageButton != null) languageButton.OnPressed = () => Loc.CycleLanguage();
+            Loc.Changed += RefreshLanguage;
+        }
+
+        const int LanguageRow = 4;
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            Loc.Changed -= RefreshLanguage;
+        }
+
+        void RefreshLanguage()
+        {
+            var language = Loc.CurrentLanguage;
+            if (languageLabel != null && language != null) languageLabel.text = Loc.Format("pause.language", language.NativeName);
         }
 
         protected override void OnShow(object d)
@@ -56,6 +75,7 @@ namespace Survivor
             musicPercent.text = Percent(audio.MusicVolume);
             sfxSlider.SetValueWithoutNotify(audio.SfxVolume);
             sfxPercent.text = Percent(audio.SfxVolume);
+            RefreshLanguage();
             Select(0);
         }
 
@@ -68,11 +88,13 @@ namespace Survivor
             {
                 if (selected == 0) musicSlider.value = Step(musicSlider.value, horizontal);
                 else if (selected == 1) sfxSlider.value = Step(sfxSlider.value, horizontal);
+                else if (selected == LanguageRow) Loc.CycleLanguage(horizontal);
             }
             if (submit)
             {
                 if (selected == 2) data?.OnResume?.Invoke();
                 else if (selected == 3) data?.OnRestart?.Invoke();
+                else if (selected == LanguageRow) Loc.CycleLanguage();
             }
         }
 

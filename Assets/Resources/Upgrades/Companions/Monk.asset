@@ -46,9 +46,9 @@ MonoBehaviour:
   Knockback: 1.5
   FollowHero: 1
   OnlyWhenEnemies: 0
-  RingColor: {r: 1, g: 0.85, b: 0.35, a: 0.95}
-  RingThickness: 0.07
-  GlowColor: {r: 1, g: 0.75, b: 0.25, a: 0.25}
+  RingColor: {r: 1, g: 0.8097684, b: 0.16509432, a: 1}
+  RingThickness: 0.1
+  GlowColor: {r: 0.9716981, g: 0.74285996, b: 0.28875935, a: 0.25}
   GlowThickness: 0.3
   FadePart: 0.45
   TapPitch: 1.5

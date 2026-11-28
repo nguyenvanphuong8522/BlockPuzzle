@@ -19,7 +19,7 @@ namespace Survivor
     public sealed class InstancedRenderer : IDisposable
     {
         const int BatchSize = 1023;
-        const float ShapeCircle = 0f, ShapeRect = 1f, ShapeRing = 2f, ShapeSprite = 3f;
+        const float ShapeCircle = 0f, ShapeRect = 1f, ShapeRing = 2f, ShapeSprite = 3f, ShapeSector = 4f;
 
         static readonly int ColorId = Shader.PropertyToID("_Color");
         static readonly int ShapeId = Shader.PropertyToID("_Shape");
@@ -258,6 +258,15 @@ namespace Survivor
             if (!IsVisible(center, length * 0.5f)) return;
             AddRotated(layers[(int)layer].Shapes, center, new Vector2(length, width), angle, color,
                 new Vector4(ShapeCircle, 0f, 0f, 0f), FullUv, center.y);
+        }
+
+        // Pie slice: center, outer radius, inner radius as a fraction of it (0 = solid to the center), facing
+        // `angle` (radians), spanning `halfAngle` to each side (radians, up to PI = full circle).
+        public void Sector(RenderLayer layer, Vector2 center, float radius, float inner, float angle, float halfAngle, Color color)
+        {
+            if (!IsVisible(center, radius)) return;
+            AddRotated(layers[(int)layer].Shapes, center, new Vector2(radius * 2f, radius * 2f), angle, color,
+                new Vector4(ShapeSector, Mathf.Clamp01(inner), 0f, Mathf.Clamp(halfAngle, 0f, Mathf.PI)), FullUv, center.y);
         }
 
         // Straight line from a to b (debug outlines).

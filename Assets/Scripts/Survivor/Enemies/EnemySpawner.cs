@@ -12,6 +12,7 @@ namespace Survivor
         readonly GameStats stats;
         readonly AudioService audio;
         readonly PlayerTuning tuning;
+        readonly BossStats boss;
         float accumulator;
         float nextHorde;
         int nextBoss;
@@ -20,13 +21,17 @@ namespace Survivor
         // True during a boss fight: no normal enemies or hordes (boss times still count).
         public bool Paused { get; set; }
 
+        // Off while the scripted timeline (SpawnTimeline "Replace Auto Hordes") takes over.
+        public bool AutoHordes { get; set; } = true;
+
         // Elapsed time at which the next boss appears, -1 = no boss left.
         public float NextBossTime => nextBoss < config.BossTimes.Length ? config.BossTimes[nextBoss] : -1f;
 
         public EnemySpawner(GameConfig config, EnemySystem enemies, Player player, GameStats stats, AudioService audio,
-            PlayerTuning tuning)
+            PlayerTuning tuning, BossStats boss)
         {
             this.tuning = tuning;
+            this.boss = boss;
             this.config = config;
             this.enemies = enemies;
             this.player = player;
@@ -55,7 +60,7 @@ namespace Survivor
             if (t >= nextHorde)
             {
                 nextHorde += config.HordeInterval;
-                SpawnHorde(t);
+                if (AutoHordes) SpawnHorde(t);
             }
 
             if (nextBoss < config.BossTimes.Length && t >= config.BossTimes[nextBoss])
@@ -67,11 +72,13 @@ namespace Survivor
 
         public void SpawnBoss()
         {
-            // Boss HP comes from PlayerTuning (Inspector): base HP, growing with each appearance.
+            // Boss HP, speed and touch damage come from BossStats.asset; HP grows with each appearance.
             var baseHp = config.Enemies[config.BossType].Hp;
-            var hpMultiplier = tuning.BossHp / baseHp * (1f + bossesSpawned * tuning.BossHpGrowthPerAppearance);
+            var hpMultiplier = boss.Hp / baseHp * (1f + bossesSpawned * boss.HpGrowthPerAppearance);
             bossesSpawned++;
+            var before = enemies.Count;
             enemies.Spawn(config.BossType, RandomRingPoint(), hpMultiplier);
+            if (enemies.Count > before) enemies.SetSpeedAndDamage(enemies.Count - 1, boss.MoveSpeed, boss.ContactDamage);
             audio.Play(Sfx.BossSpawn);
         }
 
@@ -127,7 +134,7 @@ namespace Survivor
         {
             var result = 0;
             for (var i = 0; i < config.Enemies.Length; i++)
-                if (config.Enemies[i].UnlockTime <= t && !config.Enemies[i].IsBoss) result = i;
+                if (config.Enemies[i].UnlockTime <= t && !config.Enemies[i].IsBoss && !config.Enemies[i].IsRanged) result = i; // hordes: melee only
             return result;
         }
     }

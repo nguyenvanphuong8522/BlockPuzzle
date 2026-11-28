@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18d9eadf08656f84e99613a7d9c04a5e, type: 3}
+  m_Name: BossSettings
+  m_EditorClassIdentifier: Survivor::Survivor.BossSettings
+  WarningSeconds: 5
+  TrailGems: 30
+  NumberColor: {r: 1, g: 1, b: 1, a: 1}
+  NumberScale: 2.3
+  ArenaWidth: 19
+  ArenaHeight: 23
+  ArenaWallPush: 0.5
+  ArenaWallThickness: 0.18
+  ArenaWallColor: {r: 1, g: 0.25, b: 0.2, a: 0}
+  ArenaFenceHeight: 0.7
+  ArenaFenceSegment: 1.8
+  ArenaFenceTint: {r: 1, g: 1, b: 1, a: 1}
+  SkillInterval: 4
+  FirstSkillDelay: 2.5
+  DashEnabled: 1
+  DashMinDistance: 6
+  DashMaxDistance: 99
+  DashCastTime: 0.35
+  DashSpeed: 26
+  DashDistance: 18
+  DashStopAtWall: 1
+  DashWidthScale: 1.5
+  DashWarnColor: {r: 1, g: 0.25, b: 0.2, a: 0.22}
+  DashFillColor: {r: 0.9, g: 0.05, b: 0.05, a: 0.5}
+  SwipeEnabled: 1
+  SwipeMinDistance: 0
+  SwipeMaxDistance: 8
+  SwipeCastTime: 0.9
+  SwipeAimTime: 0.25
+  SwipeLength: 8
+  SwipeWidth: 5
+  SwipeOffset: 0
+  SwipeSwingTime: 0.18
+  SwipeCombo: 1
+  SwipeComboCastTime: 0.5
+  SwipeWarnColor: {r: 1, g: 0.25, b: 0.2, a: 0.22}
+  SwipeFillColor: {r: 0.9, g: 0.05, b: 0.05, a: 0.5}
+  SwipeSlashColor: {r: 1, g: 0.92, b: 0.85, a: 0.9}
+  ClawSize: 2.6
+  ClawAlong: 0.6
+  ClawRaiseDistance: 1.4
+  ClawTint: {r: 1, g: 1, b: 1, a: 1}
+  BurstEnabled: 1
+  BurstMinDistance: 0
+  BurstMaxDistance: 10
+  BurstCastTime: 0.6
+  BurstWaves: 3
+  BurstWaveDelay: 0.8
+  BurstBullets: 16
+  BulletSpeed: 8
+  BulletRadius: 0.58
+  BulletLifetime: 4
+  BulletColor: {r: 0.90196085, g: 0.050980397, b: 0.050980397, a: 1}

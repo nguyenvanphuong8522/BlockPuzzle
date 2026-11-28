@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d82982ed78057244ea3240e9db92b5ac, type: 3}
+  m_Name: OcMuonHon_Settings
+  m_EditorClassIdentifier: Survivor::Survivor.EnemyTypeSettings
+  UnlockTime: 270
+  Weight: 2
+  CanBeElite: 1
+  KnockbackScale: 1
+  KeepDistance: 5
+  ShotInterval: 2.6
+  ShootRange: 8
+  Windup: 0.35
+  ShotSpeed: 5.5
+  ShotRadius: 0.2
+  ShotLifetime: 3
+  ShotSize: 0.45
+  ShotColor: {r: 1, g: 0.12, b: 0.08, a: 1}
+  ShotGlowColor: {r: 1, g: 0.2, b: 0.1, a: 0.4}
+  ShotGlowSize: 2.2
+  ShotCoreColor: {r: 1, g: 0.92, b: 0.75, a: 1}

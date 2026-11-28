@@ -41,12 +41,17 @@ namespace Survivor
         public bool IsPercent => Stat == ItemStat.MoveSpeed || Stat == ItemStat.MagnetRange ||
                                  Stat == ItemStat.Attack || Stat == ItemStat.DamageReduction;
 
+        // Translated texts: Localization.csv "item.<asset name>.name / .desc"; the fields above when missing.
+        public string LocalizedName => Loc.Get($"item.{name}.name", DisplayName);
+        string LocalizedDescriptionPattern => Loc.Get($"item.{name}.desc", Description);
+
         public string FormatDescription()
         {
             var amount = IsPercent ? (AmountPerPick * 100f).ToString("0.#") : AmountPerPick.ToString("0.##");
             var cap = (Cap * 100f).ToString("0");
-            try { return string.Format(Description ?? "", amount, cap); }
-            catch (System.FormatException) { return Description; }
+            var pattern = LocalizedDescriptionPattern;
+            try { return string.Format(pattern ?? "", amount, cap); }
+            catch (System.FormatException) { return pattern; }
         }
 
         // Gives the bonus to the hero.

@@ -1,0 +1,186 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b1271c6acc97034dac35e26bee769ab, type: 3}
+  m_Name: SpawnTimeline
+  m_EditorClassIdentifier: Survivor::Survivor.SpawnTimeline
+  Enabled: 1
+  ReplaceAutoHordes: 1
+  ShowWarnings: 0
+  Events:
+  - Note: "0:30 \u0111\xE0n cua"
+    Time: 30
+    Pattern: 3
+    Enemy: 0
+    Count: 28
+    Rows: 1
+    Side: 0
+    Distance: 0
+    Spacing: 0.7
+    March: 0
+    MarchSpeed: 2.2
+    HpMultiplier: 1
+    Elite: 0
+    SpawnOverSeconds: 0
+    RepeatEvery: 0
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.crab_swarm
+    AnnounceColor: {r: 1, g: 0.55, b: 0.3, a: 1}
+  - Note: "1:00 v\xF2ng v\xE2y s\u1EE9a"
+    Time: 60
+    Pattern: 1
+    Enemy: 2
+    Count: 36
+    Rows: 1
+    Side: 0
+    Distance: 0
+    Spacing: 0.8
+    March: 0
+    MarchSpeed: 2.2
+    HpMultiplier: 1
+    Elite: 0
+    SpawnOverSeconds: 0
+    RepeatEvery: 0
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.jelly_ring
+    AnnounceColor: {r: 0.8, g: 0.5, b: 1, a: 1}
+  - Note: "1:30 t\u01B0\u1EDDng b\u1EA1ch tu\u1ED9c"
+    Time: 90
+    Pattern: 2
+    Enemy: 4
+    Count: 14
+    Rows: 2
+    Side: 5
+    Distance: 0
+    Spacing: 1
+    March: 1
+    MarchSpeed: 1.8
+    HpMultiplier: 1
+    Elite: 0
+    SpawnOverSeconds: 0
+    RepeatEvery: 0
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.octopus_wall
+    AnnounceColor: {r: 1, g: 0.4, b: 0.6, a: 1}
+  - Note: "2:00 t\u01B0\u1EDDng sao bi\u1EC3n"
+    Time: 120
+    Pattern: 2
+    Enemy: 3
+    Count: 16
+    Rows: 1
+    Side: 6
+    Distance: 0
+    Spacing: 0.8
+    March: 0
+    MarchSpeed: 2.2
+    HpMultiplier: 1
+    Elite: 0
+    SpawnOverSeconds: 0
+    RepeatEvery: 0
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.starfish
+    AnnounceColor: {r: 1, g: 0.55, b: 0.3, a: 1}
+  - Note: "2:30 v\xF2ng v\xE2y c\xE1 bay"
+    Time: 150
+    Pattern: 1
+    Enemy: 1
+    Count: 48
+    Rows: 1
+    Side: 0
+    Distance: 0
+    Spacing: 0.8
+    March: 0
+    MarchSpeed: 2.2
+    HpMultiplier: 1
+    Elite: 0
+    SpawnOverSeconds: 0
+    RepeatEvery: 0
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.surrounded
+    AnnounceColor: {r: 1, g: 0.55, b: 0.3, a: 1}
+  - Note: "3:30 \u1ED1c tinh anh"
+    Time: 210
+    Pattern: 3
+    Enemy: 5
+    Count: 2
+    Rows: 1
+    Side: 0
+    Distance: 0
+    Spacing: 1.6
+    March: 0
+    MarchSpeed: 2.2
+    HpMultiplier: 1
+    Elite: 1
+    SpawnOverSeconds: 0
+    RepeatEvery: 0
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.giant_hermit
+    AnnounceColor: {r: 1, g: 0.55, b: 0.3, a: 1}
+  - Note: "4:00 m\u1EF1c bao quanh"
+    Time: 240
+    Pattern: 0
+    Enemy: 7
+    Count: 10
+    Rows: 1
+    Side: 0
+    Distance: 0
+    Spacing: 0.8
+    March: 0
+    MarchSpeed: 2.2
+    HpMultiplier: 1
+    Elite: 0
+    SpawnOverSeconds: 0
+    RepeatEvery: 0
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.squid
+    AnnounceColor: {r: 1, g: 0.55, b: 0.3, a: 1}
+  - Note: "t\u1EEB 4:30 v\xF2ng v\xE2y m\u1ED7i 60s"
+    Time: 270
+    Pattern: 1
+    Enemy: -1
+    Count: 50
+    Rows: 1
+    Side: 0
+    Distance: 0
+    Spacing: 0.8
+    March: 0
+    MarchSpeed: 2.2
+    HpMultiplier: 1
+    Elite: 0
+    SpawnOverSeconds: 0
+    RepeatEvery: 60
+    RepeatTimes: 0
+    WarningTime: 2
+    ShowWarningUI: 1
+    WarningSound: 1
+    Announce: announce.surrounded
+    AnnounceColor: {r: 1, g: 0.55, b: 0.3, a: 1}

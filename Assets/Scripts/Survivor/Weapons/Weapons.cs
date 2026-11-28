@@ -21,15 +21,15 @@ namespace Survivor
         int burstLeft;     // bullets still to fire in the current burst
         float burstTimer;
 
-        public override string Name => "Súng Hải Tặc";
-        public override string Description => "Súng kíp bắn theo hướng hero di chuyển.";
+        public override string Name => Loc.Get("weapon.gun.name", "Súng Hải Tặc");
+        public override string Description => Loc.Get("weapon.gun.desc", "Súng kíp bắn theo hướng hero di chuyển.");
         public override Color Tint => new Color(0.5f, 0.8f, 1f);
         public override string NextLevelDescription => Level switch
         {
-            1 => "Sát thương +40%.",
-            2 => "Bắn thêm 1 viên.",
-            3 => "Đạn xuyên qua 1 kẻ địch, bắn nhanh hơn.",
-            _ => "Bắn thêm 1 viên, sát thương +33%."
+            1 => Loc.Get("weapon.gun.level2", "Sát thương +40%."),
+            2 => Loc.Get("weapon.gun.level3", "Bắn thêm 1 viên."),
+            3 => Loc.Get("weapon.gun.level4", "Đạn xuyên qua 1 kẻ địch, bắn nhanh hơn."),
+            _ => Loc.Get("weapon.gun.level5", "Bắn thêm 1 viên, sát thương +33%.")
         };
 
         public override void Tick(float dt, WeaponContext ctx)
@@ -103,15 +103,15 @@ namespace Survivor
         float angle;
         float time;
 
-        public override string Name => "Mỏ Neo Xoay";
-        public override string Description => "Mỏ neo xoay quanh bạn, đập văng kẻ địch.";
+        public override string Name => Loc.Get("weapon.anchor.name", "Mỏ Neo Xoay");
+        public override string Description => Loc.Get("weapon.anchor.desc", "Mỏ neo xoay quanh bạn, đập văng kẻ địch.");
         public override Color Tint => new Color(0.9f, 0.9f, 1f);
         public override string NextLevelDescription => Level switch
         {
-            1 => "Sát thương +50%.",
-            2 => "Thêm 1 mỏ neo, vòng xoay rộng hơn.",
-            3 => "Thêm 1 mỏ neo, xoay nhanh hơn.",
-            _ => "Thêm 1 mỏ neo, sát thương +23%."
+            1 => Loc.Get("weapon.anchor.level2", "Sát thương +50%."),
+            2 => Loc.Get("weapon.anchor.level3", "Thêm 1 mỏ neo, vòng xoay rộng hơn."),
+            3 => Loc.Get("weapon.anchor.level4", "Thêm 1 mỏ neo, xoay nhanh hơn."),
+            _ => Loc.Get("weapon.anchor.level5", "Thêm 1 mỏ neo, sát thương +23%.")
         };
 
         public override void Tick(float dt, WeaponContext ctx)
@@ -173,10 +173,10 @@ namespace Survivor
         readonly List<int> hits = new List<int>(256);
         float timer = 1f;
 
-        public override string Name => "Sóng Thần";
-        public override string Description => "Định kỳ tạo sóng nước đẩy lùi kẻ địch xung quanh.";
+        public override string Name => Loc.Get("weapon.wave.name", "Sóng Thần");
+        public override string Description => Loc.Get("weapon.wave.desc", "Định kỳ tạo sóng nước đẩy lùi kẻ địch xung quanh.");
         public override Color Tint => new Color(0.3f, 0.8f, 1f);
-        public override string NextLevelDescription => "Phạm vi rộng hơn, sát thương cao hơn, hồi nhanh hơn.";
+        public override string NextLevelDescription => Loc.Get("weapon.wave.next", "Phạm vi rộng hơn, sát thương cao hơn, hồi nhanh hơn.");
 
         public override void Tick(float dt, WeaponContext ctx)
         {
@@ -207,10 +207,10 @@ namespace Survivor
         readonly List<int> hits = new List<int>(32);
         float timer = 0.5f;
 
-        public override string Name => "Sét Biển";
-        public override string Description => "Sét đánh ngẫu nhiên vào kẻ địch quanh bạn.";
+        public override string Name => Loc.Get("weapon.lightning.name", "Sét Biển");
+        public override string Description => Loc.Get("weapon.lightning.desc", "Sét đánh ngẫu nhiên vào kẻ địch quanh bạn.");
         public override Color Tint => new Color(1f, 0.95f, 0.4f);
-        public override string NextLevelDescription => "Thêm tia sét hoặc sát thương cao hơn, hồi nhanh hơn.";
+        public override string NextLevelDescription => Loc.Get("weapon.lightning.next", "Thêm tia sét hoặc sát thương cao hơn, hồi nhanh hơn.");
 
         public override void Tick(float dt, WeaponContext ctx)
         {

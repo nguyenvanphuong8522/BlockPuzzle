@@ -1,7 +1,8 @@
 // Draws circles, rings, rectangles and sprites (from an atlas) with GPU instancing.
 // Per instance:
 //   _Color  tint
-//   _Shape  x = 0 circle / 1 rect / 2 ring / 3 sprite,  y = ring inner radius (0..1),  z = white flash (0..1)
+//   _Shape  x = 0 circle / 1 rect / 2 ring / 3 sprite / 4 sector (pie slice facing +x),
+//           y = ring / sector inner radius (0..1),  z = white flash (0..1),  w = sector half-angle (radians)
 //   _UV     sprite rect inside _MainTex (x, y, width, height in 0..1)
 Shader "Survivor/InstancedShape"
 {
@@ -66,16 +67,21 @@ Shader "Survivor/InstancedShape"
                 float kind = i.shape.x;
                 float isRect = step(0.5, kind) * step(kind, 1.5);
                 float isRing = step(1.5, kind) * step(kind, 2.5);
-                float isSprite = step(2.5, kind);
+                float isSprite = step(2.5, kind) * step(kind, 3.5);
+                float isSector = step(3.5, kind);
 
                 float d = length(i.uv);
                 float aa = max(fwidth(d), 0.001);
                 float circle = 1.0 - smoothstep(1.0 - aa, 1.0, d);
                 float ring = circle * smoothstep(i.shape.y - aa, i.shape.y, d);
-                float alpha = lerp(lerp(circle, ring, isRing), 1.0, isRect);
+                // Sector: the ring part whose angle from +x is within the half-angle (soft edge).
+                float ang = abs(atan2(i.uv.y, i.uv.x));
+                float angAa = max(fwidth(ang), 0.002);
+                float sector = circle * smoothstep(i.shape.y - aa, i.shape.y, d) * (1.0 - smoothstep(i.shape.w - angAa, i.shape.w, ang));
+                float alpha = lerp(lerp(lerp(circle, ring, isRing), 1.0, isRect), sector, isSector);
 
                 // Darken circle edges a little so overlapping enemies stay readable.
-                float shade = lerp(lerp(1.0, 0.72, smoothstep(0.75, 1.0, d)), 1.0, max(isRect, isRing));
+                float shade = lerp(lerp(1.0, 0.72, smoothstep(0.75, 1.0, d)), 1.0, max(max(isRect, isRing), isSector));
                 float4 shapeColor = float4(i.color.rgb * shade, i.color.a * alpha);
 
                 float4 spriteColor = tex2D(_MainTex, i.texUv) * i.color;

@@ -24,6 +24,11 @@ namespace Survivor
             builder.RegisterInstance(EnemyDropSettings.LoadOrDefault());
             builder.RegisterInstance(PlayerTuning.LoadOrDefault());
             builder.RegisterInstance(GunSettings.LoadOrDefault());
+            builder.RegisterInstance(SpawnTimeline.LoadOrDefault());
+            builder.RegisterInstance(BossSettings.LoadOrDefault());
+            builder.RegisterInstance(BossStats.LoadOrDefault());
+            builder.RegisterInstance(EnemyStats.LoadOrDefault());
+            builder.RegisterInstance(EnemySettings.LoadOrDefault());
             builder.Register<AudioService>(Lifetime.Singleton);
             builder.Register<InputService>(Lifetime.Singleton);
             builder.Register<HapticsService>(Lifetime.Singleton);
@@ -40,6 +45,9 @@ namespace Survivor
             builder.Register<BossArenaSystem>(Lifetime.Singleton);
             builder.Register<BossSkillSystem>(Lifetime.Singleton);
             builder.Register<SwarmSystem>(Lifetime.Singleton);
+            builder.Register<EnemyBulletSystem>(Lifetime.Singleton);
+            builder.Register<EliteSystem>(Lifetime.Singleton);
+            builder.Register<TimelineSystem>(Lifetime.Singleton);
             builder.Register<ProjectileSystem>(Lifetime.Singleton);
             builder.Register<GemSystem>(Lifetime.Singleton);
             builder.Register<PickupSystem>(Lifetime.Singleton);

@@ -7,12 +7,12 @@ namespace Survivor
     public sealed class DamageNumberSystem
     {
         const int MaxAlive = 400;
-        const float Lifetime = 0.6f;
 
         readonly DebugSettings debug;
 
         int count;
         readonly Vector2[] position = new Vector2[MaxAlive];
+        readonly Vector2[] velocity = new Vector2[MaxAlive];
         readonly int[] value = new int[MaxAlive];
         readonly float[] age = new float[MaxAlive];
         readonly byte[] kind = new byte[MaxAlive]; // KindNormal, KindBig (boss), KindHurt (the hero lost HP)
@@ -20,11 +20,13 @@ namespace Survivor
 
         // Hero damage color and size come from PlayerTuning (Assets/Resources/PlayerTuning.asset), live-tunable.
         readonly PlayerTuning tuning;
+        readonly BossSettings boss;
 
-        public DamageNumberSystem(DebugSettings debug, PlayerTuning tuning)
+        public DamageNumberSystem(DebugSettings debug, PlayerTuning tuning, BossSettings boss)
         {
             this.debug = debug;
             this.tuning = tuning;
+            this.boss = boss;
         }
 
         public void Spawn(Vector2 at, float amount, bool isBig = false)
@@ -40,7 +42,14 @@ namespace Survivor
         {
             if (count >= MaxAlive) return;
             var i = count++;
-            position[i] = at + new Vector2(UnityEngine.Random.Range(-0.2f, 0.2f), 0.3f);
+            // Appear somewhere in the fan above the hit and fly outward along the same direction.
+            var half = tuning.NumberSpreadDegrees * 0.5f;
+            var angle = (90f + UnityEngine.Random.Range(-half, half)) * Mathf.Deg2Rad;
+            var dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            var dist = tuning.NumberSpawnRadius * Mathf.Sqrt(UnityEngine.Random.value); // even spread over the area
+            position[i] = at + new Vector2(0f, tuning.NumberStartLift) + dir * dist;
+            velocity[i] = dir * tuning.NumberFlySpeed * (numberKind == KindHurt ? tuning.HurtNumberSpeedScale : 1f)
+                          * UnityEngine.Random.Range(0.85f, 1.15f);
             value[i] = Mathf.Max(1, Mathf.RoundToInt(amount));
             age[i] = 0f;
             kind[i] = numberKind;
@@ -48,13 +57,17 @@ namespace Survivor
 
         public void Tick(float dt)
         {
+            var lifetime = tuning.NumberLifetime;
+            var slow = tuning.NumberFlyDrag > 0f ? Mathf.Exp(-tuning.NumberFlyDrag * dt) : 1f;
             for (var i = count - 1; i >= 0; i--)
             {
                 age[i] += dt;
-                position[i] += new Vector2(0f, (kind[i] == KindHurt ? 0.8f : 1.2f) * dt);
-                if (age[i] < Lifetime) continue;
+                position[i] += velocity[i] * dt;
+                velocity[i] *= slow;
+                if (age[i] < lifetime) continue;
                 var last = --count;
                 position[i] = position[last];
+                velocity[i] = velocity[last];
                 value[i] = value[last];
                 age[i] = age[last];
                 kind[i] = kind[last];
@@ -77,11 +90,11 @@ namespace Survivor
                     v /= 10;
                 } while (v > 0 && n < digits.Length);
 
-                var t = age[i] / Lifetime;
-                var scale = kind[i] == KindHurt ? tuning.HurtNumberScale : kind[i] == KindBig ? tuning.BossNumberScale : tuning.EnemyNumberScale;
+                var t = age[i] / Mathf.Max(0.01f, tuning.NumberLifetime);
+                var scale = kind[i] == KindHurt ? tuning.HurtNumberScale : kind[i] == KindBig ? boss.NumberScale : tuning.EnemyNumberScale;
                 var height = tuning.NumberBaseHeight * scale * (t < 0.15f ? 1f + (0.15f - t) * 3f : 1f); // small pop-in
                 var width = height * aspect * 0.8f; // letters overlap their outline a little
-                var color = kind[i] == KindHurt ? tuning.HurtNumberColor : kind[i] == KindBig ? tuning.BossNumberColor : tuning.EnemyNumberColor;
+                var color = kind[i] == KindHurt ? tuning.HurtNumberColor : kind[i] == KindBig ? boss.NumberColor : tuning.EnemyNumberColor;
                 color.a = t < 0.7f ? 1f : 1f - (t - 0.7f) / 0.3f;
 
                 var startX = position[i].x - (n - 1) * width / 2f;

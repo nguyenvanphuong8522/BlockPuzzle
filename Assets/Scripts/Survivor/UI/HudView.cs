@@ -60,25 +60,26 @@ namespace Survivor
         [SerializeField] VirtualJoystick joystick;
 
         [Header("Texts")]
-        [SerializeField] string levelFormat = "Cấp {0}";
-        [SerializeField] string killFormat = "Hạ gục: {0}";
+        // Texts: Localization.csv (hud.level, hud.kills, hud.boss_warning_sub).
         [Tooltip("{0} = seconds left before the boss appears.")]
-        [SerializeField] string bossWarningFormat = "Boss xuất hiện sau {0} giây!";
 
         readonly List<IDisposable> subscriptions = new List<IDisposable>();
         PlayerProgress progress;
+        GameStats gameStats;
         int shownSeconds = -1;
         int shownBossSeconds = -1;
         float warningShownAt = -1f;
         PlayerTuning tuning;
+        BossSettings boss;
 
         public event Action PauseClicked;
 
         [Inject]
         public void Construct(InputService input, PlayerProgress playerProgress, GameStats stats, PlayerTuning playerTuning,
-            SpriteCatalog sprites, GameConfig config)
+            SpriteCatalog sprites, GameConfig config, BossSettings bossSettings)
         {
             tuning = playerTuning;
+            boss = bossSettings;
             if (bossIcon == null && config.BossType < sprites.Enemies.Length && sprites.Enemies[config.BossType] is { IsEmpty: false } art)
                 bossIcon = art.Frames[0];
             foreach (var image in new[] { bossBarIcon, bossCountdownIcon }) SetIcon(image);
@@ -87,6 +88,7 @@ namespace Survivor
             if (bossWarning != null) bossWarning.gameObject.SetActive(false);
             if (swarmWarning != null) swarmWarning.gameObject.SetActive(false);
             progress = playerProgress;
+            gameStats = stats;
             if (EventSystem.current == null)
                 new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
 
@@ -96,8 +98,16 @@ namespace Survivor
 
             subscriptions.Add(progress.Xp.Subscribe(_ => RefreshXp()));
             subscriptions.Add(progress.XpToNext.Subscribe(_ => RefreshXp()));
-            subscriptions.Add(progress.Level.Subscribe(l => levelText.text = string.Format(levelFormat, l)));
-            subscriptions.Add(stats.Kills.Subscribe(k => killText.text = string.Format(killFormat, k)));
+            subscriptions.Add(progress.Level.Subscribe(_ => RefreshTexts()));
+            subscriptions.Add(stats.Kills.Subscribe(_ => RefreshTexts()));
+            Loc.Changed += RefreshTexts;
+        }
+
+        // Level and kill labels (also when the language changes).
+        void RefreshTexts()
+        {
+            if (levelText != null) levelText.text = Loc.Format("hud.level", progress.Level.Value);
+            if (killText != null) killText.text = Loc.Format("hud.kills", gameStats.Kills.Value);
         }
 
         void RefreshXp() =>
@@ -184,7 +194,7 @@ namespace Survivor
             }
 
             if (bossWarning == null) return;
-            var warn = visible && tuning != null && secondsLeft <= tuning.BossWarningSeconds;
+            var warn = visible && boss != null && secondsLeft <= boss.WarningSeconds;
             if (bossWarning.gameObject.activeSelf != warn)
             {
                 bossWarning.gameObject.SetActive(warn);
@@ -193,7 +203,7 @@ namespace Survivor
             if (!warn) return;
 
             if (bossWarningText != null)
-                bossWarningText.text = string.Format(bossWarningFormat, Mathf.CeilToInt(secondsLeft));
+                bossWarningText.text = Loc.Format("hud.boss_warning_sub", Mathf.CeilToInt(secondsLeft));
             // Pops in, then blinks.
             var age = Time.unscaledTime - warningShownAt;
             var pop = age < 0.25f ? Mathf.Lerp(1.6f, 1f, age / 0.25f) : 1f;
@@ -206,6 +216,7 @@ namespace Survivor
 
         void OnDestroy()
         {
+            Loc.Changed -= RefreshTexts;
             foreach (var s in subscriptions) s.Dispose();
             subscriptions.Clear();
         }

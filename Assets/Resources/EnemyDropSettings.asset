@@ -87,6 +87,17 @@ MonoBehaviour:
     - Type: 0
       ChancePercent: 100
       Amount: 60
+  - Name: "M\u1EF1c Phun M\u1EF1c"
+    Rewards:
+    - Type: 0
+      ChancePercent: 100
+      Amount: 3
+    - Type: 2
+      ChancePercent: 0.15
+      Amount: 1
+    - Type: 1
+      ChancePercent: 0.4
+      Amount: 1
   HealSize: 0.95
   MagnetSize: 0.9
   ChestSize: 0.9

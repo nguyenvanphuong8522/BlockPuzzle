@@ -165,8 +165,10 @@ public static class ArtSetup
         catalog.Monk = new SpriteAnim { Frames = Frames("companion_monk_"), Fps = 3f };
         catalog.Drunk = new SpriteAnim { Frames = Frames("companion_drunk_"), Fps = 4f };
         catalog.FireBottle = Single("projectile_firebottle");
+        catalog.InkBlob = Single("projectile_ink");
         catalog.Fire = new SpriteAnim { Frames = Frames("fx_fire_"), Fps = 12f };
         catalog.Slash = new SpriteAnim { Frames = Frames("fx_slash_"), Fps = 20f };
+        catalog.BossClaw = new SpriteAnim { Frames = Frames("fx_bossclaw_"), Fps = 1f };
         catalog.Turtle = new SpriteAnim { Frames = Frames("companion_turtle_"), Fps = 6f };
         catalog.MagicOrb = new SpriteAnim { Frames = Frames("projectile_orb_"), Fps = 10f };
         catalog.Blast = new SpriteAnim { Frames = Frames("fx_blast_"), Fps = 12f };

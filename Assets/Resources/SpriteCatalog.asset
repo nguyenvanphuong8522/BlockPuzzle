@@ -59,6 +59,11 @@ MonoBehaviour:
     - {fileID: 21300000, guid: d025e2ab289583843b3e41b83c758e5b, type: 3}
     - {fileID: 21300000, guid: e0789538b10a30e4097d258f55936df9, type: 3}
     Fps: 5
+  - Frames:
+    - {fileID: 21300000, guid: 27aa3475b1ae6b24eb924bfa6279415d, type: 3}
+    - {fileID: 21300000, guid: b7d7d5ef1a1f69a4cb02131cf35e0578, type: 3}
+    - {fileID: 21300000, guid: d1e23005404e2c34ca786c30a554e2df, type: 3}
+    Fps: 5
   Gun: {fileID: 21300000, guid: f3e8bf44a9b0d9641b8b9191b69f9a2f, type: 3}
   MuzzleFlash:
     Frames:
@@ -161,6 +166,12 @@ MonoBehaviour:
     - {fileID: 21300000, guid: fbb9e0fa8211c24438bd96d84a6df53c, type: 3}
     - {fileID: 21300000, guid: f7162a30ea013724d820df27ab575c12, type: 3}
     Fps: 12
+  InkBlob: {fileID: 21300000, guid: e163080113a1c0f46bfdd79ce738f216, type: 3}
+  BossClaw:
+    Frames:
+    - {fileID: 21300000, guid: 15ce0d1c63fb8ec4fa73159ffc2d42ba, type: 3}
+    - {fileID: 21300000, guid: 3e63158acd8e6074981411b5b04f44e8, type: 3}
+    Fps: 1
   Slash:
     Frames:
     - {fileID: 21300000, guid: 8a7be4d2a861134429071a08ec0db7fa, type: 3}

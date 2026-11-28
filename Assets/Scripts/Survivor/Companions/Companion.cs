@@ -55,8 +55,8 @@ namespace Survivor
 
         protected Companion(CompanionData data) => Data = data;
 
-        public string Name => Data.DisplayName;
-        public string Description => Data.Description;
+        public string Name => Data.LocalizedName;
+        public string Description => Data.LocalizedDescription;
         public Color Tint => Data.Tint;
 
         // Text on the upgrade card for the next level.

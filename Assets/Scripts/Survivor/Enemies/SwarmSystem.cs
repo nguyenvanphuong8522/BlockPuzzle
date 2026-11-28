@@ -4,7 +4,7 @@ namespace Survivor
 {
     // Swarm event: every Swarm Interval seconds a flock of enemies flies in a straight line from one side, right
     // across the hero, to the other side, and leaves the map. Swarm Warning Time seconds before, the HUD shows a
-    // warning arrow on the edge of the screen it comes from. Numbers: PlayerTuning "Đàn quái bay ngang".
+    // warning arrow on the edge of the screen it comes from. Numbers: EnemySettings "Đàn quái bay ngang".
     // No swarm during a boss fight (it waits until the boss is dead).
     public sealed class SwarmSystem
     {
@@ -12,7 +12,8 @@ namespace Survivor
         readonly Player player;
         readonly GameStats stats;
         readonly GameConfig config;
-        readonly PlayerTuning tuning;
+        readonly EnemySettings tuning;
+        readonly EnemyStats enemyStats;
         readonly AudioService audio;
 
         float nextTime;
@@ -22,11 +23,11 @@ namespace Survivor
         Vector2 aimOffset;
 
         // For the HUD: where the coming swarm is (unit vector from the hero toward it) and how soon (0..1, 1 = now).
-        public bool WarningActive => warning;
+        public bool WarningActive => warning && tuning.SwarmShowWarning; // HUD arrow (can be turned off)
         public Vector2 WarningDirection => -flyDir;
         public float WarningProgress => tuning.SwarmWarningTime > 0f ? 1f - warningLeft / tuning.SwarmWarningTime : 1f;
 
-        public SwarmSystem(EnemySystem enemies, Player player, GameStats stats, GameConfig config, PlayerTuning tuning,
+        public SwarmSystem(EnemySystem enemies, Player player, GameStats stats, GameConfig config, EnemySettings tuning, EnemyStats enemyStats,
             AudioService audio)
         {
             this.enemies = enemies;
@@ -34,6 +35,7 @@ namespace Survivor
             this.stats = stats;
             this.config = config;
             this.tuning = tuning;
+            this.enemyStats = enemyStats;
             this.audio = audio;
             nextTime = tuning.SwarmFirstTime;
         }
@@ -85,7 +87,7 @@ namespace Survivor
             if (config.Enemies[type].IsBoss) type = 0;
             var minutes = stats.Elapsed / 60f;
             var count = tuning.SwarmCount + Mathf.RoundToInt(minutes * tuning.SwarmCountPerMinute);
-            var hp = (1f + minutes * config.EnemyHpGrowthPerMinute) * tuning.SwarmHpMultiplier;
+            var hp = (1f + minutes * config.EnemyHpGrowthPerMinute) * enemyStats.SwarmHpMultiplier;
 
             // Start just outside the screen, behind the hero along the flight path; fly twice that far, then leave.
             var startDistance = enemies.SpawnRingRadius() + 1f;

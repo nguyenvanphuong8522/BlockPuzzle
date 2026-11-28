@@ -13,14 +13,16 @@ namespace Survivor
         readonly GemSystem gems;
         readonly PickupSystem pickups;
         readonly Player player;
-        readonly PlayerTuning tuning;
+        readonly EnemySettings tuning;
+        readonly BossSettings boss;
         readonly IDisposable subscription;
 
         public RewardDropSystem(EnemyDropSettings settings, GemSystem gems, PickupSystem pickups, Player player,
-            PlayerTuning tuning, ISubscriber<EnemyKilledEvent> killed)
+            EnemySettings tuning, ISubscriber<EnemyKilledEvent> killed, BossSettings boss)
         {
             this.player = player;
             this.tuning = tuning;
+            this.boss = boss;
             this.settings = settings;
             this.gems = gems;
             this.pickups = pickups;
@@ -34,6 +36,17 @@ namespace Survivor
                 if (reward == null || UnityEngine.Random.value * 100f >= reward.ChancePercent) continue;
                 Give(reward, e.Position, e.IsBoss);
             }
+            if (e.IsElite) GiveEliteRewards(e.Position);
+        }
+
+        // Elite bonus (EnemySettings "Quái tinh anh: phần thưởng"): chest, a line of gems, maybe a drumstick.
+        void GiveEliteRewards(Vector2 at)
+        {
+            if (UnityEngine.Random.value * 100f < tuning.EliteChestChance) SpawnPickups(PickupKind.Chest, at, 1);
+            if (tuning.EliteBonusXp > 0)
+                gems.SpawnTrail(at, player.Position, tuning.EliteBonusXp, Mathf.Max(1, tuning.EliteBonusGems));
+            if (UnityEngine.Random.value * 100f < tuning.EliteHealChance)
+                SpawnPickups(PickupKind.Heal, at + UnityEngine.Random.insideUnitCircle.normalized * 0.8f, 1);
         }
 
         void Give(EnemyDropSettings.Reward reward, Vector2 at, bool fromBoss)
@@ -41,7 +54,7 @@ namespace Survivor
             switch (reward.Type)
             {
                 case RewardType.Gem:
-                    if (fromBoss) gems.SpawnTrail(at, player.Position, reward.Amount, tuning.BossTrailGems); // a line of gems
+                    if (fromBoss) gems.SpawnTrail(at, player.Position, reward.Amount, boss.TrailGems); // a line of gems
                     else gems.Spawn(at, reward.Amount); // one gem holding all the experience
                     break;
                 case RewardType.Heal:

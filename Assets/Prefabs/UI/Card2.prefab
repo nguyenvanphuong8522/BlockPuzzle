@@ -86,6 +86,7 @@ GameObject:
   - component: {fileID: 6919435756555672882}
   - component: {fileID: 5934082631821359602}
   - component: {fileID: 1471728037955681495}
+  - component: {fileID: 6890073378666863461}
   m_Layer: 0
   m_Name: Equals
   m_TagString: Untagged
@@ -212,6 +213,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6890073378666863461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1173289973863008143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3557899fdcebf4da123518a0662aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Survivor::Survivor.LocalizedFont
 --- !u!1 &1205567585755768946
 GameObject:
   m_ObjectHideFlags: 0
@@ -914,6 +927,7 @@ GameObject:
   - component: {fileID: 6185398659137793196}
   - component: {fileID: 1296662350093282406}
   - component: {fileID: 1966881480609489471}
+  - component: {fileID: 1805131076377654764}
   m_Layer: 0
   m_Name: Plus
   m_TagString: Untagged
@@ -1040,6 +1054,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1805131076377654764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3988968965077726538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3557899fdcebf4da123518a0662aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Survivor::Survivor.LocalizedFont
 --- !u!1 &4595512449036166061
 GameObject:
   m_ObjectHideFlags: 0
@@ -1126,6 +1152,7 @@ GameObject:
   - component: {fileID: 1644515356310381211}
   - component: {fileID: 1909751433977554398}
   - component: {fileID: 8731027112479711389}
+  - component: {fileID: 5439797683973453578}
   m_Layer: 0
   m_Name: Description
   m_TagString: Untagged
@@ -1252,6 +1279,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &5439797683973453578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4740912589488271916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3557899fdcebf4da123518a0662aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Survivor::Survivor.LocalizedFont
 --- !u!1 &5086994765199649693
 GameObject:
   m_ObjectHideFlags: 0
@@ -1828,6 +1867,7 @@ GameObject:
   - component: {fileID: 8224653218373664732}
   - component: {fileID: 1875561452834033920}
   - component: {fileID: 4748505966862162500}
+  - component: {fileID: 7408789818934407480}
   m_Layer: 0
   m_Name: Title
   m_TagString: Untagged
@@ -1954,6 +1994,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7408789818934407480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7023127886118451618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3557899fdcebf4da123518a0662aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Survivor::Survivor.LocalizedFont
 --- !u!1 &7179275635436336125
 GameObject:
   m_ObjectHideFlags: 0
@@ -1965,6 +2017,7 @@ GameObject:
   - component: {fileID: 3528623234952323901}
   - component: {fileID: 471232324593772037}
   - component: {fileID: 7499695124258424817}
+  - component: {fileID: 653414023462340914}
   m_Layer: 0
   m_Name: Badge
   m_TagString: Untagged
@@ -2091,6 +2144,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &653414023462340914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7179275635436336125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3557899fdcebf4da123518a0662aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Survivor::Survivor.LocalizedFont
 --- !u!1 &7299882517196441131
 GameObject:
   m_ObjectHideFlags: 0

@@ -37,12 +37,17 @@ namespace Survivor
         public abstract CompanionKind Kind { get; }
         public abstract Companion Create();
 
+        // Translated texts: Localization.csv "companion.<asset name>.name / .desc / .level2..5"; the fields above
+        // when a key is missing.
+        public string LocalizedName => Loc.Get($"companion.{name}.name", DisplayName);
+        public string LocalizedDescription => Loc.Get($"companion.{name}.desc", Description);
+
         // Card text for an upgrade to `level` (2..5).
         public string LevelText(int level)
         {
             var i = level - 2;
-            if (LevelDescriptions == null || LevelDescriptions.Length == 0) return Description;
-            return LevelDescriptions[Mathf.Clamp(i, 0, LevelDescriptions.Length - 1)];
+            if (LevelDescriptions == null || LevelDescriptions.Length == 0) return LocalizedDescription;
+            return Loc.Get($"companion.{name}.level{level}", LevelDescriptions[Mathf.Clamp(i, 0, LevelDescriptions.Length - 1)]);
         }
     }
 

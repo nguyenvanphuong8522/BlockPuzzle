@@ -78,7 +78,10 @@ namespace Survivor
             title.text = d.Title;
             title.color = theme.TitleColor;
             if (dim != null) dim.color = theme.DimColor;
-            if (hint != null && !string.IsNullOrEmpty(theme.Hint)) hint.text = theme.Hint;
+            // Hint text per screen: Localization.csv (levelup.hint_*); Theme.Hint is no longer used.
+            if (hint != null)
+                hint.text = Loc.Get(d.Kind == ChoiceKind.Item ? "levelup.hint_items"
+                    : d.Kind == ChoiceKind.Chest ? "levelup.hint_chest" : "levelup.hint_companions");
 
             var count = Mathf.Min(d.Options.Count, cards.Length);
             var start = cardsCenter - cardStep * ((count - 1) / 2f);

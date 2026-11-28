@@ -72,6 +72,11 @@ namespace Survivor
 
         public bool SubmitPressed => submit != null && submit.WasPressedThisFrame();
 
+        // Back / close: gamepad East button (B / Circle), Backspace on keyboard.
+        public bool CancelPressed =>
+            (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame) ||
+            (Keyboard.current != null && Keyboard.current.backspaceKey.wasPressedThisFrame);
+
         // 0, 1, 2 when the player presses 1/2/3 this frame, otherwise -1.
         public int UpgradeKeyPressed()
         {
